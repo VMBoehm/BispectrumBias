@@ -290,11 +290,11 @@ class CosmoData():
 		print "computing distances, derived parameters..." 
 
 		
-		self.z              = z
+		self.z                = z
 
-		self.cosmo          = cosmo
+		self.cosmo            = cosmo
 		
-		closmo 					 = Class()
+		closmo                = Class()
 		closmo.set(self.cosmo.class_params)
 		
 		closmo.compute()

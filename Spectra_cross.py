@@ -25,6 +25,7 @@ pl.ioff()
 from classy import Class
 import Cosmology as C
 
+from N32biasIntegrals import I0, I1, I2
 #from BispectrumIntegrals import integrate_bispec
 import os
 import pickle
@@ -58,14 +59,14 @@ class Bispectra():
         #for comoving angular diameter distance
         self.chi        = self.data.chi(z)
         self.chi_cmb    = self.data.chi(z_cmb)
-        print "chi_cmb: %f"%self.chi_cmb
+        print "chi_cmb [Mpc]: %f"%self.chi_cmb
         self.z          = z
         assert((data.z==self.z).all())
   
-        self.ell_min    = min(ell)
-        self.ell_max    = max(ell)
+        self.ell_min    = min(ell[::3])
+        self.ell_max    = max(ell[::3])
         self.bin_num    = len(ell)
-        self.len_bi     = self.bin_num/3.
+        self.len_bi     = self.bin_num/3
         print "ell min: ", self.ell_min
         print "ell max: ", self.ell_max
         print "bispectrum size: ", self.len_bi
@@ -146,18 +147,17 @@ class Bispectra():
        
        
         #for Limber matter power spectrum 
-        self.pow_ell     = np.linspace(min(self.ell)/10.,max(self.ell)+1,1000)
+        self.pow_ell     = np.linspace(min(self.ell)/10.,max(self.ell)+1.,1000)
         #number of unique l values
         self.powspec_len = np.int(len(self.pow_ell))
 
         #k=ell/chi, ndarray with ell along rows, chi along columns
-        ell     = np.sqrt(self.ell*(self.ell+np.ones(len(self.ell))))
-        self.k  = np.outer(1./self.chi,ell)
+        #ell     = np.sqrt(self.ell*(self.ell+np.ones(len(self.ell))))
+        self.k  = np.outer(1./self.chi,self.ell)
 	 
         		
-        kmax    = max(ell)/min(self.chi)
-        kmin    = min(ell)/max(self.chi)
-        del ell
+        kmax    = max(self.pow_ell)/min(self.chi)
+        kmin    = min(self.pow_ell)/max(self.chi)
         				
         print "kmin and kmax from ell/chi", kmin,kmax
 
@@ -226,7 +226,7 @@ class Bispectra():
         bi_psi  = np.ndarray((len(self.z),self.len_bi))
      
         #more exact Limber, k for power spectrum
-        ell     = np.sqrt(self.pow_ell*(self.pow_ell+np.ones(len(self.pow_ell))))
+        #ell     = np.sqrt(self.pow_ell*(self.pow_ell+np.ones(len(self.pow_ell))))
         
         if self.nl:
             cosmo_pk = self.closmo_nl.pk
@@ -240,7 +240,7 @@ class Bispectra():
             z_i    = self.z[i]
             k_i    = self.k[i]
             
-            k_spec = (ell/self.chi[i])
+            k_spec = (self.pow_ell/self.chi[i])
             spec=[]
 
             for j in np.arange(0,len(k_spec)):
@@ -260,6 +260,7 @@ class Bispectra():
             bi_psi[i] = bi_delta_chi*self.delta2psi(k_i,len(bi_delta_chi),i)
                    
         self.bi_psi=np.transpose(bi_psi) #row is now a function of chi
+        del self.k
         
         
 
@@ -279,16 +280,16 @@ class Bispectra():
         B+=2.*hf.get_F2_kernel(k2,k3,self.ang23)*np.exp(spec(np.log(k2)))*np.exp(spec(np.log(k3)))
         B+=2.*hf.get_F2_kernel(k1,k3,self.ang13)*np.exp(spec(np.log(k3)))*np.exp(spec(np.log(k1)))
         
-        index   =np.where(np.any([(k1>self.kmax),(k1<self.kmin)],axis=0))
-        B[index]=0.
-        index   =np.where(np.any([(k2>self.kmax),(k2<self.kmin)],axis=0))
-        B[index]=0.
-        index   =np.where(np.any([(k3>self.kmax),(k3<self.kmin)],axis=0))
-        B[index]=0.
+#        index   =np.where(np.any([(k1>self.kmax),(k1<self.kmin)],axis=0))
+#        B[index]=0.
+#        index   =np.where(np.any([(k2>self.kmax),(k2<self.kmin)],axis=0))
+#        B[index]=0.
+#        index   =np.where(np.any([(k3>self.kmax),(k3<self.kmin)],axis=0))
+#        B[index]=0.
         						
         return B 
 
-       
+                                     
     def bispectrum_delta_fit(self,spectrum,k_spec,k,i):
         """ returns the bispectrum of the fractional overdensity today (a=1) i.e. B^0, the lowest order in non-lin PT
         *spectrum:   power spectrum for all ks in k_aux
@@ -363,9 +364,9 @@ class Bispectra():
         
 
         W_lens  = -2.*(self.chi_cmb-self.chi)/(self.chi_cmb*self.chi)
-        W_gal   = self.dn(self.z)*self.data.H(self.z)/self.norm
-        
+
         if self.cross:
+            W_gal   = self.dn(self.z)*self.data.H(self.z)/self.norm
             kernel  = W_gal*W_lens**2/(self.chi**4)
         else:
             kernel  = W_lens**3/(self.chi**4)
@@ -385,7 +386,7 @@ class Bispectra():
 if __name__ == "__main__":  
     
     "---begin settings---"
-    cross       = True       
+    cross       = False       
 
     if cross:   
         dn_filename = 'dndz_LSST_i27_SN5_10y'
@@ -408,8 +409,8 @@ if __name__ == "__main__":
     len_ang     = 163
 
     #ell range (for L and l)
-    ell_min     = 1.
-    ell_max     = 5000.
+    ell_min     = 0.1
+    ell_max     = 8000.
     
     #tag for L-sampling
     ell_type    ="linlog"
@@ -417,10 +418,11 @@ if __name__ == "__main__":
     #regularizing theta bounds
     Delta_theta = 1e-2
     
-    nl          = False
+    nl          = True
     if nl==False:
         spectrum_config='_linPs'
-    
+    else:
+        spectrum_config='_lnPs'
     #path, where to store results
     path            = "/afs/mpa/temp/vboehm/spectra/"
     
@@ -450,25 +452,21 @@ if __name__ == "__main__":
         z       = np.exp(np.linspace(np.log(min(gz)),np.log(z_cmb-0.01),bin_num))
         dn      = interp1d(gz, dgn, kind='linear')
         norm    = simps(dn(z),z)
-#        pl.semilogx(z,dn(z))
-#        pl.semilogx(gz,dgn)
-#        pl.show()
-        
-        
+               
     else:
         dn = None
+        norm = None
     #cosmo dependent functions
     data    = C.CosmoData(cosmo,z)
-
+    print ell_min
     #list of all triangles and their sides (loading is faster than recomputing)
-    filename=path+"ell_%s_%d_%d_lenL%d_lenang%d_%s.pkl"%(ell_type,ell_min,ell_max,len_L,len_ang,str(Delta_theta))
-    filename_ang=path+"ang_%s_%d_%d_lenL%d_lenang%d_%s.pkl"%(ell_type,ell_min,ell_max,len_L,len_ang,str(Delta_theta))
-        
+    filename=path+"ell_%s_%.0e_%d_lenL%d_lenang%d_%.0e.pkl"%(ell_type,ell_min,ell_max,len_L,len_ang,Delta_theta)
+    filename_ang=path+"ang_%s_%.0e_%d_lenL%d_lenang%d_%.0e.pkl"%(ell_type,ell_min,ell_max,len_L,len_ang,Delta_theta)
+    
     print filename
         
     try:
         ell=pickle.load(open(filename))
-        ell=ell[0]
         angles=pickle.load(open(filename_ang))
         ang12=angles[0]
         ang23=angles[1]
@@ -483,9 +481,7 @@ if __name__ == "__main__":
             Lb        = np.exp(np.linspace(np.log(50),np.log(ell_max),len_L-48))
             L         = np.append(La,Lb)
             #l 
-            la        = np.linspace(ell_min,50,48,endpoint=False)
-            lb        = np.exp(np.linspace(np.log(50),np.log(ell_max),len_L-48))
-            l         = np.append(la,lb)
+            l         = L  
         elif ell_type=="lin":
             #L = |-L|, equally spaced in lin at low L and in log at high L 
             L         = np.linspace(ell_min,ell_max)
@@ -493,8 +489,6 @@ if __name__ == "__main__":
         else:
             raise Exception("ell type not consistent with any sampling method")
             
-        #print "L", L
-        #print "l", l
         # angle, cut edges to avoid numerical instabilities
         theta   = np.linspace(Delta_theta,2*np.pi-Delta_theta, len_ang)
         cosgam  = np.cos(theta) #Ldotl/Ll
@@ -508,14 +502,13 @@ if __name__ == "__main__":
             for j in range(len_L):
                 for k in range(len_ang):
                     Ll=hf.coslaw_side(L[i],l[j],cosgam[k]) #|L-l|=L**2+l**2-2Ldotl
-                    if Ll<1e-5:
-                        Ll = 1e-5
+                    if Ll<1e-6:
+                        Ll = 1e-6
                     ell+=[L[i]]+[Ll]+[l[j]]
-                    mLdotl=-L[i]*l[j]*cosgam[k]
-                    Ldotl = L[i]*l[j]*cosgam[k]
+                    Ldotl = L[i]*l[j]*cosgam[k]                    
                     Ldotl2=-L[i]**2.+Ldotl #-L*(L-l)
                     ldotl2=-l[j]**2.+Ldotl # l(L-l)
-                    ang13+=[(mLdotl/L[i]/l[j])]
+                    ang13+=[(-Ldotl/L[i]/l[j])]
                     ang12+=[(Ldotl2/L[i]/Ll)]
                     ang23+=[(ldotl2/l[j]/Ll)]
                     angmu+=[theta[k]]
@@ -528,8 +521,7 @@ if __name__ == "__main__":
         
       
         pickle.dump([ang12,ang23,ang13,angmu],open(filename_ang, 'w'))
-        pickle.dump([ell],open(filename, 'w'))
-    
+        pickle.dump(ell,open(filename, 'w'))
 
     print "ell_type: %s"%ell_type
 
@@ -551,6 +543,20 @@ if __name__ == "__main__":
 
     bs      = Bispectra(cosmo,data,ell,z,config,ang12,ang23,ang13,path,z_cmb, nl,B_fit,dn,norm)
     bs()
+    
+    mean_bispectrum=np.mean(bs.bi_phi)
+
+    Int0 = I0(bs.bi_phi/mean_bispectrum, bs.ell, angmu ,len_L*len_ang, len_L, squeezed=False, fullsky=False)*mean_bispectrum
+    
+    Int1 = I1(bs.bi_phi/mean_bispectrum, bs.ell, angmu ,len_L*len_ang, len_L, squeezed=False, fullsky=False)*mean_bispectrum            
+        
+    Int2 = I2(bs.bi_phi/mean_bispectrum, bs.ell, angmu ,len_L*len_ang, len_L, squeezed=False, fullsky=False)*mean_bispectrum
+ 
+    L=np.unique(ell[0::3])
+
+    pickle.dump([params,Limber,L,Int0,Int1,Int2],open('I0I1I2%s.pkl'%(config),'w'))
+
+
 #    
 #    if post_born:
 #        bs.set_up()
