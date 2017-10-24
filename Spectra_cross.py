@@ -38,7 +38,7 @@ class Bispectra():
         - newtonian potential bi_psi (function of chi)
         - lensing potential bi_phi
     """
-    def __init__(self,cosmo,data, ell,z,config,ang12,ang23,ang13, path, z_cmb, nonlin=False, B_fit=False, dn=None,norm=None,k_min=None,k_max=None):
+    def __init__(self,cosmo,data, ell,z,config,ang12,ang23,ang13, path, z_cmb, nonlin=False, B_fit=False, dndz=None,norm=None,k_min=None,k_max=None):
         """
         initializes/computes all three bispectra
         * cosmo:    instance of class Cosmology
@@ -83,11 +83,11 @@ class Bispectra():
         self.ang23      = ang23
         self.ang13      = ang13
         
-        if dn ==None:
+        if dndz ==None:
             self.cross=False
         else:
             self.cross=True
-            self.dn = dn
+            self.dndz = dndz
             self.norm=norm
         
         self.nl         = nonlin
@@ -116,16 +116,17 @@ class Bispectra():
             print "loading file %s"%self.filename												
         except:
             print "%s not found \n Computing Bispectrum of Lensing Potential..."%self.filename
-            self.filename2=self.path+"bispec_psi_%s_lmin%d-lmax%d-lenBi%d"%(self.config,self.ell_min,self.ell_max,self.len_bi)
+            self.filename2=self.path+"bispec_psi_linlog_lnPs_Bfit_Planck2013_TempLensCombined_lmin0-lmax8000-lenBi4330747.npy"#%(self.config,self.ell_min,self.ell_max,self.len_bi)
             try:
                 self.bi_psi=np.load(self.filename2)
             except:
                 print "%s not found \n Computing Bispectrum of Newtonian Potential..."%self.filename
                 
                 self.compute_Bispectrum_Psi()
-                #np.save(filename2+".npy",self.bi_psi)
+                np.save(self.filename2+".npy",self.bi_psi)
 
-            self.compute_Bispectrum_Phi()
+            self.compute_Bispectrum_Phi()            
+            
             np.save(self.filename+".npy",self.bi_phi)
                 
         try:
@@ -257,7 +258,7 @@ class Bispectra():
             else:
                 raise ValueError('Something went wrong with matter bispectrum specifications')
 																				
-            bi_psi[i] = bi_delta_chi*self.delta2psi(k_i,len(bi_delta_chi),i)
+            bi_psi[i] = bi_delta_chi#*self.delta2psi(k_i,len(bi_delta_chi),i)
                    
         self.bi_psi=np.transpose(bi_psi) #row is now a function of chi
         del self.k
@@ -345,8 +346,12 @@ class Bispectra():
         * bi_spec:  if False, equivalent operation for power spectrum is performed
         """
         if bi_spec:
-            alpha       = np.ones(shape)*self.data.Poisson_prefac[i]**3
-            alpha      *= 1./(k[::3]*k[1::3]*k[2::3])**2
+            if self.cross:
+                alpha       = np.ones(shape)*self.data.Poisson_prefac[i]**2
+                alpha      *= 1./(k[::3]*k[2::3])**2               
+            else:
+                alpha       = np.ones(shape)*self.data.Poisson_prefac[i]**3
+                alpha      *= 1./(k[::3]*k[1::3]*k[2::3])**2
         else:
             alpha       = np.ones(shape)*self.data.Poisson_prefac[i]**2
             alpha      *= 1./(k)**4
@@ -358,35 +363,58 @@ class Bispectra():
         Computes the bispectrum by integration over chi for ever triangle
         """
         if self.set_stage==False:
-            self.set_up(self.ell)
+            self.set_up()
         
         index   = np.arange(self.len_bi)
         
 
-        W_lens  = -2.*(self.chi_cmb-self.chi)/(self.chi_cmb*self.chi)
-
+        W_lens  = ((self.chi_cmb-self.chi)/(self.chi_cmb*self.chi))*(1./self.data.a)
+        dchidz  = self.data.dchidz(self.z)
+        dzdchi  = 1./dchidz
         if self.cross:
-            W_gal   = self.dn(self.z)*self.data.H(self.z)/self.norm
-            kernel  = W_gal*W_lens**2/(self.chi**4)
+            W_gal   = self.dndz(self.z)/self.norm
+            kernel  = W_gal*W_lens**2*dzdchi
         else:
-            kernel  = W_lens**3/(self.chi**4)
+            kernel  = W_lens**3*self.chi**2#*dchidz
+            
+        pl.figure()
+        pl.semilogx(self.z,kernel, ls='-')
+        pl.semilogx(self.z,W_lens**3*self.chi**2,ls='--')
+        pl.savefig('Kernel_comp.png')
 
         bi_phi=[]
         for j in index:
             integrand   = self.bi_psi[j]*kernel
             bi_phi+=[simps(integrand,self.chi)]
-        self.bi_phi=np.array(bi_phi)  
-
+        self.bi_phi=np.array(bi_phi)
+        
+        if self.cross:
+            fac=(self.data.prefacs/(self.ell[1::3]*self.ell[2::3]))**2
+            self.bi_phi*=fac
+        else:
+            fac=(self.data.prefacs)**3/(self.ell[1::3]*self.ell[2::3]*self.ell[0::3])**2
+            self.bi_phi*=fac
         return True
 
+    def PostBorn_Cross(chi,z,l):
         
+        chi_, l_ = np.meshgrid(chi,l)
+        k        = np.outer(l,1./chi)
+        
+        kernel = chi
+        
+        for ii in len(l):
+            res=cosmo_pk(k[ii],z_i)
+        
+        
+            
 
 
 """---- Choose you settings here ---"""
 if __name__ == "__main__":  
     
     "---begin settings---"
-    cross       = False       
+    cross       = True     
 
     if cross:   
         dn_filename = 'dndz_LSST_i27_SN5_10y'
@@ -450,11 +478,11 @@ if __name__ == "__main__":
         gz      = np.append(gz,z_cmb)
         dgn     = np.append(dgn,1e-13)
         z       = np.exp(np.linspace(np.log(min(gz)),np.log(z_cmb-0.01),bin_num))
-        dn      = interp1d(gz, dgn, kind='linear')
-        norm    = simps(dn(z),z)
+        dndz    = interp1d(gz, dgn, kind='linear')
+        norm    = simps(dndz(z),z)
                
     else:
-        dn = None
+        dndz = None
         norm = None
     #cosmo dependent functions
     data    = C.CosmoData(cosmo,z)
@@ -522,7 +550,7 @@ if __name__ == "__main__":
       
         pickle.dump([ang12,ang23,ang13,angmu],open(filename_ang, 'w'))
         pickle.dump(ell,open(filename, 'w'))
-
+    ell=np.asarray(ell)
     print "ell_type: %s"%ell_type
 
     if cross:
@@ -540,8 +568,11 @@ if __name__ == "__main__":
     print "config: %s"%config
         
     pickle.dump([cosmo.class_params],open('class_settings_%s.pkl'%config,'w'))
-
-    bs      = Bispectra(cosmo,data,ell,z,config,ang12,ang23,ang13,path,z_cmb, nl,B_fit,dn,norm)
+    
+    
+    fac=(data.prefacs)**3/(ell[1::3]*ell[2::3]*ell[0::3])**2
+    del fac
+    bs      = Bispectra(cosmo,data,ell,z,config,ang12,ang23,ang13,path,z_cmb, nl,B_fit,dndz,norm)
     bs()
     
     mean_bispectrum=np.mean(bs.bi_phi)

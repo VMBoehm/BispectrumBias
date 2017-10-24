@@ -336,7 +336,7 @@ class CosmoData():
         
 		self.Omega_m0       	= (cosmo_b['(.)rho_cdm'][-1]+cosmo_b['(.)rho_b'][-1])/(cosmo_b['(.)rho_crit'][-1])
 		
-		self.Poisson_prefac 	= self.Poisson_factor(cosmo)
+		self.prefacs       	= self.Poisson_factor()
   
   
 		print closmo.get_current_derived_parameters(['Neff'])
@@ -419,14 +419,21 @@ class CosmoData():
 		z=(1./a)-1.
 		return z
 	
-	def Poisson_factor(self,cosmo):
+	def Poisson_factor(self):
 		""" computes the proportionality constant of the Poisson equation """
 		
-		alpha= self.H_0**2.*self.Omega_m0/self.a/(const.LIGHT_SPEED**2)
+		alpha= self.H_0**2.*self.Omega_m0/(const.LIGHT_SPEED**2)
         
-		alpha*=-1.5
+		alpha*= 3.
 
 		return alpha
+  
+     	def dchidz(self,z):
+		""" dDcom/dz """
+		
+		result = const.LIGHT_SPEED/self.H(z)
+
+		return result
 		
 	def get_Cls(self,nl=False,lmax=8000):
 		

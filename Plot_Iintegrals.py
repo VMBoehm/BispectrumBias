@@ -14,7 +14,7 @@ import numpy as np
 #ell_file='ell_linlog_full_1e-4_1_8000_163_cut1e-4.pkl'
 #ang_file='ang_linlog_full_1e-4_1_8000_163_cut1e-4.pkl'
 #filename='bispec_phi_linlog_full_1e-4_linPSPlanck2013_TempLensCombined_0-16000-0-12992241.npy'
-config = 'linlog_linPs_Bfit_Planck2013_TempLensCombined'#'linlog_lnPs_Bfit_Planck2013_TempLensCombined'
+#'linlog_lnPs_Bfit_Planck2013_TempLensCombined'
 
 #ell     = pickle.load(open(path+ell_file,'r'))
 #ell     = ell[0]
@@ -35,12 +35,17 @@ config = 'linlog_linPs_Bfit_Planck2013_TempLensCombined'#'linlog_lnPs_Bfit_Planc
 #print L, len(L)
 #print Int0, len(Int0)
 #print Int2, len(Int1)
+config = 'linlog_lnPs_Bfit_Planck2013_TempLensCombined'
 params,Limber,L,Int0,Int1,Int2=pickle.load(open('I0I1I2%s.pkl'%(config),'r'))
-
+config = 'cross_g_linlog_lnPs_Bfit_Planck2013_TempLensCombined'
+params,Limber,L,Int01,Int11,Int21=pickle.load(open('I0I1I2%s.pkl'%(config),'r'))
 pl.figure()
 
-pl.plot(L,L**6*Int0,ls='-',color='b')
-pl.plot(L,L**6*Int2,ls='-',color='g')
+pl.plot(L,L**6*Int0,ls='--',color='b',label=r'$L^6$ I0 N32')
+pl.plot(L,L**6*Int2,ls='--',color='g',label=r'$L^6$ I2 N32')
+pl.plot(L,L**4*Int01,ls='-',color='b',label=r'$L^4$ I0 N32 cross')
+pl.plot(L,L**4*Int21,ls='-',color='g',label=r'$L^4$ I2 N32 cross')
+pl.legend(loc='best')
 pl.ylim(-15e-4,15e-4)
 pl.xlim([50,3000])
 pl.xticks([50,500,1000,2000,3000])
