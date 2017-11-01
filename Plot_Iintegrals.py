@@ -35,7 +35,7 @@ import numpy as np
 #print L, len(L)
 #print Int0, len(Int0)
 #print Int2, len(Int1)
-config = 'linlog_lnPs_Bfit_Planck2013_TempLensCombined'
+config = 'linlog_newang_lnPs_Bfit_Planck2013_TempLensCombined'#linlog_lnPs_Bfit_Planck2013_TempLensCombined'
 params,Limber,L,Int0,Int1,Int2=pickle.load(open('I0I1I2%s.pkl'%(config),'r'))
 config = 'cross_g_linlog_lnPs_Bfit_Planck2013_TempLensCombined'
 params,Limber,L,Int01,Int11,Int21=pickle.load(open('I0I1I2%s.pkl'%(config),'r'))
