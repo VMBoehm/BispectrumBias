@@ -116,7 +116,7 @@ class Bispectra():
             print "loading file %s"%self.filename												
         except:
             print "%s not found \n Computing Bispectrum of overdensity..."%self.filename
-            self.filename2=self.path+"bispec_delta_%s_lmin%d-lmax%d-lenBi%d.npy"%(self.config,self.ell_min,self.ell_max,self.len_bi)
+            self.filename2=self.path+"bispec_delta_%s_lmin%d-lmax%d-lenBi%d"%(self.config,self.ell_min,self.ell_max,self.len_bi)
             try:
                 self.bi_delta=np.load(self.filename2)
             except:
@@ -368,19 +368,14 @@ class Bispectra():
         index   = np.arange(self.len_bi)
         
 
-        W_lens  = ((self.chi_cmb-self.chi)/(self.chi_cmb*self.chi))*(1./self.data.a)
+        W_lens  = ((self.chi_cmb-self.chi)/(self.chi_cmb*self.chi))*(self.z+1.)
         dchidz  = self.data.dchidz(self.z)
         dzdchi  = 1./dchidz
         if self.cross:
-            W_gal   = self.dndz(self.z)/self.norm
-            kernel  = W_gal*W_lens**2*dzdchi
+            W_gal   = (self.z+1.)*self.dndz(self.z)/self.norm*dzdchi #b=(1+z)
+            kernel  = W_gal*W_lens**2
         else:
-            kernel  = W_lens**3*self.chi**2#*dchidz
-            
-        pl.figure()
-        pl.semilogx(self.z,kernel, ls='-')
-        pl.semilogx(self.z,W_lens**3*self.chi**2,ls='--')
-        pl.savefig('Kernel_comp.png')
+            kernel  = W_lens**3*self.chi**2
 
         bi_phi=[]
         for j in index:
@@ -397,11 +392,43 @@ class Bispectra():
         return True
 
     def compute_cross_spectrum(self):
+        if self.set_stage==False:
+            self.set_up()
+        ell = np.exp(np.linspace(np.log(self.ell_min),np.log(self.ell_max),200))
+        print self.ell_min, self.ell_max
+        print ell
+        ell+= 0.5
+        k   = np.outer(1./self.chi,ell)
+        W_lens  = ((self.chi_cmb-self.chi)/(self.chi_cmb*self.chi))*(1./self.data.a)
+        dchidz  = self.data.dchidz(self.z)
+        dzdchi  = 1./dchidz
+        W_gal   = self.dndz(self.z)/self.norm
+        kernel  = W_gal*W_lens*(self.z+1.)*dzdchi
         
-        
-        
-        
+        if self.nl:
+            cosmo_pk = self.closmo_nl.pk
+        else:
+            cosmo_pk = self.closmo_lin.pk
             
+        spec_z  =np.zeros((len(self.z),len(ell)))
+
+        for ii in xrange(len(self.z)):
+            spec=[cosmo_pk(k[ii][j],self.z[ii]) for j in xrange(len(k[ii]))]
+            spec= np.array(spec)
+            spec_z[ii] = spec
+        spec_z=np.transpose(spec_z)
+        cross=[]
+        print spec_z.shape
+        for ii in xrange(len(ell)):
+            print len(kernel), len(spec_z[ii]), len(self.chi)
+            cross+=[simps(kernel*spec_z[ii],self.chi)]
+        cross = np.array(cross)
+        cross*=(-self.data.prefacs/2./ell/ell)
+        
+        return ell, cross
+            
+        
+    
 
 
 """---- Choose you settings here ---"""
@@ -570,10 +597,12 @@ if __name__ == "__main__":
     #Note: so far without bias
     bs      = Bispectra(cosmo,data,ell,z,config,ang12,ang23,ang31,path,z_cmb, nl,B_fit,dndz,norm)
     bs()  
+    ell,cross_spectrum=bs.compute_cross_spectrum()
+    pickle.dump([ell,cross_spectrum],open('cross_spectrum_%s.pkl'%config,'w'))
     
     #Note: so far without bias
     if post_born:
-        config +='postBorn'
+        config +='_postBorn'
         bs.set_up()
         k_min   = bs.kmin
         k_max   = bs.kmax
@@ -583,7 +612,7 @@ if __name__ == "__main__":
             try:
                 bi_cross_sum = np.load(bs.filename+"_post_born_sum.npy")
             except:
-                bi_cross = PBB.bi_born_cross(ell[0::3],ell[1::3],ell[2::3],2./3.*1./data.Omega_m0 /data.H_0**2)
+                bi_cross = PBB.bi_born_cross(ell[0::3],ell[1::3],ell[2::3],3*data.Omega_m0*data.H_0**2)
                 bi_cross_sum = bi_cross+bs.bi_phi
                 np.save(bs.filename+"_post_born.npy",bi_cross)
                 np.save(bs.filename+"_post_born_sum.npy",bi_cross_sum)

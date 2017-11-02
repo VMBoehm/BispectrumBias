@@ -147,7 +147,8 @@ class PostBorn_Bispec():
         zs      = zs[1:-1]
         Hz      = Hz[1:-1]
         win     = (1/chis-1/chi_source)/chis**2
-        wing    = self.dndz(zs)/chis**2*Hz/(zs+1.)#H is in mpc^-1 -> do not need to divide by c
+        # bias and factor of a cancel out
+        wing    = self.dndz(zs)/chis**2*Hz#H is in mpc^-1 -> do not need to divide by c
         wing/=simps(self.dndz(zs),zs)
         
         cl=np.zeros(self.ls.shape)
@@ -173,10 +174,10 @@ class PostBorn_Bispec():
         cos12 = (l3**2-l1**2-l2**2)/2#/l1/l2
         cos23 = (l1**2-l2**2-l3**2)/2#/l2/l3
         cos31 = (l2**2-l3**2-l1**2)/2#/l3/l1
-        return  -2*gamma*(
-                l3**3*cos12*cos31*self.Mstarsp(l1,l3,grid=False) + l1**3*cos23*cos31*self.Mstarsp(l3,l1, grid=False)+\
-                l2**2*cos23*cos12*self.Mstarsp(l3,l2,grid=False) + l3**2*cos23*cos31*self.Mstarsp(l2,l3, grid=False)+\
-                l1**2*cos23*cos12*self.Mstarsp(l2,l1,grid=False) + l2**2*cos31*cos12*self.Mstarsp(l1,l2, grid=False))
+        return  -16./gamma*(
+                l3**3/l1**2*cos12*cos23*self.Mstarsp(l2,l3,grid=False) + l2**3/l1**2*cos31*cos23*self.Mstarsp(l3,l2, grid=False)+\
+                l2**2/l3**2*cos31*cos12*self.Mstarsp(l1,l2,grid=False) + l1**2/l3**2*cos23*cos12*self.Mstarsp(l2,l1,grid=False)+\
+                l1**2/l2**2*cos23*cos31*self.Mstarsp(l3,l1,grid=False) + l3**2/l2**2*cos12*cos31*self.Mstarsp(l1,l3,grid=False))
                 
     def cl_bi_born(self, lset):
         
