@@ -396,7 +396,6 @@ class Bispectra():
             self.set_up()
         ell = np.exp(np.linspace(np.log(self.ell_min),np.log(self.ell_max),200))
         print self.ell_min, self.ell_max
-        print ell
         ell+= 0.5
         k   = np.outer(1./self.chi,ell)
         W_lens  = ((self.chi_cmb-self.chi)/(self.chi_cmb*self.chi))*(1./self.data.a)
@@ -418,12 +417,10 @@ class Bispectra():
             spec_z[ii] = spec
         spec_z=np.transpose(spec_z)
         cross=[]
-        print spec_z.shape
         for ii in xrange(len(ell)):
-            print len(kernel), len(spec_z[ii]), len(self.chi)
             cross+=[simps(kernel*spec_z[ii],self.chi)]
         cross = np.array(cross)
-        cross*=(-self.data.prefacs/2./ell/ell)
+        cross*=(self.data.prefacs/2./ell/ell)
         
         return ell, cross
             
@@ -603,7 +600,8 @@ if __name__ == "__main__":
     #Note: so far without bias
     if post_born:
         config +='_postBorn'
-        bs.set_up()
+        if bs.set_stage==False:
+            bs.set_up()
         k_min   = bs.kmin
         k_max   = bs.kmax
         PBB     = postborn.PostBorn_Bispec(cosmo.class_params,k_min,k_max,cross, dndz)
