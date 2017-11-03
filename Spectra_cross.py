@@ -109,25 +109,25 @@ class Bispectra():
         computes the lensing bispectrum
         """
             
-        self.filename=self.path+"bispec_phi_%s_lmin%d-lmax%d-lenBi%d.npy"%(self.config,self.ell_min,self.ell_max,self.len_bi)
+        self.filename=self.path+"bispec_phi_%s_lmin%d-lmax%d-lenBi%d"%(self.config,self.ell_min,self.ell_max,self.len_bi)
           
         try:
-            self.bi_phi=np.load(self.filename)
-            print "loading file %s"%self.filename												
+            self.bi_phi=np.load(self.filename+'.npy')
+            print "loading file %s"%(self.filename+'.npy')									
         except:
             print "%s not found \n Computing Bispectrum of overdensity..."%self.filename
-            self.filename2=self.path+"bispec_delta_%s_lmin%d-lmax%d-lenBi%d.npy"%(self.config,self.ell_min,self.ell_max,self.len_bi)
+            self.filename2=self.path+"bispec_delta_%s_lmin%d-lmax%d-lenBi%d"%(self.config,self.ell_min,self.ell_max,self.len_bi)
             try:
-                self.bi_delta=np.load(self.filename2)
+                self.bi_delta=np.load(self.filename2+'.npy')
             except:
-                print "%s not found \n Computing Bispectrum of Newtonian Potential..."%self.filename2
+                print "%s not found \n Computing Bispectrum of Newtonian Potential..."%(self.filename2+'.npy')
                 
                 self.compute_Bispectrum_delta()
-                np.save(self.filename2,self.bi_delta)
+                np.save(self.filename2+'.npy',self.bi_delta)
 
             self.compute_Bispectrum_Phi()            
             
-            np.save(self.filename,self.bi_phi)
+            np.save(self.filename+'.npy',self.bi_phi)
                 
         try:
             self.closmo_lin.struct_cleanup()
@@ -622,6 +622,7 @@ if __name__ == "__main__":
         if cross:
             try:
                 bi_cross_sum = np.load(bs.filename+"_post_born_sum.npy")
+                bi_cross     = np.load(bs.filename+"_post_born.npy")
             except:
                 bi_cross = PBB.bi_born_cross(ell[0::3],ell[1::3],ell[2::3],3*data.Omega_m0*data.H_0**2)
                 bi_cross_sum = bi_cross+bs.bi_phi

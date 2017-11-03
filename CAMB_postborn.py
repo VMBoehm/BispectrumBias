@@ -115,21 +115,20 @@ class PostBorn_Bispec():
             chi_source2 = chi_source
         else:
             chi_source2 = np.float64(chi_source2)
-        chis = np.linspace(0,chi_source,self.nz, dtype=np.float64)
-        zs=self.results.redshift_at_comoving_radial_distance(chis)
-        dchis = (chis[2:]-chis[:-2])/2
-        chis = chis[1:-1]
-        zs = zs[1:-1]
-        win = (1/chis-1/chi_source)*(1/chis-1/chi_source2)/chis**2
-        cl=np.zeros(self.ls.shape)
-        w = np.ones(chis.shape)
+        chis    = np.linspace(0,chi_source,self.nz, dtype=np.float64)
+        zs      = self.results.redshift_at_comoving_radial_distance(chis)
+        dchis   = (chis[2:]-chis[:-2])/2
+        chis    = chis[1:-1]
+        zs      = zs[1:-1]
+        win     = (1/chis-1/chi_source)*(1/chis-1/chi_source2)/chis**2
+        cl      = np.zeros(self.ls.shape)
+        w       = np.ones(chis.shape)
         for i, l in enumerate(self.ls):
-            k=(l+0.5)/chis
+            k =(l+0.5)/chis
             w[:]=1
             w[k<1e-4]=0
             w[k>=self.kmax]=0
-            cl[i] = np.dot(dchis,
-                w*self.PK.P(zs, k, grid=False)*win/k**4)
+            cl[i] = np.dot(dchis,w*self.PK.P(zs, k, grid=False)*win/k**4)
         cl*= self.ls**4 #(ls*(ls+1))**2
         return cl
         
