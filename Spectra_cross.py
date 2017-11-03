@@ -109,25 +109,25 @@ class Bispectra():
         computes the lensing bispectrum
         """
             
-        self.filename=self.path+"bispec_phi_%s_lmin%d-lmax%d-lenBi%d"%(self.config,self.ell_min,self.ell_max,self.len_bi)
+        self.filename=self.path+"bispec_phi_%s_lmin%d-lmax%d-lenBi%d.npy"%(self.config,self.ell_min,self.ell_max,self.len_bi)
           
         try:
-            self.bi_phi=np.load(self.filename+".npy")
+            self.bi_phi=np.load(self.filename)
             print "loading file %s"%self.filename												
         except:
             print "%s not found \n Computing Bispectrum of overdensity..."%self.filename
-            self.filename2=self.path+"bispec_delta_%s_lmin%d-lmax%d-lenBi%d"%(self.config,self.ell_min,self.ell_max,self.len_bi)
+            self.filename2=self.path+"bispec_delta_%s_lmin%d-lmax%d-lenBi%d.npy"%(self.config,self.ell_min,self.ell_max,self.len_bi)
             try:
                 self.bi_delta=np.load(self.filename2)
             except:
-                print "%s not found \n Computing Bispectrum of Newtonian Potential..."%self.filename
+                print "%s not found \n Computing Bispectrum of Newtonian Potential..."%self.filename2
                 
                 self.compute_Bispectrum_delta()
-                np.save(self.filename2+".npy",self.bi_delta)
+                np.save(self.filename2,self.bi_delta)
 
             self.compute_Bispectrum_Phi()            
             
-            np.save(self.filename+".npy",self.bi_phi)
+            np.save(self.filename,self.bi_phi)
                 
         try:
             self.closmo_lin.struct_cleanup()
@@ -392,6 +392,7 @@ class Bispectra():
         return True
 
     def compute_cross_spectrum(self):
+        print 'computing cross spectrum...'
         if self.set_stage==False:
             self.set_up()
         ell = np.exp(np.linspace(np.log(self.ell_min),np.log(self.ell_max),200))
@@ -421,7 +422,7 @@ class Bispectra():
             cross+=[simps(kernel*spec_z[ii],self.chi)]
         cross = np.array(cross)
         cross*=(self.data.prefacs/2./ell/ell)
-        
+        print 'Done!'
         return ell, cross
             
         
@@ -446,6 +447,8 @@ if __name__ == "__main__":
     post_born   = True
     #fitting formula (use B_delta fitting formula from Gil-Marin et al. arXiv:1111.4477
     B_fit       = True
+    # compute C^(phi,g)
+    cross_spec  = False
 				    
     #number of redshift bins 
     bin_num     = 300
@@ -589,16 +592,26 @@ if __name__ == "__main__":
     print "config: %s"%config
         
     pickle.dump([cosmo.class_params],open('class_settings_%s.pkl'%config,'w'))
-    
  
-    #Note: so far without bias
-    bs      = Bispectra(cosmo,data,ell,z,config,ang12,ang23,ang31,path,z_cmb, nl,B_fit,dndz,norm)
+    bs   = Bispectra(cosmo,data,ell,z,config,ang12,ang23,ang31,path,z_cmb, nl,B_fit,dndz,norm)
     bs()  
-    ell,cross_spectrum=bs.compute_cross_spectrum()
-    pickle.dump([ell,cross_spectrum],open('cross_spectrum_%s.pkl'%config,'w'))
     
-    #Note: so far without bias
+    Int0 = I0(bs.bi_phi, bs.ell, angmu ,len_L*len_ang, len_L, squeezed=False, fullsky=False)
+    
+    Int1 = I1(bs.bi_phi, bs.ell, angmu ,len_L*len_ang, len_L, squeezed=False, fullsky=False)
+        
+    Int2 = I2(bs.bi_phi, bs.ell, angmu ,len_L*len_ang, len_L, squeezed=False, fullsky=False)
+ 
+    L    = np.unique(ell[0::3])
+
+    pickle.dump([params,Limber,L,Int0,Int1,Int2],open('I0I1I2%s.pkl'%(config),'w'))
+    
+    if cross_spec:
+        ll,cross_spectrum=bs.compute_cross_spectrum()
+        pickle.dump([ll,cross_spectrum],open('cross_spectrum_%s.pkl'%config,'w'))
+    
     if post_born:
+        print 'computing post Born corrections...'
         config +='_postBorn'
         if bs.set_stage==False:
             bs.set_up()
@@ -620,19 +633,27 @@ if __name__ == "__main__":
             np.save(bs.filename+"_post_born.npy",bi_post)
             np.save(bs.filename+"_post_born_sum.npy",bi_post+bs.bi_phi)
             bi_phi = bi_post+bs.bi_phi
+        print 'Done!'
 
-    else:
-        bi_phi=bs.bi_phi
-
-    Int0 = I0(bi_phi, bs.ell, angmu ,len_L*len_ang, len_L, squeezed=False, fullsky=False)
-    
-    Int1 = I1(bi_phi, bs.ell, angmu ,len_L*len_ang, len_L, squeezed=False, fullsky=False)
+        Int0 = I0(bi_phi, bs.ell, angmu ,len_L*len_ang, len_L, squeezed=False, fullsky=False)
         
-    Int2 = I2(bi_phi, bs.ell, angmu ,len_L*len_ang, len_L, squeezed=False, fullsky=False)
- 
-    L=np.unique(ell[0::3])
+        Int1 = I1(bi_phi, bs.ell, angmu ,len_L*len_ang, len_L, squeezed=False, fullsky=False)
+            
+        Int2 = I2(bi_phi, bs.ell, angmu ,len_L*len_ang, len_L, squeezed=False, fullsky=False)
+     
+        L=np.unique(ell[0::3])
 
-    pickle.dump([params,Limber,L,Int0,Int1,Int2],open('I0I1I2%s.pkl'%(config),'w'))
+        pickle.dump([params,Limber,L,Int0,Int1,Int2],open('I0I1I2%s.pkl'%(config),'w'))
+        
+        Int0 = I0(bi_cross, bs.ell, angmu ,len_L*len_ang, len_L, squeezed=False, fullsky=False)
+        
+        Int1 = I1(bi_cross, bs.ell, angmu ,len_L*len_ang, len_L, squeezed=False, fullsky=False)
+            
+        Int2 = I2(bi_cross, bs.ell, angmu ,len_L*len_ang, len_L, squeezed=False, fullsky=False)
+     
+        L=np.unique(ell[0::3])
+
+        pickle.dump([params,Limber,L,Int0,Int1,Int2],open('I0I1I2%s.pkl'%(config+'only'),'w'))
 
 
 #    Ints    = integrate_bispec(bs.bi_phi, ell, angmu, len_L, len_ang, fullsky=False)
