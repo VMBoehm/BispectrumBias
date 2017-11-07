@@ -35,22 +35,26 @@ pl.savefig('I0I2_%s_pB.pdf'%config)
 
 
 
-filename ='CMBlens_spectrum_linlog_newang_lnPs_Bfit_Planck2013_TempLensCombined'
-ell, spec_lens= pickle.load(open(filename+'.pkl','r'))
-filename ='cross_spectrum_cross_g_bin0linlog_newang_lnPs_Bfit_Planck2013_TempLensCombined'
-ell, cross_spec, spec_gg = pickle.load(open(filename+'.pkl','r'))
+
+filename ='cross_spectrum_Planck2013_TempLensCombined_nl_dndz_LSST_i27_SN5_3y_bin0'
+ell, spec_lens, spec_gg, cross_spec  = pickle.load(open(filename+'.pkl','r'))
+
+
+Parameter,cl_unl,cl_len=pickle.load(open('../class_outputs/class_cls_Planck2013_TempLensCombined_nl.pkl','r'))
+cl_phiphi     = cl_len['pp'][2:8001]
+ells          = cl_len['ell'][2:8001]
 
 pl.figure()
-pl.loglog(ell,1./2.*(ell*(ell+1))*cross_spec, color='g',label=r'$C_L^{\kappa g}$, z=0-0.5')
-pl.loglog(ell,spec_gg, color='b', label=r'$C_L^{gg}$, z=0-0.5')
-
-filename ='cross_spectrum_cross_g_bin1linlog_newang_lnPs_Bfit_Planck2013_TempLensCombined'
-ell, cross_spec, spec_gg = pickle.load(open(filename+'.pkl','r'))
-pl.loglog(ell,(ell*(ell+1.))*cross_spec, color='g',ls='--', label=r'$C_L^{\kappa g}$, z=0.5-1.')
-pl.loglog(ell,spec_gg, color='b',ls='--', label=r'$C_L^{gg}$, z=0.5-1.')
-pl.loglog(ell,(ell*(ell+1.))**2*spec_lens, 'k',label=r'$C_L^{\kappa \kappa}$')
-pl.legend(loc='lower left',ncol=3, columnspacing=0.8, frameon=True)
-pl.ylim([8e-10,1e-4])
+pl.loglog(ell,1./2.*(ell*(ell+1))*cross_spec, color='b',ls='--',label=r'$C_L^{\kappa g}$, z=0-0.5')
+pl.loglog(ell,spec_gg, color='b',ls='-', label=r'$C_L^{gg}$, z=0-0.5')
+pl.loglog(ell,1./4.*(ell*(ell+1.))**2*spec_lens, 'k',label=r'$C_L^{\kappa \kappa}$')
+filename='cross_spectrum_Planck2013_TempLensCombined_nl_dndz_LSST_i27_SN5_3y_bin1'
+ell, spec_lens, spec_gg, cross_spec = pickle.load(open(filename+'.pkl','r'))
+pl.loglog(ell,1./2.*(ell*(ell+1.))*cross_spec, color='g',ls='--', label=r'$C_L^{\kappa g}$, z=0.5-1.')
+pl.loglog(ell,spec_gg, color='g',ls='-', label=r'$C_L^{gg}$, z=0.5-1.')
+pl.loglog(ells,1./4.*(ells*(ells+1.))**2*cl_phiphi, 'r',label=r'$C_L^{\kappa \kappa}$ theory')
+pl.legend(loc='lower left',ncol=2, columnspacing=0.8, frameon=True)
+pl.ylim([1e-9,1e-4])
 pl.xlim([2,2000])
 pl.xlabel('L')
 pl.savefig('Cross_Spectra_%s.pdf'%config)

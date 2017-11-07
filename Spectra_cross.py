@@ -172,8 +172,9 @@ class Bispectra():
         if self.kmax==None:
             self.kmax=kmax
         print "kmin and kmax for bispectrum calculation", self.kmin,self.kmax 
-        if self.cosmo.class_params['output']!='tCl, mPk':
-            self.cosmo.class_params['output']='tCl, mPk'
+        if self.cosmo.class_params['output']!='tCl, lCl, mPk':
+            self.cosmo.class_params['output']='tCl, lCl, mPk'
+            self.cosmo.class_params['lensing']='yes'
             self.cosmo.class_params['tol_perturb_integration']=1.e-6
 								
         self.cosmo.class_params['z_max_pk'] = max(z)		
@@ -191,11 +192,13 @@ class Bispectra():
             print self.cosmo.class_params
             self.closmo_lin.compute()
             cl_unl=self.closmo_lin.raw_cl(4000)
+            cl_len=self.closmo_lin.lensed_cl(4000)
             print self.closmo_lin.get_current_derived_parameters(['sigma8'])
         else:
             self.closmo_lin=None
 
         if self.nl:
+            self.cosmo.tag+='_nl'
             self.cosmo.class_params['non linear'] = "halofit"
             self.closmo_nl=Class()
             self.closmo_nl.set(self.cosmo.class_params)
@@ -204,16 +207,17 @@ class Bispectra():
             self.closmo_nl.compute()
             print self.closmo_nl.get_current_derived_parameters(['sigma8'])
             cl_unl=self.closmo_nl.raw_cl(4000)
+            cl_len=self.closmo_nl.lensed_cl(4000)
         else:
             self.closmo_nl=None
-        
+            
         self.set_stage=True
         try:
             print self.cosmo.class_params['A_s']
         except:
             print self.cosmo.class_params['ln10^{10}A_s']
             
-            pickle.dump([self.cosmo.class_params,cl_unl],open('../class_outputs/class_cls_%s.pkl'%self.cosmo.tag,'w'))
+        pickle.dump([self.cosmo.class_params,cl_unl,cl_len],open('../class_outputs/class_cls_%s.pkl'%self.cosmo.tag,'w'))
         
             
     def compute_Bispectrum_delta(self):
@@ -396,8 +400,7 @@ class Bispectra():
             self.set_up()
         ell = np.exp(np.linspace(np.log(self.ell_min),np.log(self.ell_max),200))
         print self.ell_min, self.ell_max
-        ell+= 0.5
-        k   = np.outer(1./self.chi,ell)
+        k   = np.outer(1./self.chi,ell+0.5)
         W_lens  = ((self.chi_cmb-self.chi)/(self.chi_cmb*self.chi))*(1./self.data.a)
         kernel  = (W_lens*self.chi)**2
         
@@ -417,7 +420,7 @@ class Bispectra():
         for ii in xrange(len(ell)):
             C+=[simps(kernel*spec_z[ii],self.chi)]
         C=np.array(C)
-        C*=(self.data.prefacs**2/4./ell**4)
+        C*=(self.data.prefacs**2/(ell+0.5)**4)
         return ell, C        
         
 
@@ -427,12 +430,17 @@ class Bispectra():
             self.set_up()
         ell = np.exp(np.linspace(np.log(self.ell_min),np.log(self.ell_max),200))
         print self.ell_min, self.ell_max
-        ell+= 0.5
-        k   = np.outer(1./self.chi,ell)
+        k   = np.outer(1./self.chi,ell+0.5)
         W_lens  = ((self.chi_cmb-self.chi)/(self.chi_cmb*self.chi))*(1./self.data.a)
         dchidz  = self.data.dchidz(self.z)
         dzdchi  = 1./dchidz
+        print self.norm
         W_gal   = self.dndz(self.z)/self.norm
+        
+        pl.figure()
+        pl.plot(z,W_lens)
+        pl.show()
+        pl.savefig('W_lens_z.png')
         
         pl.figure()
         pl.plot(z,W_gal)
@@ -443,6 +451,7 @@ class Bispectra():
         
         pl.figure()
         pl.plot(z,kernel_gg)
+        pl.plot(z,kernel_x)
         pl.savefig('kernel_gal.png')  
         
         if self.nl:
@@ -463,7 +472,7 @@ class Bispectra():
             cross+=[simps(kernel_x*spec_z[ii],self.chi)]
             gg+=[simps(kernel_gg*spec_z[ii],self.chi)]
         cross = np.array(cross)
-        cross*=(self.data.prefacs/2./ell/ell)
+        cross*=(self.data.prefacs/(ell+0.5)**2)
         gg    = np.array(gg)
         
         return ell, cross, gg
@@ -477,19 +486,19 @@ if __name__ == "__main__":
     cross       = True  
 
     if cross:   
-        dn_filename = 'dndz_LSST_i27_SN5_10y'
+        dn_filename = 'dndz_LSST_i27_SN5_3y'
     
     #choose Cosmology (see Cosmology module)
     params      = C.Planck2013_TempLensCombined
 
     #Limber approximation, if true set class_params['l_switch_limber']=100, else 1
-    Limber      = True    
+    Limber      = False    
     #post Born (use post Born terms from Pratten & Lewis arXiv:1605.05662
-    post_born   = True
+    post_born   = False
     #fitting formula (use B_delta fitting formula from Gil-Marin et al. arXiv:1111.4477
     B_fit       = True
     # compute C^(phi,g)
-    cross_spec  = False
+    cross_spec  = True
     pow_spec    = False
     #binbounds
     bounds      = [[ii*0.5,(ii+1)*0.5] for ii in xrange(4)]
@@ -549,7 +558,7 @@ if __name__ == "__main__":
         dgn     = np.insert(dgn,0,1e-13)
         dndz    = interp1d(gz, dgn, kind='linear')
         norm    = simps(dndz(z),z)
-               
+        print norm
     else:
         dndz = None
         norm = None
@@ -640,6 +649,7 @@ if __name__ == "__main__":
     pickle.dump([cosmo.class_params],open('class_settings_%s.pkl'%config,'w'))
  
     bs   = Bispectra(cosmo,data,ell,z,config,ang12,ang23,ang31,path,z_cmb, nl,B_fit,dndz,norm)
+    bs.set_up()
     if cross_spec and cross:
         ll,cross_spectrum, gg_spectrum =bs.compute_cross_spectrum()
         pickle.dump([ll,cross_spectrum,gg_spectrum],open('cross_spectrum_%s.pkl'%config,'w'))
