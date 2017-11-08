@@ -153,8 +153,7 @@ class Bispectra():
         self.powspec_len = np.int(len(self.pow_ell))
 
         #k=ell/chi, ndarray with ell along rows, chi along columns
-        self.ell+=0.5
-        self.k  = np.outer(1./self.chi,self.ell)
+        self.k  = np.outer(1./self.chi,self.ell+0.5)
 	 
         		
         kmax    = max(self.pow_ell)/min(self.chi)
@@ -387,96 +386,14 @@ class Bispectra():
         self.bi_phi=np.array(bi_phi)
         
         if self.cross:
-            fac=self.data.prefacs**2*((1./(self.ell[0::3]*self.ell[1::3]))**2+(1./(self.ell[1::3]*self.ell[2::3]))**2+(1./(self.ell[2::3]*self.ell[0::3]))**2)
+            fac=self.data.prefacs**2*((1./((self.ell[0::3]+0.5)*(self.ell[1::3]+0.5)))**2+(1./((self.ell[1::3]+0.5)*(self.ell[2::3]+0.5)))**2+(1./((self.ell[2::3]+0.5)*(self.ell[0::3]+0.5)))**2)
             self.bi_phi*=fac
         else:
-            fac=(self.data.prefacs)**3/(self.ell[1::3]*self.ell[2::3]*self.ell[0::3])**2
+            fac=(self.data.prefacs)**3/((self.ell[1::3]+0.5)*(self.ell[2::3]+0.5)*(self.ell[0::3]+0.5))**2
             self.bi_phi*=fac
         return True
         
-    def compute_power_spectrum(self):
-        assert((max(self.z)==self.z_cmb) or self.cross==False)
-        if self.set_stage==False:
-            self.set_up()
-        ell = np.exp(np.linspace(np.log(self.ell_min),np.log(self.ell_max),200))
-        print self.ell_min, self.ell_max
-        k   = np.outer(1./self.chi,ell+0.5)
-        W_lens  = ((self.chi_cmb-self.chi)/(self.chi_cmb*self.chi))*(1./self.data.a)
-        kernel  = (W_lens*self.chi)**2
-        
-        if self.nl:
-            cosmo_pk = self.closmo_nl.pk
-        else:
-            cosmo_pk = self.closmo_lin.pk
-            
-        spec_z  = np.zeros((len(self.z),len(ell)))
 
-        for ii in xrange(len(self.z)):
-            spec=[cosmo_pk(k[ii][j],self.z[ii]) for j in xrange(len(k[ii]))]
-            spec= np.array(spec)
-            spec_z[ii] = spec
-        spec_z=np.transpose(spec_z)
-        C=[]
-        for ii in xrange(len(ell)):
-            C+=[simps(kernel*spec_z[ii],self.chi)]
-        C=np.array(C)
-        C*=(self.data.prefacs**2/(ell+0.5)**4)
-        return ell, C        
-        
-
-    def compute_cross_spectrum(self):
-        print 'computing cross spectrum...'
-        if self.set_stage==False:
-            self.set_up()
-        ell = np.exp(np.linspace(np.log(self.ell_min),np.log(self.ell_max),200))
-        print self.ell_min, self.ell_max
-        k   = np.outer(1./self.chi,ell+0.5)
-        W_lens  = ((self.chi_cmb-self.chi)/(self.chi_cmb*self.chi))*(1./self.data.a)
-        dchidz  = self.data.dchidz(self.z)
-        dzdchi  = 1./dchidz
-        print self.norm
-        W_gal   = self.dndz(self.z)/self.norm
-        
-        pl.figure()
-        pl.plot(z,W_lens)
-        pl.show()
-        pl.savefig('W_lens_z.png')
-        
-        pl.figure()
-        pl.plot(z,W_gal)
-        pl.savefig('W_gal_z.png')
-        
-        kernel_x  = W_gal*W_lens*(self.z+1.)*dzdchi
-        kernel_gg = (W_gal*(self.z+1)*dzdchi/self.chi)**2
-        
-        pl.figure()
-        pl.plot(z,kernel_gg)
-        pl.plot(z,kernel_x)
-        pl.savefig('kernel_gal.png')  
-        
-        if self.nl:
-            cosmo_pk = self.closmo_nl.pk
-        else:
-            cosmo_pk = self.closmo_lin.pk
-            
-        spec_z  =np.zeros((len(self.z),len(ell)))
-
-        for ii in xrange(len(self.z)):
-            spec=[cosmo_pk(k[ii][j],self.z[ii]) for j in xrange(len(k[ii]))]
-            spec= np.array(spec)
-            spec_z[ii] = spec
-        spec_z=np.transpose(spec_z)
-        cross=[]
-        gg=[]
-        for ii in xrange(len(ell)):
-            cross+=[simps(kernel_x*spec_z[ii],self.chi)]
-            gg+=[simps(kernel_gg*spec_z[ii],self.chi)]
-        cross = np.array(cross)
-        cross*=(self.data.prefacs/(ell+0.5)**2)
-        gg    = np.array(gg)
-        
-        return ell, cross, gg
-                
 
 
 """---- Choose you settings here ---"""
@@ -501,9 +418,10 @@ if __name__ == "__main__":
     cross_spec  = True
     pow_spec    = False
     #binbounds
-    bounds      = [[ii*0.5,(ii+1)*0.5] for ii in xrange(4)]
     
     red_bin     = 0
+    
+    bounds      = {'0':[0.0,0.5],'1':[0.5,1.],'2':[1.-2.]}
 				    
     #number of redshift bins 
     bin_num     = 300
@@ -552,13 +470,8 @@ if __name__ == "__main__":
     print max(z)
     if cross:
         z       = np.linspace(max(bounds[red_bin][0],z_min),bounds[red_bin][1],100)
-        gz      = np.append(gz,z_cmb)
-        dgn     = np.append(dgn,1e-13)
-        gz      = np.insert(gz,0,0.)
-        dgn     = np.insert(dgn,0,1e-13)
         dndz    = interp1d(gz, dgn, kind='linear')
         norm    = simps(dndz(z),z)
-        print norm
     else:
         dndz = None
         norm = None
@@ -649,13 +562,6 @@ if __name__ == "__main__":
     pickle.dump([cosmo.class_params],open('class_settings_%s.pkl'%config,'w'))
  
     bs   = Bispectra(cosmo,data,ell,z,config,ang12,ang23,ang31,path,z_cmb, nl,B_fit,dndz,norm)
-    bs.set_up()
-    if cross_spec and cross:
-        ll,cross_spectrum, gg_spectrum =bs.compute_cross_spectrum()
-        pickle.dump([ll,cross_spectrum,gg_spectrum],open('cross_spectrum_%s.pkl'%config,'w'))
-    elif pow_spec:
-        ll, ll_spectrum=bs.compute_power_spectrum()
-        pickle.dump([ll,ll_spectrum],open('CMBlens_spectrum_%s.pkl'%config,'w'))
     bs()  
     
     Int0 = I0(bs.bi_phi, bs.ell, angmu ,len_L*len_ang, len_L, squeezed=False, fullsky=False)

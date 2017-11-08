@@ -220,7 +220,7 @@ MatterOnly=[{'name':"Matter_Only"},{
 
 class Cosmology():
 	""" cosmological parameter """
-	def __init__(self, zmin=None, zmax=None, Params=None, flatsky=True, lmax=None, mPk=False, Neutrinos=False,lensing=False):   
+	def __init__(self, zmin=None, zmax=None, Params=None, Limber=False, lmax=None, mPk=False, Neutrinos=False,lensing=False):   
 		
 		if zmin==None:
 			self.z_min      = 0.005
@@ -261,12 +261,12 @@ class Cosmology():
 			self.class_params['l_max_scalars']= lmax
 			print 'l_max_scalars: ',self.class_params['l_max_scalars']
         
-		if flatsky:
+		if Limber:
 			self.class_params['l_switch_limber']=1
 		else:
 			self.class_params['l_switch_limber']=100
 			self.class_params['perturb_sampling_stepsize']=0.01
-			print "Limber approximation from l=",self.class_params['l_switch_limber']
+		print "Limber approximation from l=",self.class_params['l_switch_limber']
         
         
 		if Neutrinos:
