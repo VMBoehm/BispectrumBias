@@ -419,7 +419,7 @@ if __name__ == "__main__":
     pow_spec    = False
     #binbounds
     
-    red_bin     = 0
+    red_bin     = '0'
     
     bounds      = {'0':[0.0,0.5],'1':[0.5,1.],'2':[1.-2.]}
 				    
@@ -453,7 +453,7 @@ if __name__ == "__main__":
         gz, dgn = pickle.load(open(dn_filename+'_extrapolated.pkl','r'))
         
     #initialize cosmology
-    cosmo   = C.Cosmology(zmin=0.00, zmax=1200, Params=params, flatsky=Limber, lmax=ell_max, mPk=False, Neutrinos=False)
+    cosmo   = C.Cosmology(zmin=0.00, zmax=1200, Params=params, Limber=Limber, lmax=ell_max, mPk=False, Neutrinos=False)
     closmo  = Class()
     closmo.set(params[1])
     closmo.compute()
@@ -546,7 +546,7 @@ if __name__ == "__main__":
     print "ell_type: %s"%ell_type
 
     if cross:
-        config = 'cross_g_bin%d'%red_bin+ell_type
+        config = 'cross_g_bin%s'%red_bin+ell_type
     else:
         config = ell_type
     
