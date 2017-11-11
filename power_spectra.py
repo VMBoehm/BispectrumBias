@@ -25,7 +25,7 @@ import os
 import pickle
 
         
-def compute_power_spectrum(ell_min, ell_max,z,z_g,Limber,nl,tag):
+def compute_power_spectrum(ell_min, ell_max,z,z_g,Limber,nl):
 
     ell = np.exp(np.linspace(np.log(ell_min),np.log(ell_max),200))
     
@@ -151,9 +151,9 @@ if __name__ == "__main__":
     Limber      = False
  
     #binbounds
-    bounds      = [[ii*0.5,(ii+1)*0.5] for ii in xrange(4)]
+    red_bin     = '0'
     
-    red_bin     = 1
+    bounds      = {'0':[0.0,0.5],'1':[0.5,1.],'2':[1.-2.]}
 				    
     #number of redshift bins 
     bin_num     = 200
@@ -190,10 +190,11 @@ if __name__ == "__main__":
     if nl:
         tag+='_nl'
     try:
-        ll, cl_pp, cl_gg, cl_xx = pickle.load(open('cross_spectrum_%s_%s_bin%d.pkl'%(tag,dn_filename,red_bin),'r'))
+        ll, cl_pp, cl_gg, cl_xx = pickle.load(open('cross_spectrum_%s_%s_bin%s.pkl'%(tag,dn_filename,red_bin),'r'))
     except:
+        print 'cross_spectrum_%s_%s_bin%d.pkl not found'%(tag,dn_filename,red_bin)  
         ll, cl_pp, cl_gg, cl_xx = compute_power_spectrum(ell_min, ell_max, z, z_g, Limber, nl)
-        pickle.dump([ll,cl_pp, cl_gg, cl_xx],open('cross_spectrum_%s_%s_bin%d.pkl'%(tag,dn_filename,red_bin),'w'))
+        pickle.dump([ll,cl_pp, cl_gg, cl_xx],open('cross_spectrum_%s_%s_bin%s.pkl'%(tag,dn_filename,red_bin),'w'))
     
     Parameter,cl_unl,cl_len=pickle.load(open('../class_outputs/class_cls_Planck2013_TempLensCombined_nl.pkl','r'))
     cl_phiphi     = cl_len['pp'][2:8001]
@@ -201,31 +202,34 @@ if __name__ == "__main__":
 
     noiseUkArcmin   = 1.
     thetaFWHMarcmin = 1.
-    lcut            = 3000 
     fsky            = 0.5   
-    field           = 'TT'
     
-    AI            = pickle.load(open('/home/traveller/Documents/Projekte/LensingBispectrum/CosmoCodes/results/lensNoisePower'+str(int(noiseUkArcmin*10))+str(int(thetaFWHMarcmin*10))+'_'+str(int(lcut))+'_%s.pkl'%'Planck2013_nl'))
+    n_bar           = simps(dndz(z_g),z_g)*(180*60/np.pi)**2
+    
+    AI            = pickle.load(open('/home/traveller/Documents/Projekte/LensingBispectrum/CosmoCodes/results/lensNoisePower'+str(int(noiseUkArcmin*10))+str(int(thetaFWHMarcmin*10))+'_%s.pkl'%'Planck2013_nl'))
     L_s           = AI[0]
     L_s           = np.insert(L_s,0,0)
-    AL            = AI[1][field]
+    AL            = AI[2]#MV noise
     AL            = np.insert(AL,0,0)
-    N0            = interp1d(L_s[0:3000],AL[0:3000])(ll)
-    noise_pp      = np.sqrt(2./(2.*ll+1.)/fsky)*(1./4.*(ll*(ll+1.))**2*(cl_pp+N0))
+    N0            = interp1d(L_s[0:8000],AL[0:8000])(ll)
     
-    noise_gg      = np.sqrt(2./(2.*ll+1.)/fsky)*(cl_gg+1./(simps(dndz(z_g),z_g)*(180*60/np.pi)**2))
+    noise_pp      = np.sqrt(2./(2.*ll+1.)/fsky)*(1./4.*(ll*(ll+1.))**2*(cl_pp+N0))   
+    noise_gg      = np.sqrt(2./(2.*ll+1.)/fsky)*(cl_gg+1./n_bar)
     
-    noise_gp      = np.sqrt(2./(2.*ll+1.)/fsky*((cl_gg+1./(simps(dndz(z_g),z_g)*(180*60/np.pi)**2))*((1./4.*(ll*(ll+1)))**2*(cl_pp+N0))+1./2.*(ll*(ll+1))*cl_xx**2))
+    noise_gp      = np.sqrt(2./(2.*ll+1.)/fsky*((cl_gg+1./n_bar)*((1./4.*(ll*(ll+1)))**2*(cl_pp+N0))
+    +(1./2.*(ll*(ll+1))*cl_xx)**2))
+    
+    pickle.dump([ll,cl_pp+N0,cl_gg+1./n_bar,cl_xx],open('Gaussian_variances_CMB-S4_LSST_bin%s_%s_%s.pkl'%(red_bin,tag,dn_filename),'w'))
 
-    pl.figure(figsize=(8,8))
-    pl.errorbar(ll,1./2.*(ll*(ll+1))*cl_xx, yerr=noise_gp, color='g',label=r'$C_L^{\kappa g}$, z=0-0.5')
-    pl.errorbar(ll, cl_gg , color='r', yerr=noise_gg, label=r'$C_L^{gg}$, z=0-0.5')
-   # pl.loglog(ll,1./4.*(ll*(ll+1.))**2*cl_pp, 'k')
-    pl.errorbar(ll,1./4.*(ll*(ll+1.))**2*cl_pp,yerr=noise_pp,label=r'$C_L^{\kappa \kappa}$')#,'k')#,label=r'$C_L^{\kappa \kappa}$')
+    pl.figure(figsize=(8,7))
+    pl.errorbar(ll, cl_gg , color='g', yerr=noise_gg, label=r'$C_L^{gg}$, z=0-0.5')
+    noise_gp[np.where(noise_gp>1./2.*(ll*(ll+1))*cl_xx)]=1./2.*(ll*(ll+1))*cl_xx-1e-20
+    pl.errorbar(ll,1./4.*(ll*(ll+1.))**2*cl_pp,yerr=noise_pp,label=r'$C_L^{\kappa \kappa}$')
     pl.loglog(ells,1./4.*(ells*(ells+1.))**2*cl_phiphi, 'k',label=r'$C_L^{\kappa \kappa}$ theory')
-    pl.legend(loc='lower left',ncol=3, columnspacing=0.8, frameon=True)
+    pl.errorbar(ll,1./2.*(ll*(ll+1))*cl_xx, yerr=noise_gp, color='r',label=r'$C_L^{\kappa g}$, z=0-0.5')
+    pl.legend(loc='lower left',ncol=3, columnspacing=0.8, frameon=False)
     pl.ylim([1e-9,1e-4])
     pl.xlim([2,2000])
     pl.xlabel('L')
-    pl.savefig('Cross_Spectra_%s.pdf'%(tag+dn_filename+str(red_bin)))
+    pl.savefig('Cross_Spectra_%s.pdf'%(tag+dn_filename+red_bin))
     pl.show()
