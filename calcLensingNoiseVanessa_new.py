@@ -138,7 +138,7 @@ def noise_kernel(theta, l1, L, field, cl_unlen, cl_len, cl_tot, lmin, lmax):
         cl1TT = cl_tot['tt'][l1]
         cl2BB = get_cl2(cl_unlen['bb'], cl_tot['bb'], l2, lmin, lmax)[1]
         cl1_unlen = cl_unlen['te'][l1]
-        kernel = (cl1_unlen * Ldotl1 * sin_2phi ) / (cl1TT * cl2BB)
+        kernel = (cl1_unlen * Ldotl1 * sin_2phi )**2 / (cl1TT * cl2BB)
 
     elif field == 'bb':
         cl1_tot = cl_tot['bb'][l1]
@@ -158,7 +158,7 @@ def get_lensing_noise(ells, cl_len, cl_unlen, nl, fields,lmin):
     
     cl_tot = {}
     n_Ls  = 200
-    LogLs = np.linspace(np.log(0.1),np.log(max(ells)+0.1), n_Ls)
+    LogLs = np.linspace(np.log(1.),np.log(max(ells)+0.1), n_Ls)
     Ls = np.unique(np.floor(np.exp(LogLs)).astype(int))
     
     for field in fields:
@@ -191,10 +191,10 @@ def get_lensing_noise(ells, cl_len, cl_unlen, nl, fields,lmin):
 
 params=Cosmo.Planck2013_TempLensCombined
 tag='Planck2013'#params[0]['name']
-fields = ['tt','te','ee','eb','bb']
+fields = ['tt','te','ee','eb','bb','tb']
 
-thetaFWHMarcmin = 1.5 #beam FWHM
-noiseUkArcmin = 1.#eval(sys.argv[1]) #Noise level in uKarcmin
+thetaFWHMarcmin = 5. #beam FWHM
+noiseUkArcmin = 30.#eval(sys.argv[1]) #Noise level in uKarcmin
 TCMB = 2.726e6 #CMB temp in uK
 
 print 'Evaluating reconstruction noise for fields %s, noise level %f muK/arcmin and %s arcmin sq beam'%(str(fields),noiseUkArcmin,thetaFWHMarcmin)
@@ -252,6 +252,7 @@ nlI[0:2]=1e10
 #beam deconvolved noise
 nl['tt']  = nlI
 nl['te']  = np.zeros(len(nlI))
+nl['tb']  = np.zeros(len(nlI))
 #nl['te'][0:2]=1e10
 
 nl['ee']  = 2*nlI
@@ -307,15 +308,16 @@ Ls, NL_KK = get_lensing_noise(ll, cl_len,cl_unl, nl, fields,lmin=2)
 #plt.ylabel(r'$l^2 N_l^{\phi\phi}/2 \pi$')
 #plt.savefig('noise_phiphi'+str(int(noiseUkArcmin*10))+str(int(thetaFWHMarcmin*10))+'_'+str(int(lcut))+'.png')
 
-bla=np.loadtxt('/home/traveller/Documents/Projekte/LensingBispectrum/CosmoCodes/N0files/noise_ext4_bw_15_dT_10.txt',delimiter=' ',comments='#' )
+bla=np.loadtxt('/home/traveller/Documents/Projekte/LensingBispectrum/CosmoCodes/N0files/noise_ext4_bw_50_dT_300.txt',delimiter=' ',comments='#' )
 bla=bla.T
-plt.figure()
+plt.figure(figsize=(9,7))
+print Ls
 plt.loglog(ll,1./4.*(ll*(ll+1.))**2*cl_phiphi, label=r'$C_L^{\kappa\kappa}$')
 plt.loglog(Ls, 1./4.*(Ls*(Ls + 1.))**2.* NL_KK['tt'],label='tt')
 plt.loglog(Ls, 1./4.*(Ls + 1.)**2.*Ls**2.* NL_KK['ee'],label='ee')
 plt.loglog(Ls, 1./4.*(Ls + 1.)**2.*Ls**2.* NL_KK['te'],label='te')
 plt.semilogy(Ls, 1./4.*(Ls + 1.)**2.*Ls**2.* NL_KK['eb'],label='eb')
-#plt.loglog(Ls, 1./4.*(Ls + 1.)**2.*Ls**2.* NL_KK['tb'],label='tb')
+plt.semilogy(Ls, 1./4.*(Ls + 1.)**2.*Ls**2.* NL_KK['tb'],label='tb')
 plt.loglog(bla[0], bla[2],'--')
 plt.loglog(bla[0], bla[3],'--')
 plt.loglog(bla[0], bla[4],'--')
@@ -324,11 +326,11 @@ plt.loglog(bla[0], bla[6],'--')
 #plt.loglog(Ls, 1./4.*(Ls + 1.)**2.*Ls**2.* MV_noise,'k',lw=2,label='MV')
 #plt.loglog(Ls, 1./4.*(Ls + 1.)**2.*Ls**2.* N0_lim ,label='lim')
 plt.xlim(2, 2000)
-plt.ylim(1.e-9,1.e-6)
+plt.ylim(1.e-8,1.e-4)
 plt.legend(loc='best',ncol=4,frameon=False, columnspacing=0.8)
 plt.xlabel(r'$L$')
 plt.ylabel(r'$N_L^{\kappa\kappa}$')
-plt.savefig('noise_kk'+str(int(noiseUkArcmin*10))+str(int(thetaFWHMarcmin*10))+'match_chirag_%s.png'%tag)
+plt.savefig('noise_kk'+str(int(noiseUkArcmin*10))+str(int(thetaFWHMarcmin*10))+'match_chirag1_%s.png'%tag)
 
 
 #plt.figure()
