@@ -58,7 +58,7 @@ import pickle
 """ Planck 2013 Cosmological parameters from CMB and CMB temperature lensing, no neutrinos """               
 Planck2013_TempLensCombined=[{
 'name':"Planck2013_TempLensCombined"},{
-'h': 0.6712,
+'h': 0.6714,
 'omega_b' : 0.022242,
 'omega_cdm': 0.11805,
 'Omega_k' : 0.0,

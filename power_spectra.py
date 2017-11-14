@@ -132,7 +132,7 @@ def compute_power_spectrum(ell_min, ell_max,z,z_g,Limber,nl):
     closmo.struct_cleanup()
     closmo.empty()
         
-    return ell, C_pp, C_gg, cross, tag
+    return ell, C_pp, C_gg, cross
     
 
 
@@ -145,8 +145,7 @@ if __name__ == "__main__":
     dn_filename = 'dndz_LSST_i27_SN5_3y'
     
     #choose Cosmology (see Cosmology module)
-    params      = C.Planck2013_TempLensCombined
-
+    params      = C.Planck2015_TTlowPlensing
     #Limber approximation, if true set class_params['l_switch_limber']=100, else 1
     Limber      = False
  
@@ -159,7 +158,7 @@ if __name__ == "__main__":
     bin_num     = 200
 
     #ell range (for L and l)
-    ell_min     = 0.01
+    ell_min     = 2
     ell_max     = 2000
       
     nl          = True
@@ -192,11 +191,11 @@ if __name__ == "__main__":
     try:
         ll, cl_pp, cl_gg, cl_xx = pickle.load(open('cross_spectrum_%s_%s_bin%s.pkl'%(tag,dn_filename,red_bin),'r'))
     except:
-        print 'cross_spectrum_%s_%s_bin%d.pkl not found'%(tag,dn_filename,red_bin)  
+        print 'cross_spectrum_%s_%s_bin%s.pkl not found'%(tag,dn_filename,red_bin)  
         ll, cl_pp, cl_gg, cl_xx = compute_power_spectrum(ell_min, ell_max, z, z_g, Limber, nl)
         pickle.dump([ll,cl_pp, cl_gg, cl_xx],open('cross_spectrum_%s_%s_bin%s.pkl'%(tag,dn_filename,red_bin),'w'))
     
-    Parameter,cl_unl,cl_len=pickle.load(open('../class_outputs/class_cls_Planck2013_TempLensCombined_nl.pkl','r'))
+    Parameter,cl_unl,cl_len=pickle.load(open('../class_outputs/class_cls_%s.pkl'%tag,'r'))
     cl_phiphi     = cl_len['pp'][2:8001]
     ells          = cl_len['ell'][2:8001]
 
@@ -206,12 +205,10 @@ if __name__ == "__main__":
     
     n_bar           = simps(dndz(z_g),z_g)*(180*60/np.pi)**2
     
-    AI            = pickle.load(open('/home/traveller/Documents/Projekte/LensingBispectrum/CosmoCodes/results/lensNoisePower'+str(int(noiseUkArcmin*10))+str(int(thetaFWHMarcmin*10))+'_%s.pkl'%'Planck2013_nl'))
-    L_s           = AI[0]
-    L_s           = np.insert(L_s,0,0)
-    AL            = AI[2]#MV noise
-    AL            = np.insert(AL,0,0)
-    N0            = interp1d(L_s[0:8000],AL[0:8000])(ll)
+    AI            = pickle.load(open('/home/traveller/Documents/Projekte/LensingBispectrum/CosmoCodes/N0files/PlanckTempLens2015_N0_fac25_mixedlmax_1010.pkl','r'))
+    L_s           = AI['ls']
+    AL            = AI['MV']
+    N0            = np.interp(ll,L_s,AL)#(ll)
     
     noise_pp      = np.sqrt(2./(2.*ll+1.)/fsky)*(1./4.*(ll*(ll+1.))**2*(cl_pp+N0))   
     noise_gg      = np.sqrt(2./(2.*ll+1.)/fsky)*(cl_gg+1./n_bar)
