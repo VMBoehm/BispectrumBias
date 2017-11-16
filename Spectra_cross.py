@@ -190,8 +190,8 @@ class Bispectra():
             print "Initializing CLASS..."
             print self.cosmo.class_params
             self.closmo_lin.compute()
-            cl_unl=self.closmo_lin.raw_cl(4000)
-            cl_len=self.closmo_lin.lensed_cl(4000)
+            cl_unl=self.closmo_lin.raw_cl(self.ell_max)
+            cl_len=self.closmo_lin.lensed_cl(self.ell_max)
             print self.closmo_lin.get_current_derived_parameters(['sigma8'])
         else:
             self.closmo_lin=None
@@ -205,8 +205,8 @@ class Bispectra():
             print self.cosmo.class_params
             self.closmo_nl.compute()
             print self.closmo_nl.get_current_derived_parameters(['sigma8'])
-            cl_unl=self.closmo_nl.raw_cl(4000)
-            cl_len=self.closmo_nl.lensed_cl(4000)
+            cl_unl=self.closmo_nl.raw_cl(self.ell_max)
+            cl_len=self.closmo_nl.lensed_cl(self.ell_max)
         else:
             self.closmo_nl=None
             
@@ -400,13 +400,13 @@ class Bispectra():
 if __name__ == "__main__":  
     
     "---begin settings---"
-    cross       = True  
+    cross       = False 
 
     if cross:   
         dn_filename = 'dndz_LSST_i27_SN5_3y'
     
     #choose Cosmology (see Cosmology module)
-    params      = C.Planck2013_TempLensCombined
+    params      = C.Planck2015_TTlowPlensing
 
     #Limber approximation, if true set class_params['l_switch_limber']=100, else 1
     Limber      = False    
@@ -415,7 +415,7 @@ if __name__ == "__main__":
     #fitting formula (use B_delta fitting formula from Gil-Marin et al. arXiv:1111.4477
     B_fit       = True
     # compute C^(phi,g)
-    cross_spec  = True
+    cross_spec  = False
     pow_spec    = False
     #binbounds
     
@@ -431,8 +431,8 @@ if __name__ == "__main__":
     len_ang     = 163
 
     #ell range (for L and l)
-    ell_min     = 0.1
-    ell_max     = 8000.
+    ell_min     = 2.
+    ell_max     = 3000.
     
     #tag for L-sampling
     ell_type    ="linlog_newang"
@@ -544,6 +544,9 @@ if __name__ == "__main__":
         pickle.dump(ell,open(filename, 'w'))
     ell=np.asarray(ell)
     print "ell_type: %s"%ell_type
+    
+    ff_name     = path+"Ll_file_%s_%.0e_%d_lenL%d_lenang%d_%.0e.pkl"%(ell_type,ell_min,ell_max,len_L,len_ang,Delta_theta)
+    pickle.dump(ell[1::3],open(ff_name,'w'))
 
     if cross:
         config = 'cross_g_bin%s'%red_bin+ell_type
@@ -588,7 +591,7 @@ if __name__ == "__main__":
                 bi_cross_sum = np.load(bs.filename+"_post_born_sum.npy")
                 bi_cross     = np.load(bs.filename+"_post_born.npy")
             except:
-                bi_cross = PBB.bi_born_cross(ell[0::3],ell[1::3],ell[2::3],3*data.Omega_m0*data.H_0**2)
+                bi_cross = PBB.bi_born_cross(ell[0::3],ell[1::3],ell[2::3],16./(3*data.Omega_m0*data.H_0**2))
                 bi_cross_sum = bi_cross+bs.bi_phi
                 np.save(bs.filename+"_post_born.npy",bi_cross)
                 np.save(bs.filename+"_post_born_sum.npy",bi_cross_sum)

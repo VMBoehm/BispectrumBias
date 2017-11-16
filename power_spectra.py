@@ -159,7 +159,7 @@ if __name__ == "__main__":
 
     #ell range (for L and l)
     ell_min     = 2
-    ell_max     = 2000
+    ell_max     = 3000
       
     nl          = True
 
@@ -190,14 +190,15 @@ if __name__ == "__main__":
         tag+='_nl'
     try:
         ll, cl_pp, cl_gg, cl_xx = pickle.load(open('cross_spectrum_%s_%s_bin%s.pkl'%(tag,dn_filename,red_bin),'r'))
+        assert(False)
     except:
         print 'cross_spectrum_%s_%s_bin%s.pkl not found'%(tag,dn_filename,red_bin)  
         ll, cl_pp, cl_gg, cl_xx = compute_power_spectrum(ell_min, ell_max, z, z_g, Limber, nl)
         pickle.dump([ll,cl_pp, cl_gg, cl_xx],open('cross_spectrum_%s_%s_bin%s.pkl'%(tag,dn_filename,red_bin),'w'))
     
     Parameter,cl_unl,cl_len=pickle.load(open('../class_outputs/class_cls_%s.pkl'%tag,'r'))
-    cl_phiphi     = cl_len['pp'][2:8001]
-    ells          = cl_len['ell'][2:8001]
+    cl_phiphi     = cl_len['pp'][ell_min:ell_max+1]
+    ells          = cl_len['ell'][ell_min:ell_max+1]
 
     noiseUkArcmin   = 1.
     thetaFWHMarcmin = 1.
@@ -216,6 +217,7 @@ if __name__ == "__main__":
     noise_gp      = np.sqrt(2./(2.*ll+1.)/fsky*((cl_gg+1./n_bar)*((1./4.*(ll*(ll+1)))**2*(cl_pp+N0))
     +(1./2.*(ll*(ll+1))*cl_xx)**2))
     
+    print ll
     pickle.dump([ll,cl_pp+N0,cl_gg+1./n_bar,cl_xx],open('Gaussian_variances_CMB-S4_LSST_bin%s_%s_%s.pkl'%(red_bin,tag,dn_filename),'w'))
 
     pl.figure(figsize=(8,7))

@@ -75,14 +75,23 @@ class PostBorn_Bispec():
         nchimax = 100*acc
         chimaxs = np.linspace(0 ,chistar, nchimax)
         cls = np.zeros((nchimax,ls.size))
+        cls2= np.zeros((nchimax,ls.size))
         for i, chimax in enumerate(chimaxs[1:]):
             if self.cross:
-                cl = self.cl_cross(chimax,chistar)
+                cl = self.cl_cross(chimax)
+                cl2= self.cl_kappa(chimax,chistar)
             else:
                 cl = self.cl_kappa(chimax,chistar)
             cls[i+1,:] = cl
-        cls[0,:]=0   
+            if self.cross:
+                cls2[i+1,:] = cl2
+        cls[0,:]=0
+        if self.cross:
+            cls2[0,:]=0
+            
         cl_chi_chistar = RectBivariateSpline(chimaxs,ls,cls)
+        if self.cross:
+            cl_chi_chistar2 = RectBivariateSpline(chimaxs,ls,cls2)
 
         #Get M_*(l,l') matrix
         chis    = np.linspace(0,chistar, self.nz, dtype=np.float64)
@@ -107,7 +116,32 @@ class PostBorn_Bispec():
             else:
                 Mstar[i,:] = cl*l**4
     
-        self.Mstarsp = RectBivariateSpline(ls,ls,Mstar)  
+        self.Mstarsp = RectBivariateSpline(ls,ls,Mstar)
+    
+        if self.cross:
+            win     = (1/chis-1/chistar)**2/chis**2
+            # bias and scale factor cancel out
+            Hz      = [self.results.h_of_z(z_) for z_ in zs]
+            Hz      = Hz[1:-1]
+            wing    = self.dndz(zs)/chis**2*Hz #H is in Mpc^-1 -> do not need to divide by c
+            wing/=simps(self.dndz(zs),zs)
+            
+            cl      = np.zeros(ls.shape)
+            w       = np.ones(chis.shape)
+            cchi    = cl_chi_chistar(chis,ls, grid=True)
+    
+            Mstar = np.zeros((ls.size,ls.size))
+            for i, l in enumerate(ls):
+                k=(l+0.5)/chis
+                w[:]=1
+                w[k>=self.kmax]=0
+                w[k<=self.kmin]=0
+                cl = np.dot(dchis*w*self.PK.P(zs, k, grid=False)/k**4*win*wing,cchi)
+                
+                Mstar[i,:] = cl
+
+        
+            self.Mstarsp2 = RectBivariateSpline(ls,ls,Mstar)
 
     def cl_kappa(self, chi_source, chi_source2=None):
         chi_source = np.float64(chi_source)
@@ -132,12 +166,9 @@ class PostBorn_Bispec():
         cl*= self.ls**4 #(ls*(ls+1))**2
         return cl
         
-    def cl_cross(self, chi_source, chi_source2=None):
+    def cl_cross(self, chi_source):
+        
         chi_source = np.float64(chi_source)
-        if chi_source2 is None: 
-            chi_source2 = chi_source
-        else:
-            chi_source2 = np.float64(chi_source2)
         chis    = np.linspace(0,chi_source,self.nz, dtype=np.float64)
         zs      = self.results.redshift_at_comoving_radial_distance(chis)
         Hz      = [self.results.h_of_z(z_) for z_ in zs]
@@ -146,8 +177,8 @@ class PostBorn_Bispec():
         zs      = zs[1:-1]
         Hz      = Hz[1:-1]
         win     = (1/chis-1/chi_source)/chis**2
-        # bias and factor of a cancel out
-        wing    = self.dndz(zs)/chis**2*Hz#H is in mpc^-1 -> do not need to divide by c
+        # bias and scale factor cancel out
+        wing    = self.dndz(zs)/chis**2*Hz#H is in Mpc^-1 -> do not need to divide by c
         wing/=simps(self.dndz(zs),zs)
         
         cl=np.zeros(self.ls.shape)
@@ -161,6 +192,7 @@ class PostBorn_Bispec():
                 w*self.PK.P(zs, k, grid=False)/k**4*win*wing)
         return cl
 
+
     def bi_born(self,l1,l2,l3):
         cos12 = (l3**2-l1**2-l2**2)/2/l1/l2
         cos23 = (l1**2-l2**2-l3**2)/2/l2/l3
@@ -169,14 +201,11 @@ class PostBorn_Bispec():
                 - 2*cos23*((l2/l3+cos23)*self.Mstarsp(l2,l3,grid=False) + (l3/l2+cos23)*self.Mstarsp(l3,l2, grid=False) )\
                 - 2*cos31*((l3/l1+cos31)*self.Mstarsp(l3,l1,grid=False) + (l1/l3+cos31)*self.Mstarsp(l1,l3 ,grid=False) ) 
     
-    def bi_born_cross(self,l1,l2,l3,gamma):
-        cos12 = (l3**2-l1**2-l2**2)/2#/l1/l2
-        cos23 = (l1**2-l2**2-l3**2)/2#/l2/l3
-        cos31 = (l2**2-l3**2-l1**2)/2#/l3/l1
-        return  -16./gamma*(
-                l3**3/l1**2*cos12*cos23*self.Mstarsp(l2,l3,grid=False) + l2**3/l1**2*cos31*cos23*self.Mstarsp(l3,l2, grid=False)+\
-                l2**2/l3**2*cos31*cos12*self.Mstarsp(l1,l2,grid=False) + l1**2/l3**2*cos23*cos12*self.Mstarsp(l2,l1,grid=False)+\
-                l1**2/l2**2*cos23*cos31*self.Mstarsp(l3,l1,grid=False) + l3**2/l2**2*cos12*cos31*self.Mstarsp(l1,l3,grid=False))
+    def bi_born_cross(self,L1,L2,L3,gamma):
+        L1L2 = (L3**2-L1**2-L2**2)/2.
+        L2L3 = (L1**2-L2**2-L3**2)/2.
+        L3L1 = (L2**2-L3**2-L1**2)/2.
+        return  gamma*(L3/L1)**2*L2L3*(L1L2*self.Mstarsp(L2,L3,grid=False)+L3L1*self.Mstarp2(L3,L2,grid=False))
                 
     def cl_bi_born(self, lset):
         

@@ -422,9 +422,7 @@ class CosmoData():
 	def Poisson_factor(self):
 		""" computes the proportionality constant of the Poisson equation """
 		
-		alpha= self.H_0**2.*self.Omega_m0/(const.LIGHT_SPEED**2)
-        
-		alpha*= 3.
+		alpha= 3*self.H_0**2.*self.Omega_m0/(const.LIGHT_SPEED**2)
 
 		return alpha
   
