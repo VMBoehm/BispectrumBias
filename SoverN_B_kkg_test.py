@@ -85,9 +85,9 @@ if __name__ == "__main__":
     
     Parameter,cl_unl,cl_len   = pickle.load(open('../class_outputs/class_cls_%s.pkl'%tag,'r'))
     
-    b_kkg       = np.load("bispec_phi_linlog_newang_lnPs_Bfit_Planck2015_TTlowPlensing_lmin0-lmax3999-lenBi4330747.npy")
+    b_kkg       = np.load("bispec_phi_linlog_newang_lnPs_Bfit_Planck2015_TTlowPlensing_lmin2-lmax2999-lenBi4330747.npy")
     
-    Ll          = np.asarray(np.load(open('Ll_file.pkl','r')))
+    Ll          = np.asarray(np.load(open('Ll_file_linlog_newang_2e+00_3000_lenL163_lenang163_1e-02.pkl','r')))
     
     var_gal     = splrep(ll,var_gal)
     var_lens    = splrep(ll,var_lens)

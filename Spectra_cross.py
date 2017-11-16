@@ -400,7 +400,7 @@ class Bispectra():
 if __name__ == "__main__":  
     
     "---begin settings---"
-    cross       = False 
+    cross       = True 
 
     if cross:   
         dn_filename = 'dndz_LSST_i27_SN5_3y'
@@ -411,7 +411,7 @@ if __name__ == "__main__":
     #Limber approximation, if true set class_params['l_switch_limber']=100, else 1
     Limber      = False    
     #post Born (use post Born terms from Pratten & Lewis arXiv:1605.05662
-    post_born   = False
+    post_born   = True
     #fitting formula (use B_delta fitting formula from Gil-Marin et al. arXiv:1111.4477
     B_fit       = True
     # compute C^(phi,g)
