@@ -10,7 +10,7 @@ import pylab as plt
 import pickle
 from scipy.integrate import simps
 import numpy as np
-from scipy.interpolate import splev, splrep
+from scipy.interpolate import splev, splrep, interp1d
 import Cosmology as Cosmo
                
 def SN_integral(bispec,var_len, var_gal, var_xx, Ls, ls, Lls, ang, bin_size, sample1d, min_index, max_index, f_sky):
@@ -21,7 +21,6 @@ def SN_integral(bispec,var_len, var_gal, var_xx, Ls, ls, Lls, ang, bin_size, sam
     lmax=Ls[max_index]
     print "integrate L from ", lmin, "to ", lmax
     for i in np.arange(min_index,max_index):
-        
         L_      = Ls[i]
         spec    = bispec[i*bin_size:(i+1)*bin_size]
         Ll_     = Lls[i*bin_size:(i+1)*bin_size]
@@ -29,11 +28,11 @@ def SN_integral(bispec,var_len, var_gal, var_xx, Ls, ls, Lls, ang, bin_size, sam
         integrand = []
         
         for j in np.arange(i,max_index): #start at l=L
-
             l_const     = ls[j]
             spec_int    = spec[j*sample1d:(j+1)*sample1d]
-
+            
             Lli         = Ll_[j*sample1d:(j+1)*sample1d]
+            
             index       = np.where((Lli<lmax)*(Lli>l_const))
 
             spec_int    = spec_int[index] #restrict 
@@ -41,17 +40,15 @@ def SN_integral(bispec,var_len, var_gal, var_xx, Ls, ls, Lls, ang, bin_size, sam
             Ll          = Lli[index]
             fac         = np.ones(len(Ll))
             
-            if len(Ll)>1:
-            
-                if j==i:
-                    fac*=2.
-                    fac[np.where(np.isclose(ang_,np.pi/3.))]=6.
+            if j==i:
+                fac*=2.
+                fac[np.where(np.isclose(ang_,np.pi/3.))]=6.
                 
-                num   = spec_int**2
-                denom = fac*(splev(L_,var_lens,ext=2)*splev(l_const,var_lens,ext=2)*(splev(Ll,var_len,ext=2)))
-                integrand+=[simps(num/denom,ang_)]
-            else: 
-                integrand+=[0.]
+            num   = spec_int**2
+            denom = fac*var_lens(L_)*var_lens(l_const)*var_len(Ll)
+            integrand+=[simps(num/denom,ang_)]
+
+                
         L_integrand += [simps(integrand*ls[i:max_index],ls[i:max_index])]
         
     res = simps(L_integrand*Ls[min_index:max_index],Ls[min_index:max_index])
@@ -77,7 +74,6 @@ if __name__ == "__main__":
     side1       = np.append(La,Lb)
     
     fsky        = 0.5
-    index_max   = 152
     
     theta       = np.linspace(Delta_theta,2*np.pi-Delta_theta, len_ang)
     
@@ -90,23 +86,24 @@ if __name__ == "__main__":
     Ll          = np.asarray(np.load(open('Ll_file_linlog_newang_2e+00_3000_lenL163_lenang163_1e-02.pkl','r')))
     
     var_gal     = splrep(ll,var_gal)
-    var_lens    = splrep(ll,var_lens)
+    var_lens    = interp1d(ll,var_lens)
     var_xx      = splrep(ll,cl_xx)
     
-    max_L       = []
+    min_L       = []
     SN          = []
-    index_min   = 0
+    index_max   = 162
     
-    for index_max in np.linspace(10,162,20):
+    for index_min in np.arange(10,140,20):
+        print index_min, index_max
         minL_, maxL_, SN_ = SN_integral(b_kkg, var_lens, var_gal, var_xx, side1, side1, Ll, theta, len_L**2, len_L, index_min, index_max, fsky)
-        max_L     +=[maxL_]
+        min_L     +=[minL_]
         SN        +=[SN_*fsky/(2*np.pi**2)]
 #        
     
     
-        plt.plot(max_L, np.sqrt(SN) ,marker="o")
+        plt.plot(min_L, np.sqrt(SN) ,marker="o")
     plt.legend()
     plt.xlabel(r'$L_{max}$')
     plt.ylabel("S/N")
-    plt.savefig("S_over_N_B_phi_lmin%d_thetaFWHMarcmin10_noiseUkArcmin10_fsky%.1f.pdf"%(minL_,fsky), bbox_inches="tight")
+    plt.savefig("S_over_N_B_phi_lmax%d_thetaFWHMarcmin10_noiseUkArcmin10_fsky%.1f.pdf"%(maxL_,fsky), bbox_inches="tight")
     plt.show()

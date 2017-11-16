@@ -173,7 +173,8 @@ Planck2015_TTlowPlensing=[{
 'Omega_k' : 0.0,
 'tau_reio' : 0.066,
 'ln10^{10}A_s':3.062,
-'n_s'    : 0.9677}]
+'n_s'    : 0.9677,
+'k_pivot' : 0.05}]
         
 Planck2015_TTTEEElowPlensing=[{
 'name':"Planck2015_TTTEEElowPlensing"},{

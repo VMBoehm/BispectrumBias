@@ -15,7 +15,7 @@ import numpy as np
 import HelperFunctions as hf
 from scipy.integrate import simps
 from scipy.interpolate import interp1d, splev
-import CAMB_postborn as postborn
+#import CAMB_postborn as postborn
 
 import matplotlib
 matplotlib.use('Agg')
@@ -427,8 +427,8 @@ if __name__ == "__main__":
     bin_num     = 300
     
     #sampling in L/l and angle
-    len_L       = 163
-    len_ang     = 163
+    len_L       = 5
+    len_ang     = 5
 
     #ell range (for L and l)
     ell_min     = 2.

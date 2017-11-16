@@ -35,8 +35,13 @@ class PostBorn_Bispec():
     
     def __init__(self,CLASSparams,k_min,k_max,cross, dndz, lmax=None, acc=None, NL=True):
         pars = camb.CAMBparams()
+        try:
+            A_s=CLASSparams['A_s']
+        except:
+            A_s=np.exp(CLASSparams['ln10^{10}A_s'])*1e-10
+            
         pars.set_cosmology(H0=CLASSparams['h']*100, ombh2=CLASSparams['omega_b'], omch2=CLASSparams['omega_cdm'],omk=CLASSparams['Omega_k'],num_massive_neutrinos=0, mnu=0.0, nnu=3.046)
-        pars.InitPower.set_params(As=CLASSparams['A_s'],ns=CLASSparams['n_s'],  pivot_scalar=CLASSparams['k_pivot'])
+        pars.InitPower.set_params(As=A_s,ns=CLASSparams['n_s'],  pivot_scalar=CLASSparams['k_pivot'])
         self.results= camb.get_background(pars)
 
         self.cross=cross
@@ -128,7 +133,7 @@ class PostBorn_Bispec():
             
             cl      = np.zeros(ls.shape)
             w       = np.ones(chis.shape)
-            cchi    = cl_chi_chistar(chis,ls, grid=True)
+            cchi    = cl_chi_chistar2(chis,ls, grid=True)
     
             Mstar = np.zeros((ls.size,ls.size))
             for i, l in enumerate(ls):
