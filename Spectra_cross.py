@@ -15,7 +15,7 @@ import numpy as np
 import HelperFunctions as hf
 from scipy.integrate import simps
 from scipy.interpolate import interp1d, splev
-#import CAMB_postborn as postborn
+import CAMB_postborn as postborn
 
 import matplotlib
 matplotlib.use('Agg')
@@ -171,8 +171,8 @@ class Bispectra():
         if self.kmax==None:
             self.kmax=kmax
         print "kmin and kmax for bispectrum calculation", self.kmin,self.kmax 
-        if self.cosmo.class_params['output']!='tCl, lCl, mPk':
-            self.cosmo.class_params['output']='tCl, lCl, mPk'
+        if self.cosmo.class_params['output']!='tCl, pCl, lCl, mPk':
+            self.cosmo.class_params['output']='tCl, pCl, lCl, mPk'
             self.cosmo.class_params['lensing']='yes'
             self.cosmo.class_params['tol_perturb_integration']=1.e-6
 								
@@ -190,8 +190,8 @@ class Bispectra():
             print "Initializing CLASS..."
             print self.cosmo.class_params
             self.closmo_lin.compute()
-            cl_unl=self.closmo_lin.raw_cl(self.ell_max)
-            cl_len=self.closmo_lin.lensed_cl(self.ell_max)
+            cl_unl=self.closmo_lin.raw_cl(max(self.ell_max,5000))
+            cl_len=self.closmo_lin.lensed_cl(max(self.ell_max,5000))
             print self.closmo_lin.get_current_derived_parameters(['sigma8'])
         else:
             self.closmo_lin=None
@@ -205,8 +205,8 @@ class Bispectra():
             print self.cosmo.class_params
             self.closmo_nl.compute()
             print self.closmo_nl.get_current_derived_parameters(['sigma8'])
-            cl_unl=self.closmo_nl.raw_cl(self.ell_max)
-            cl_len=self.closmo_nl.lensed_cl(self.ell_max)
+            cl_unl=self.closmo_nl.raw_cl(max(self.ell_max,5000))
+            cl_len=self.closmo_nl.lensed_cl(max(self.ell_max,5000))
         else:
             self.closmo_nl=None
             
@@ -400,18 +400,18 @@ class Bispectra():
 if __name__ == "__main__":  
     
     "---begin settings---"
-    cross       = True 
+    cross       = False 
 
     if cross:   
         dn_filename = 'dndz_LSST_i27_SN5_3y'
     
     #choose Cosmology (see Cosmology module)
-    params      = C.Planck2015_TTlowPlensing
+    params      = C.Namikawa#Planck2015_TTlowPlensing
 
     #Limber approximation, if true set class_params['l_switch_limber']=100, else 1
     Limber      = False    
     #post Born (use post Born terms from Pratten & Lewis arXiv:1605.05662
-    post_born   = True
+    post_born   = False
     #fitting formula (use B_delta fitting formula from Gil-Marin et al. arXiv:1111.4477
     B_fit       = True
     # compute C^(phi,g)
@@ -427,8 +427,8 @@ if __name__ == "__main__":
     bin_num     = 300
     
     #sampling in L/l and angle
-    len_L       = 5
-    len_ang     = 5
+    len_L       = 163
+    len_ang     = 163
 
     #ell range (for L and l)
     ell_min     = 2.
@@ -453,7 +453,7 @@ if __name__ == "__main__":
         gz, dgn = pickle.load(open(dn_filename+'_extrapolated.pkl','r'))
         
     #initialize cosmology
-    cosmo   = C.Cosmology(zmin=0.00, zmax=1200, Params=params, Limber=Limber, lmax=ell_max, mPk=False, Neutrinos=False)
+    cosmo   = C.Cosmology(zmin=0.00, zmax=1200, Params=params, Limber=Limber, lmax=max(ell_max,5000), mPk=False, Neutrinos=False)
     closmo  = Class()
     closmo.set(params[1])
     closmo.compute()
@@ -467,17 +467,17 @@ if __name__ == "__main__":
 
     #linear sampling in z is ok
     z       = np.exp(np.linspace(np.log(z_min),np.log(z_cmb-0.01),bin_num))
-    print max(z)
+    
     if cross:
         z       = np.linspace(max(bounds[red_bin][0],z_min),bounds[red_bin][1],100)
-        dndz    = interp1d(gz, dgn, kind='linear')
+        dndz    = interp1d(gz, dgn, kind='linear',fill_value=0.)
         norm    = simps(dndz(z),z)
     else:
         dndz = None
         norm = None
     #cosmo dependent functions
     data    = C.CosmoData(cosmo,z)
-    print z
+    print 'z:', z
     #list of all triangles and their sides (loading is faster than recomputing)
     filename=path+"ell_%s_%.0e_%d_lenL%d_lenang%d_%.0e.pkl"%(ell_type,ell_min,ell_max,len_L,len_ang,Delta_theta)
     filename_ang=path+"ang_%s_%.0e_%d_lenL%d_lenang%d_%.0e.pkl"%(ell_type,ell_min,ell_max,len_L,len_ang,Delta_theta)
@@ -584,7 +584,7 @@ if __name__ == "__main__":
             bs.set_up()
         k_min   = bs.kmin
         k_max   = bs.kmax
-        PBB     = postborn.PostBorn_Bispec(cosmo.class_params,k_min,k_max,cross, dndz)
+        PBB     = postborn.PostBorn_Bispec(cosmo.class_params,k_min,k_max,cross, dndz,norm)
         ell     = np.asarray(ell)
         if cross:
             try:

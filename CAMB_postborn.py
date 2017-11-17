@@ -10,30 +10,18 @@ import sys, os
 from matplotlib import pyplot as plt
 import numpy as np
 import Cosmology as C
-#from classy import Class
 from scipy.integrate import simps
 from scipy.interpolate import RectBivariateSpline
 
 print('Using CAMB installed at '+ os.path.realpath(os.path.join(os.getcwd(),'..')))
 sys.path.insert(-1,os.path.realpath(os.path.join(os.getcwd(),'..')))
 import camb
-from camb import model, initialpower
+from camb import model
 
-def setPlotStyle():
-    params = {'backend': 'pdf',
-              'axes.labelsize': 13,
-              'font.size': 11,
-              'legend.fontsize': 11,
-              'xtick.labelsize': 12,
-              'ytick.labelsize': 12,
-              'ytick.major.pad': 4,
-              'xtick.major.pad': 6,
-              'text.usetex': False}
-    rcParams.update(params)
 
 class PostBorn_Bispec():
     
-    def __init__(self,CLASSparams,k_min,k_max,cross, dndz, lmax=None, acc=None, NL=True):
+    def __init__(self,CLASSparams,k_min,k_max,cross, dndz=None, norm=None, lmax=None, acc=None, NL=True):
         pars = camb.CAMBparams()
         try:
             A_s=CLASSparams['A_s']
@@ -44,41 +32,41 @@ class PostBorn_Bispec():
         pars.InitPower.set_params(As=A_s,ns=CLASSparams['n_s'],  pivot_scalar=CLASSparams['k_pivot'])
         self.results= camb.get_background(pars)
 
-        self.cross=cross
+        self.cross= cross
         self.dndz = dndz
 #Get matter power spectrum interpolation objects for fiducial model
-        self.kmax=k_max
-        self.kmin=k_min
+        self.kmax = k_max
+        self.kmin = k_min
+        
+        self.norm = norm
         
 
         if lmax==None:
             lmax=20000
         if acc==None:
-            acc=4 #(change back to 1 unless you need high accuracy - much faster)
+            acc=2 #(change back to 1 unless you need high accuracy - much faster)
         self.nz = 200*acc
-#        nz_bi=200*acc
-#
-#        ztag = 'star'
-        chistar = self.results.conformal_time(0)- model.tau_maxvis.value
-        zmax = self.results.redshift_at_comoving_radial_distance(chistar)
+
+        chistar = self.results.conformal_time(0)- model.tau_maxvis.value #chi_cmb
+        zmax    = self.results.redshift_at_comoving_radial_distance(chistar) #z_cmb
 
         print "Postborn z_max: ", zmax
 
-        k_per_logint = None
-        print self.kmax
-        self.PK = camb.get_matter_power_interpolator(pars, nonlinear=NL, 
+        k_per_logint= None
+        self.PK     = camb.get_matter_power_interpolator(pars, nonlinear=NL, 
         hubble_units=False, k_hunit=False, kmax=self.kmax,k_per_logint=k_per_logint,
         var1=model.Transfer_Weyl,var2=model.Transfer_Weyl, zmax=zmax)
     
-#        lsall = np.arange(2,lmax+1, dtype=np.float64)
-        ls = np.hstack((np.arange(2, 400, 1),np.arange(400, 2600, 10//acc),np.arange(2650, lmax, 50//acc),np.arange(lmax,lmax+1))).astype(np.float64)
-        self.ls=ls
-        self.acc=acc
-        self.lmax=lmax
+        ls          = np.hstack((np.arange(2, 400, 1),np.arange(400, 2600, 10//acc),np.arange(2650, lmax, 50//acc),np.arange(lmax,lmax+1))).astype(np.float64)
+        self.ls     = ls
+        
+        self.acc    = acc
+        self.lmax   = lmax
 
         #Get cross-CL kappa for M_* matrix
-        nchimax = 100*acc
-        chimaxs = np.linspace(0 ,chistar, nchimax)
+        nchimax     = 100*acc
+        chimaxs     = np.linspace(0 ,chistar, nchimax)
+        
         cls = np.zeros((nchimax,ls.size))
         cls2= np.zeros((nchimax,ls.size))
         for i, chimax in enumerate(chimaxs[1:]):
@@ -124,7 +112,7 @@ class PostBorn_Bispec():
         self.Mstarsp = RectBivariateSpline(ls,ls,Mstar)
     
         if self.cross:
-            win     = (1/chis-1/chistar)**2/chis**2
+            win     = (1/chis-1/chistar)/chis**2
             # bias and scale factor cancel out
             Hz      = [self.results.h_of_z(z_) for z_ in zs]
             Hz      = Hz[1:-1]
@@ -168,7 +156,8 @@ class PostBorn_Bispec():
             w[k<1e-4]=0
             w[k>=self.kmax]=0
             cl[i] = np.dot(dchis,w*self.PK.P(zs, k, grid=False)*win/k**4)
-        cl*= self.ls**4 #(ls*(ls+1))**2
+        if self.cross==False:
+            cl*= self.ls**4
         return cl
         
     def cl_cross(self, chi_source):
@@ -184,7 +173,10 @@ class PostBorn_Bispec():
         win     = (1/chis-1/chi_source)/chis**2
         # bias and scale factor cancel out
         wing    = self.dndz(zs)/chis**2*Hz#H is in Mpc^-1 -> do not need to divide by c
-        wing/=simps(self.dndz(zs),zs)
+        normpB  = simps(self.dndz(zs),zs)
+        wing/=normpB
+        
+        print self.norm, normpB
         
         cl=np.zeros(self.ls.shape)
         w = np.ones(chis.shape)
