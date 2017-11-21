@@ -325,9 +325,10 @@ plt.savefig('noise_kk'+str(int(noiseUkArcmin*10))+str(int(thetaFWHMarcmin*10))+'
 
 
 N02015={}
-data1a=pickle.load(open(path+'noise_levels_n10_beam10_lmax3000_Planck2015TempLensCombined.pkl','r'))
-data2a=pickle.load(open(path+'noise_levels_n10_beam10_lmax5000_Planck2015TempLensCombined.pkl','r'))
+data1a=pickle.load(open(path+'noise_levels_n7_beam30_lmax2999_Namikawa.pkl','r'))
+data2a=pickle.load(open(path+'noise_levels_n7_beam30_lmax4999_Namikawa.pkl','r'))
 N02015['ls']=data1a[0]
+print min(data1a[0])
 N02015['tt']=data1a[1]
 N02015['te']=data1a[3]
 N02015['tb']=data1a[4]
@@ -339,7 +340,7 @@ for ff in ['tt','tb','te','ee','eb']:
     N02015['MV']+=1./N02015[ff]
 N02015['MV']=1./N02015['MV']
 #
-pickle.dump(N02015,open(path+'PlanckTempLens2015_N0_fac25_mixedlmax_1010.pkl','w'))
+pickle.dump(N02015,open(path+'Namikawa_N0_fac25_mixedlmax_730.pkl','w'))
 #
 plt.figure(figsize=(8,6))
 ls = data1a[0]
@@ -353,5 +354,5 @@ plt.loglog(ls, t(ls)*N02015['eb'],ls='-',lw=2,color=colors[5],label='EB')
 plt.xlim(2,2000)
 plt.ylim(1e-9,1e-5)
 plt.legend(loc='best',ncol=3)
-plt.savefig('N0_PlanckTemLens2015_1010_lmax3000-5000_div25_ql.png')
+plt.savefig('N0_PlanckTemLens2015_730_lmax3000-5000_div25_ql.png')
 plt.show()

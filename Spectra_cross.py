@@ -410,16 +410,16 @@ class Bispectra():
 if __name__ == "__main__":  
     
     "---begin settings---"
-    kkg       = False 
-    kgg       = True
-    
-    assert(kkg+kkg==1)
+    kkg       = True
+    kgg       = False
+
+    assert(kkg+kgg<=1)
 
     if kkg or kgg:   
         dn_filename = 'dndz_LSST_i27_SN5_3y'
     
     #choose Cosmology (see Cosmology module)
-    params      = C.Namikawa#Planck2015_TTlowPlensing
+    params      = C.Planck2015_TTlowPlensing
 
     #Limber approximation, if true set class_params['l_switch_limber']=100, else 1
     Limber      = False    
@@ -437,18 +437,18 @@ if __name__ == "__main__":
     bounds      = {'0':[0.0,0.5],'1':[0.5,1.],'2':[1.-2.]}
 				    
     #number of redshift bins 
-    bin_num     = 300
+    bin_num     = 150
     
     #sampling in L/l and angle
-    len_L       = 163
-    len_ang     = 163
+    len_L       = 160
+    len_ang     = 160
 
     #ell range (for L and l)
-    ell_min     = 2.
-    ell_max     = 3000.
+    ell_min     = 0.01
+    ell_max     = 8000.
     
     #tag for L-sampling
-    ell_type    ="linlog_newang"
+    ell_type    ="linlog_halfang"
     
     #regularizing theta bounds
     Delta_theta = 1e-2
@@ -478,7 +478,6 @@ if __name__ == "__main__":
     
     print "z_cmb: %f"%z_cmb
 
-    #linear sampling in z is ok
     z       = np.exp(np.linspace(np.log(z_min),np.log(z_cmb-0.01),bin_num))
     
     if kkg or kgg:
@@ -507,7 +506,7 @@ if __name__ == "__main__":
     except:
         ell         = []
         print "ell file not found"
-        if ell_type=="linlog_newang":
+        if ell_type=="linlog_halfang":
             #L = |-L|, equally spaced in lin at low L and in log at high L 
             La        = np.linspace(ell_min,50,48,endpoint=False)
             Lb        = np.exp(np.linspace(np.log(50),np.log(ell_max),len_L-48))
@@ -523,7 +522,7 @@ if __name__ == "__main__":
             
         # angle, cut edges to avoid numerical instabilities
         #TODO: try halving this angle, probably requires multiplication by 2, but should avoid l2=0
-        theta   = np.linspace(Delta_theta,2*np.pi-Delta_theta, len_ang)
+        theta   = np.linspace(Delta_theta,np.pi, len_ang)
         cosmu   = np.cos(theta) #Ldotl/Ll or -l1dotl3/l1/l3 (l1+l2+l3=0) (angle used in beta Integrals)
         
         ang31=[]
@@ -618,25 +617,17 @@ if __name__ == "__main__":
             bi_phi = bi_post+bs.bi_phi
         print 'Done!'
 
-        Int0 = I0(bi_phi, bs.ell, angmu ,len_L*len_ang, len_L, squeezed=False, fullsky=False)
         
-        Int1 = I1(bi_phi, bs.ell, angmu ,len_L*len_ang, len_L, squeezed=False, fullsky=False)
-            
-        Int2 = I2(bi_phi, bs.ell, angmu ,len_L*len_ang, len_L, squeezed=False, fullsky=False)
-     
-        L=np.unique(ell[0::3])
+    Int0 = I0(bi_phi, bs.ell, angmu ,len_L*len_ang, len_L, squeezed=False, fullsky=False)
+    
+    Int1 = I1(bi_phi, bs.ell, angmu ,len_L*len_ang, len_L, squeezed=False, fullsky=False)
+        
+    Int2 = I2(bi_phi, bs.ell, angmu ,len_L*len_ang, len_L, squeezed=False, fullsky=False)
+ 
+    L=np.unique(ell[0::3])
 
-        pickle.dump([params,Limber,L,Int0,Int1,Int2],open('I0I1I2%s.pkl'%(config),'w'))
+    pickle.dump([params,Limber,L,Int0,Int1,Int2],open('I0I1I2%s.pkl'%(config),'w'))
         
-        Int0 = I0(bi_kkg, bs.ell, angmu ,len_L*len_ang, len_L, squeezed=False, fullsky=False)
-        
-        Int1 = I1(bi_kkg, bs.ell, angmu ,len_L*len_ang, len_L, squeezed=False, fullsky=False)
-            
-        Int2 = I2(bi_kkg, bs.ell, angmu ,len_L*len_ang, len_L, squeezed=False, fullsky=False)
-     
-        L=np.unique(ell[0::3])
-
-        pickle.dump([params,Limber,L,Int0,Int1,Int2],open('I0I1I2%s.pkl'%(config+'only'),'w'))
 
 
 #    Ints    = integrate_bispec(bs.bi_phi, ell, angmu, len_L, len_ang, fullsky=False)

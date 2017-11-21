@@ -29,7 +29,7 @@ def compute_power_spectrum(ell_min, ell_max,z,z_g,Limber,nl):
 
     ell = np.exp(np.linspace(np.log(ell_min),np.log(ell_max),200))
     
-    cosmo   = C.Cosmology(zmin=0.00, zmax=1200, Params=params, Limber = Limber, lmax=ell_max+4000, mPk=False, Neutrinos=False)
+    cosmo   = C.Cosmology(zmin=0.00, zmax=1200, Params=params, Limber = Limber, lmax=ell_max, mPk=False, Neutrinos=False)
     data    = C.CosmoData(cosmo,z)
     chi     = data.chi(z)
 
@@ -58,10 +58,10 @@ def compute_power_spectrum(ell_min, ell_max,z,z_g,Limber,nl):
     print cosmo.class_params
     closmo.compute()
     cosmo_pk = closmo.pk    
-    cl_unl   = closmo.raw_cl(ell_max)
-    cl_len   = closmo.lensed_cl(ell_max)
+#    cl_unl   = closmo.raw_cl(ell_max)
+#    cl_len   = closmo.lensed_cl(ell_max)
     
-    pickle.dump([cosmo.class_params,cl_unl,cl_len],open('../class_outputs/class_cls_%s.pkl'%tag,'w'))
+    #pickle.dump([cosmo.class_params,cl_unl,cl_len],open('../class_outputs/class_cls_%s.pkl'%tag,'w'))
     z_cmb    = closmo.get_current_derived_parameters(['z_rec'])['z_rec']
     print '$\sigma_8$=', closmo.get_current_derived_parameters(['sigma8'])
     chi_cmb  = data.chi(z_cmb)
@@ -145,7 +145,7 @@ if __name__ == "__main__":
     dn_filename = 'dndz_LSST_i27_SN5_3y'
     
     #choose Cosmology (see Cosmology module)
-    params      = C.Planck2015_TTlowPlensing
+    params      = C.Namikawa#Planck2015_TTlowPlensing
     #Limber approximation, if true set class_params['l_switch_limber']=100, else 1
     Limber      = False
  
@@ -158,7 +158,7 @@ if __name__ == "__main__":
     bin_num     = 200
 
     #ell range (for L and l)
-    ell_min     = 2
+    ell_min     = 1
     ell_max     = 3000
       
     nl          = True
@@ -169,6 +169,7 @@ if __name__ == "__main__":
     #initialize cosmology
     cosmo   = C.Cosmology(zmin=0.00, zmax=1200, Params=params, Limber = Limber, lmax=ell_max, mPk=False, Neutrinos=False)
     closmo  = Class()
+    params[1]['l_max_scalars']=4000
     closmo.set(params[1])
     closmo.compute()
     #set up z range and binning in z space
@@ -200,16 +201,17 @@ if __name__ == "__main__":
     cl_phiphi     = cl_len['pp'][ell_min:ell_max+1]
     ells          = cl_len['ell'][ell_min:ell_max+1]
 
-    noiseUkArcmin   = 1.
-    thetaFWHMarcmin = 1.
+#    noiseUkArcmin   = 1.
+#    thetaFWHMarcmin = 1.
     fsky            = 0.5   
     
     n_bar           = simps(dndz(z_g),z_g)*(180*60/np.pi)**2
     
-    AI            = pickle.load(open('/home/traveller/Documents/Projekte/LensingBispectrum/CosmoCodes/N0files/PlanckTempLens2015_N0_fac25_mixedlmax_1010.pkl','r'))
+    AI            = pickle.load(open('/home/traveller/Documents/Projekte/LensingBispectrum/CosmoCodes/N0files/Namikawa_N0_fac25_mixedlmax_730.pkl','r'))
     L_s           = AI['ls']
     AL            = AI['MV']
     N0            = np.interp(ll,L_s,AL)#(ll)
+    print L_s
     
     noise_pp      = np.sqrt(2./(2.*ll+1.)/fsky)*(1./4.*(ll*(ll+1.))**2*(cl_pp+N0))   
     noise_gg      = np.sqrt(2./(2.*ll+1.)/fsky)*(cl_gg+1./n_bar)
@@ -217,7 +219,7 @@ if __name__ == "__main__":
     noise_gp      = np.sqrt(2./(2.*ll+1.)/fsky*((cl_gg+1./n_bar)*((1./4.*(ll*(ll+1)))**2*(cl_pp+N0))
     +(1./2.*(ll*(ll+1))*cl_xx)**2))
     
-    print ll
+    print tag
     pickle.dump([ll,cl_pp+N0,cl_gg+1./n_bar,cl_xx],open('Gaussian_variances_CMB-S4_LSST_bin%s_%s_%s.pkl'%(red_bin,tag,dn_filename),'w'))
 
     pl.figure(figsize=(8,7))

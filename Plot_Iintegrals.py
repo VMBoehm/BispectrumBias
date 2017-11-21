@@ -23,8 +23,13 @@ pl.plot(L,L**4*Int01,ls='-',color='b',label=r'$L^4 \beta_0$ N32 cross')
 pl.plot(L,L**4*Int21,ls='-',color='g',label=r'$L^4 \beta_2$ N32 cross')
 pl.plot(L,L**6*Int02,ls='--',color='b',label=r'$L^6 \beta_0$ N32')
 pl.plot(L,L**6*Int22,ls='--',color='g',label=r'$L^6 \beta_2$ N32')
+
 pl.plot(L,L**4*Int0,ls='--',color='k',label=r'$L^4 \beta_0$ N32 cross bin0')
 pl.plot(L,L**4*Int2,ls=':',color='m',label=r'$L^4 \beta_2$ N32 cross bin0')
+config = 'linlog_halfang_lnPs_Bfit_Namikawa_Paper'
+params,Limber,L,Int03,Int13,Int23=pickle.load(open('I0I1I2%s.pkl'%(config),'r'))
+pl.plot(L,L**6*Int03*2,ls=':',color='b',label=r'$L^6 \beta_0$ N32')
+pl.plot(L,L**6*Int23*2,ls=':',color='g',label=r'$L^6 \beta_2$ N32')
 pl.legend(loc='best',ncol=2,frameon=True)
 pl.ylim(-2e-3,10e-3)
 pl.xlim([50,3000])

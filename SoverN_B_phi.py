@@ -114,6 +114,22 @@ if __name__ == "__main__":
     plt.ylabel("S/N")
     plt.savefig("../plots/S_over_N_lmax%d_thetaFWHMarcmin%.1f_noiseUkArcmin%.1f_fsky%.1f.pdf"%(maxL_,thetaFWHMarcmin,noiseUkArcmin,fsky), bbox_inches="tight")
     plt.show()
+    
+    for index_max in [50,60,70,80,90,100,120,130,140,150]:
+            minL_, maxL_, SN_ = SN_integral(biphi, clpp_i, N0, side1, side1, Ll, theta, bin_size, sample1d, index_min, index_max, fsky)
+            max_L     +=[maxL_]
+            min_L     +=[minL_]
+            SN        +=[SN_*fsky/(2*np.pi**2)]
+    #        
+            print min_L, max_L, np.sqrt(SN)
+    
+    
+            plt.plot(max_L, np.sqrt(SN),marker="o",label=field+","+field)
+    plt.legend()
+    plt.xlabel(r'$L_{min}$')
+    plt.ylabel("S/N")
+    plt.savefig("../plots/S_over_N_lmax%d_thetaFWHMarcmin%.1f_noiseUkArcmin%.1f_fsky%.1f.pdf"%(maxL_,thetaFWHMarcmin,noiseUkArcmin,fsky), bbox_inches="tight")
+    plt.show()
 #    
     
     #x,L_,l_,splines = pickle.load(open('../results/bispec_interp_linlog_full_nlPS_Planck2015.pkl','r'))

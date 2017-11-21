@@ -13,7 +13,7 @@ import numpy as np
 from scipy.interpolate import splev, splrep, interp1d
 import Cosmology as Cosmo
                
-def SN_integral(bispec,var_len, var_gal, var_xx, Ls, ls, Lls, ang, bin_size, sample1d, min_index, max_index, f_sky):
+def SN_integral(bispec,var_len, var_gal, var_xx, Ls, ls, Lls, ang, bin_size, sample1d, min_index, max_index):
     # for every L interpolate over l and angle and integrate over intrepolated 2d function
 
     L_integrand=[]
@@ -38,20 +38,45 @@ def SN_integral(bispec,var_len, var_gal, var_xx, Ls, ls, Lls, ang, bin_size, sam
             spec_int    = spec_int[index] #restrict 
             ang_        = ang[index]
             Ll          = Lli[index]
-            fac         = np.ones(len(Ll))
+            
+            ll          = np.arange(np.floor(min(Ll)),np.ceil(max(Ll)))
+#            if len(ll)<=1:
+#                ll          = np.arange(np.floor(min(Ll)),np.ceil(max(Ll)))
+            fac         = np.ones(len(ll))
             
             if j==i:
                 fac*=2.
-                fac[np.where(np.isclose(ang_,np.pi/3.))]=6.
-                
-            num   = spec_int**2
-            denom = fac*var_lens(L_)*var_lens(l_const)*var_len(Ll)
-            integrand+=[simps(num/denom,ang_)]
+                fac[np.where(np.isclose(l_const,ll))]=6.
+            
+            L       = int(l_const)+int(L_)+ll
+            L       = 0.5*L
+            full_s  = (-1)**L*np.sqrt(np.exp(1)/(2.*np.pi))*(L+1)**(-0.25)
+            full_s*=(L-l_const+1)**(-0.25)*(L-L_+1)**(-0.25)*(L-ll+1)**(-0.25)
+            full_s*=((L-l_const+0.5)/(L-l_const+1))**(L-l_const+0.25)
+            full_s*=((L-L_+0.5)/(L-L_+1))**(L-L_+0.25)
+            full_s*=((L-ll+0.5)/(L-ll+1))**(L-ll+0.25)
+            full_s*=np.sqrt((2*L_+1)*(2*l_const+1)*(2*ll+1)/np.pi/4.)
+            full_s[np.where(((2*L))%2!=0)]=0.
 
-                
-        L_integrand += [simps(integrand*ls[i:max_index],ls[i:max_index])]
+
+            spec_ = np.interp(ll,Ll,spec_int)
+            num   = (2.*full_s*spec_)**2
+            denom = fac*splev(L_,var_lens,ext=0)*splev(l_const,var_lens,ext=0)*splev(ll,var_len,ext=0)
+
+            
+            integrand+=[sum(num/denom)]
+#            else:
+#
+#                integrand+=[0]
+        ll          = np.arange(np.floor(min(ls[i:max_index])),np.ceil(max(ls[i:max_index])))
+        integrand   = np.interp(ll,ls[i:max_index],integrand)
         
-    res = simps(L_integrand*Ls[min_index:max_index],Ls[min_index:max_index])
+        L_integrand += [sum(integrand)]
+        
+    ll  = np.arange(np.floor(min(Ls[min_index:max_index])),np.ceil(max(Ls[min_index:max_index])))
+    L_integrand = np.interp(ll,Ls[min_index:max_index],L_integrand)
+    res = sum(L_integrand)
+    print max(ll)
         
     return lmin, lmax, res
     
@@ -59,14 +84,14 @@ def SN_integral(bispec,var_len, var_gal, var_xx, Ls, ls, Lls, ang, bin_size, sam
 if __name__ == "__main__":  				
     
     red_bin     = '0'
-    params      = Cosmo.Planck2015_TTlowPlensing
+    params      = Cosmo.Namikawa#Planck2015_TTlowPlensing
     tag         = params[0]['name']+'_nl'  
     dn_filename = 'dndz_LSST_i27_SN5_3y'
     
-    ell_min     = 2
+    ell_min     = 1
     ell_max     = 3000
-    len_L       = 163
-    len_ang     = 163
+    len_L       = 160
+    len_ang     = 160
     Delta_theta = 1e-2
     
     La          = np.linspace(ell_min,50,48,endpoint=False)
@@ -75,35 +100,56 @@ if __name__ == "__main__":
     
     fsky        = 0.5
     
-    theta       = np.linspace(Delta_theta,2*np.pi-Delta_theta, len_ang)
+    theta       = np.linspace(Delta_theta,np.pi, len_ang)
     
     ll,var_lens,var_gal,cl_xx = pickle.load(open('Gaussian_variances_CMB-S4_LSST_bin%s_%s_%s.pkl'%(red_bin,tag,dn_filename),'r'))
     
+    
     Parameter,cl_unl,cl_len   = pickle.load(open('../class_outputs/class_cls_%s.pkl'%tag,'r'))
     
-    b_kkg       = np.load("bispec_phi_linlog_newang_lnPs_Bfit_Planck2015_TTlowPlensing_lmin2-lmax2999-lenBi4330747.npy")
-    
-    Ll          = np.asarray(np.load(open('Ll_file_linlog_newang_2e+00_3000_lenL163_lenang163_1e-02.pkl','r')))
-    
+    b_kkg       = np.load("bispec_phi_linlog_halfang_lnPs_Bfit_Namikawa_Paper_lmin1-lmax2999-lenBi4096000.npy")     
+    Ll          = np.asarray(np.load(open('Ll_file_linlog_halfang_1e+00_3000_lenL160_lenang160_1e-02.pkl','r')))
+
     var_gal     = splrep(ll,var_gal)
-    var_lens    = interp1d(ll,var_lens)
+    var_lens    = splrep(ll,var_lens)
     var_xx      = splrep(ll,cl_xx)
     
     min_L       = []
     SN          = []
-    index_max   = 162
+    index_max   = 159
     
-    for index_min in np.arange(10,140,20):
+#    for index_min in np.arange(2,159,10):
+#        print index_min, index_max
+#        minL_, maxL_, SN_ = SN_integral(b_kkg, var_lens, var_gal, var_xx, side1, side1, Ll, theta, len_L**2, len_L, index_min, index_max, fsky)
+#        min_L     +=[minL_]
+#        SN        +=[SN_*fsky/(2*np.pi**2)]
+##        
+#    
+#    
+#        plt.semilogx(min_L, np.asarray(min_L)*SN/max(SN) ,marker="o")
+#    plt.legend()
+#    plt.xlabel(r'$L_{min}$')
+#    plt.ylabel("S/N")
+#    plt.savefig("S_over_N_B_phi_lmax%d_thetaFWHMarcmin10_noiseUkArcmin10_fsky%.1f.pdf"%(maxL_,fsky), bbox_inches="tight")
+#    plt.show()
+    
+    max_L       = []
+    SN          = []
+    index_min   = 0
+    
+    for index_max in np.arange(80,159,5):
         print index_min, index_max
-        minL_, maxL_, SN_ = SN_integral(b_kkg, var_lens, var_gal, var_xx, side1, side1, Ll, theta, len_L**2, len_L, index_min, index_max, fsky)
-        min_L     +=[minL_]
-        SN        +=[SN_*fsky/(2*np.pi**2)]
+        minL_, maxL_, SN_ = SN_integral(b_kkg, var_lens, var_gal, var_xx, side1, side1, Ll, theta, len_L**2, len_L, index_min, index_max)
+        max_L     +=[side1[index_max-1]]
+        print max_L
+        SN        +=[SN_*fsky]
 #        
     
     
-        plt.plot(min_L, np.sqrt(SN) ,marker="o")
+        plt.plot(max_L, np.sqrt(SN) ,marker="o")
+    plt.xlim(0,2000)
     plt.legend()
     plt.xlabel(r'$L_{max}$')
     plt.ylabel("S/N")
-    plt.savefig("S_over_N_B_phi_lmax%d_thetaFWHMarcmin10_noiseUkArcmin10_fsky%.1f.pdf"%(maxL_,fsky), bbox_inches="tight")
+    plt.savefig("S_over_N_B_phi_lmin%d_thetaFWHMarcmin10_noiseUkArcmin10_fsky%.1f.pdf"%(minL_,fsky), bbox_inches="tight")
     plt.show()
