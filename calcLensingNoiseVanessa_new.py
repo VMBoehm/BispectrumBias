@@ -333,7 +333,7 @@ N02015['tt']=data1a[1]
 N02015['te']=data1a[3]
 N02015['tb']=data1a[4]
 N02015['ee']=np.interp(data1a[0],data2a[0],np.real(data2a[2]))
-N02015['eb']=np.interp(data1a[0],data2a[0],np.real(data2a[5]/2.5))
+N02015['eb']=np.interp(data1a[0],data2a[0],np.real(data2a[5]))#/2.5))
 #
 N02015['MV']=np.zeros(len(N02015['eb']))
 for ff in ['tt','tb','te','ee','eb']:

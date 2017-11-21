@@ -15,7 +15,6 @@ import Cosmology as Cosmo
                
 def SN_integral(bispec,var_len, var_gal, var_xx, Ls, ls, Lls, ang, bin_size, sample1d, min_index, max_index):
     # for every L interpolate over l and angle and integrate over intrepolated 2d function
-
     L_integrand=[]
     lmin=Ls[min_index]
     lmax=Ls[max_index]
@@ -38,46 +37,23 @@ def SN_integral(bispec,var_len, var_gal, var_xx, Ls, ls, Lls, ang, bin_size, sam
             spec_int    = spec_int[index] #restrict 
             ang_        = ang[index]
             Ll          = Lli[index]
-            
-            ll          = np.arange(np.floor(min(Ll)),np.ceil(max(Ll)))
-#            if len(ll)<=1:
-#                ll          = np.arange(np.floor(min(Ll)),np.ceil(max(Ll)))
-            fac         = np.ones(len(ll))
-            
+
+            fac         = np.ones(len(Ll))
+
+             
             if j==i:
-                fac*=2.
-                fac[np.where(np.isclose(l_const,ll))]=6.
-            
-            L       = int(l_const)+int(L_)+ll
-            L       = 0.5*L
-            full_s  = (-1)**L*np.sqrt(np.exp(1)/(2.*np.pi))*(L+1)**(-0.25)
-            full_s*=(L-l_const+1)**(-0.25)*(L-L_+1)**(-0.25)*(L-ll+1)**(-0.25)
-            full_s*=((L-l_const+0.5)/(L-l_const+1))**(L-l_const+0.25)
-            full_s*=((L-L_+0.5)/(L-L_+1))**(L-L_+0.25)
-            full_s*=((L-ll+0.5)/(L-ll+1))**(L-ll+0.25)
-            full_s*=np.sqrt((2*L_+1)*(2*l_const+1)*(2*ll+1)/np.pi/4.)
-            full_s[np.where(((2*L))%2!=0)]=0.
+                 fac*=2.
+                 fac[np.where(np.isclose(ang_,np.pi/3.))]=6.
+                
+            num   = (spec_int*2)**2
+            denom = fac*splev(L_,var_lens,ext=2)*splev(l_const,var_lens,ext=2)*splev(Ll,var_len,ext=2)
+            integrand+=[simps(num/denom,ang_)]
 
-
-            spec_ = np.interp(ll,Ll,spec_int)
-            num   = (2.*full_s*spec_)**2
-            denom = fac*splev(L_,var_lens,ext=0)*splev(l_const,var_lens,ext=0)*splev(ll,var_len,ext=0)
-
-            
-            integrand+=[sum(num/denom)]
-#            else:
-#
-#                integrand+=[0]
-        ll          = np.arange(np.floor(min(ls[i:max_index])),np.ceil(max(ls[i:max_index])))
-        integrand   = np.interp(ll,ls[i:max_index],integrand)
         
-        L_integrand += [sum(integrand)]
+        L_integrand += [simps(integrand*ls[i:max_index],ls[i:max_index])]
         
-    ll  = np.arange(np.floor(min(Ls[min_index:max_index])),np.ceil(max(Ls[min_index:max_index])))
-    L_integrand = np.interp(ll,Ls[min_index:max_index],L_integrand)
-    res = sum(L_integrand)
-    print max(ll)
-        
+    res = simps(Ls[min_index:max_index]*L_integrand,Ls[min_index:max_index])
+    print max(Ls[min_index:max_index])
     return lmin, lmax, res
     
 
@@ -140,9 +116,9 @@ if __name__ == "__main__":
     for index_max in np.arange(80,159,5):
         print index_min, index_max
         minL_, maxL_, SN_ = SN_integral(b_kkg, var_lens, var_gal, var_xx, side1, side1, Ll, theta, len_L**2, len_L, index_min, index_max)
-        max_L     +=[side1[index_max-1]]
-        print max_L
-        SN        +=[SN_*fsky]
+        max_L     +=[side1[index_max]]
+        print max(max_L)
+        SN        +=[SN_*fsky/(2*np.pi**2)]
 #        
     
     

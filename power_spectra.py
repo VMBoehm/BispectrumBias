@@ -191,7 +191,6 @@ if __name__ == "__main__":
         tag+='_nl'
     try:
         ll, cl_pp, cl_gg, cl_xx = pickle.load(open('cross_spectrum_%s_%s_bin%s.pkl'%(tag,dn_filename,red_bin),'r'))
-        assert(False)
     except:
         print 'cross_spectrum_%s_%s_bin%s.pkl not found'%(tag,dn_filename,red_bin)  
         ll, cl_pp, cl_gg, cl_xx = compute_power_spectrum(ell_min, ell_max, z, z_g, Limber, nl)
