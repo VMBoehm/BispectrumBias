@@ -176,8 +176,11 @@ class Bispectra():
         if self.kmax==None:
             self.kmax=kmax
         print "kmin and kmax for bispectrum calculation", self.kmin,self.kmax 
-        if self.cosmo.class_params['output']!='tCl, pCl, lCl, mPk':
-            self.cosmo.class_params['output']='tCl, pCl, lCl, mPk'
+        if self.cosmo.class_params['output']!='tCl, lCl, mPk':
+            if self.ell_max<4000:
+                self.cosmo.class_params['output']='tCl, pCl, lCl, mPk'
+            else:
+                self.cosmo.class_params['output']='tCl, lCl, mPk'
             self.cosmo.class_params['lensing']='yes'
             self.cosmo.class_params['tol_perturb_integration']=1.e-6
 								

@@ -19,14 +19,14 @@ def SN_integral(bispec,var_len, var_gal, var_xx, Ls, ls, Lls, ang, bin_size, sam
     lmin=Ls[min_index]
     lmax=Ls[max_index]
     print "integrate L from ", lmin, "to ", lmax
-    for i in np.arange(min_index,max_index):
+    for i in np.arange(min_index,max_index+1):
         L_      = Ls[i]
         spec    = bispec[i*bin_size:(i+1)*bin_size]
         Ll_     = Lls[i*bin_size:(i+1)*bin_size]
         
         integrand = []
         
-        for j in np.arange(i,max_index): #start at l=L
+        for j in np.arange(i,max_index+1): #start at l=L
             l_const     = ls[j]
             spec_int    = spec[j*sample1d:(j+1)*sample1d]
             
@@ -44,16 +44,17 @@ def SN_integral(bispec,var_len, var_gal, var_xx, Ls, ls, Lls, ang, bin_size, sam
             if j==i:
                  fac*=2.
                  fac[np.where(np.isclose(ang_,np.pi/3.))]=6.
-                
-            num   = (spec_int*2)**2
-            denom = fac*splev(L_,var_lens,ext=2)*splev(l_const,var_lens,ext=2)*splev(Ll,var_len,ext=2)
-            integrand+=[simps(num/denom,ang_)]
-
+            if len(Ll)>=1:    
+                num   = (spec_int*2)**2
+                denom = fac*splev(L_,var_lens,ext=0)*splev(l_const,var_lens,ext=0)*splev(Ll,var_len,ext=0)
+                integrand+=[simps(num/denom,ang_)]
+            else:
+                integrand+=[0]
         
-        L_integrand += [simps(integrand*ls[i:max_index],ls[i:max_index])]
+        L_integrand += [simps(integrand*ls[i:max_index+1],ls[i:max_index+1])]
         
-    res = simps(Ls[min_index:max_index]*L_integrand,Ls[min_index:max_index])
-    print max(Ls[min_index:max_index])
+    res = simps(Ls[min_index:max_index+1]*L_integrand,Ls[min_index:max_index+1])
+    print max(Ls[min_index:max_index+1])
     return lmin, lmax, res
     
 
@@ -113,7 +114,7 @@ if __name__ == "__main__":
     SN          = []
     index_min   = 0
     
-    for index_max in np.arange(80,159,5):
+    for index_max in np.arange(80,159,3):
         print index_min, index_max
         minL_, maxL_, SN_ = SN_integral(b_kkg, var_lens, var_gal, var_xx, side1, side1, Ll, theta, len_L**2, len_L, index_min, index_max)
         max_L     +=[side1[index_max]]

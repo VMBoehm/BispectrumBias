@@ -38,8 +38,8 @@ def compute_power_spectrum(ell_min, ell_max,z,z_g,Limber,nl):
     cosmo.class_params['perturb_sampling_stepsize']=0.01
 
 
-    cosmo.class_params['output']='tCl, lCl, mPk'
-    cosmo.class_params['lensing']='yes'
+    cosmo.class_params['output']='tCl, mPk'
+    #cosmo.class_params['lensing']='yes'
     cosmo.class_params['tol_perturb_integration']=1.e-6
 								
     cosmo.class_params['z_max_pk'] = max(z)		
@@ -86,8 +86,6 @@ def compute_power_spectrum(ell_min, ell_max,z,z_g,Limber,nl):
     chi     = data.chi(z_g)
 
     k    = np.outer(1./chi,ell+0.5)
-    cosmo.class_params['l_switch_limber']=100
-    cosmo.class_params['perturb_sampling_stepsize']=0.01
 
         
     W_lens  = ((chi_cmb-chi)/(chi_cmb*chi))*(z_g+1.)
@@ -167,23 +165,23 @@ if __name__ == "__main__":
 
     dndz        = interp1d(gz, dgn, kind='linear')        
     #initialize cosmology
-    cosmo   = C.Cosmology(zmin=0.00, zmax=1200, Params=params, Limber = Limber, lmax=ell_max, mPk=False, Neutrinos=False)
-    closmo  = Class()
-    params[1]['l_max_scalars']=4000
-    closmo.set(params[1])
-    closmo.compute()
-    #set up z range and binning in z space
+#    cosmo   = C.Cosmology(zmin=0.00, zmax=1200, Params=params, Limber = Limber, lmax=ell_max, mPk=False, Neutrinos=False)
+#    closmo  = Class()
+#    params[1]['l_max_scalars']=4000
+#    closmo.set(params[1])
+#    closmo.compute()
+#    #set up z range and binning in z space
     z_min   = 1e-3
-    z_cmb   = closmo.get_current_derived_parameters(['z_rec'])['z_rec']
-    closmo.struct_cleanup()
-    closmo.empty()
-    
-    print "z_cmb: %f"%z_cmb
-
-    #linear sampling in z is ok
-    z       = np.exp(np.linspace(np.log(z_min),np.log(z_cmb-0.01),bin_num))
-
-
+#    z_cmb   = closmo.get_current_derived_parameters(['z_rec'])['z_rec']
+#    closmo.struct_cleanup()
+#    closmo.empty()
+#    
+#    print "z_cmb: %f"%z_cmb
+#
+#    #linear sampling in z is ok
+#    z       = np.exp(np.linspace(np.log(z_min),np.log(z_cmb-0.01),bin_num))
+#
+#
     z_g     = np.linspace(max(bounds[red_bin][0],z_min),bounds[red_bin][1],bin_num)
 
     tag     = params[0]['name']
@@ -206,7 +204,7 @@ if __name__ == "__main__":
     
     n_bar           = simps(dndz(z_g),z_g)*(180*60/np.pi)**2
     
-    AI            = pickle.load(open('/home/traveller/Documents/Projekte/LensingBispectrum/CosmoCodes/N0files/Namikawa_N0_fac25_mixedlmax_730.pkl','r'))
+    AI            = pickle.load(open('/home/traveller/Documents/Projekte/LensingBispectrum/CosmoCodes/N0files/Namikawa_N0_mixedlmax_730.pkl','r'))
     L_s           = AI['ls']
     AL            = AI['MV']
     N0            = np.interp(ll,L_s,AL)#(ll)
@@ -218,7 +216,6 @@ if __name__ == "__main__":
     noise_gp      = np.sqrt(2./(2.*ll+1.)/fsky*((cl_gg+1./n_bar)*((1./4.*(ll*(ll+1)))**2*(cl_pp+N0))
     +(1./2.*(ll*(ll+1))*cl_xx)**2))
     
-    print tag
     pickle.dump([ll,cl_pp+N0,cl_gg+1./n_bar,cl_xx],open('Gaussian_variances_CMB-S4_LSST_bin%s_%s_%s.pkl'%(red_bin,tag,dn_filename),'w'))
 
     pl.figure(figsize=(8,7))
