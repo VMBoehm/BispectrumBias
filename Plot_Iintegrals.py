@@ -7,31 +7,31 @@ Created on Thu Oct 12 16:44:04 2017
 
 import matplotlib.pyplot as pl
 import pickle
-from N32biasIntegrals import I0, I1, I2
 import numpy as np
 
-config = 'cross_g_bin0linlog_newang_lnPs_Bfit_Planck2013_TempLensCombined'
-params,Limber,L,Int0,Int1,Int2=pickle.load(open('I0I1I2%s.pkl'%(config),'r'))
-config = 'cross_g_linlog_newang_lnPs_Bfit_Planck2013_TempLensCombined'
-params,Limber,L,Int01,Int11,Int21=pickle.load(open('I0I1I2%s.pkl'%(config),'r'))
-config = 'linlog_lnPs_Bfit_Planck2013_TempLensCombined'
-params,Limber,L,Int02,Int12,Int22=pickle.load(open('I0I1I2%s.pkl'%(config),'r'))
+config = 'kkg_g_bin0linlog_halfang_lnPs_Bfit_Planck2015_TTlowPlensingl_max_test20000'
+params,Limber,L1,Int0,Int2=pickle.load(open('I0I1I2%s.pkl'%(config),'r'))
+print len(L1), len(Int0)
+#config = 'cross_g_linlog_newang_lnPs_Bfit_Planck2013_TempLensCombined'
+#params,Limber,L,Int01,Int11,Int21=pickle.load(open('I0I1I2%s.pkl'%(config),'r'))
+config = 'kkg_g_bin0linlog_halfang_lnPs_Bfit_Planck2015_TTlowPlensingl_max_test20000_kmax100'
+params,Limber,L,Int02,Int22=pickle.load(open('I0I1I2%s.pkl'%(config),'r'))
 pl.figure()
 
 
-pl.plot(L,L**4*Int01,ls='-',color='b',label=r'$L^4 \beta_0$ N32 cross')
-pl.plot(L,L**4*Int21,ls='-',color='g',label=r'$L^4 \beta_2$ N32 cross')
-pl.plot(L,L**6*Int02,ls='--',color='b',label=r'$L^6 \beta_0$ N32')
-pl.plot(L,L**6*Int22,ls='--',color='g',label=r'$L^6 \beta_2$ N32')
+pl.plot(L1,L1**4*Int0*2,ls='--',color='b',label=r'$L^4 \beta_0$ N32 cross 8000')
+pl.plot(L1,L1**4*Int2*2,ls='--',color='g',label=r'$L^4 \beta_2$ N32 cross 8000')
+pl.plot(L,L**4*Int02*2,ls=':',color='b',label=r'$L^4 \beta_0$ N32 cross 8000')
+pl.plot(L,L**4*Int22*2,ls=':',color='g',label=r'$L^4 \beta_2$ N32 cross 8000')
 
-pl.plot(L,L**4*Int0,ls='--',color='k',label=r'$L^4 \beta_0$ N32 cross bin0')
-pl.plot(L,L**4*Int2,ls=':',color='m',label=r'$L^4 \beta_2$ N32 cross bin0')
-config = 'linlog_halfang_lnPs_Bfit_Namikawa_Paper'
-params,Limber,L,Int03,Int13,Int23=pickle.load(open('I0I1I2%s.pkl'%(config),'r'))
-pl.plot(L,L**6*Int03*2,ls=':',color='b',label=r'$L^6 \beta_0$ N32')
-pl.plot(L,L**6*Int23*2,ls=':',color='g',label=r'$L^6 \beta_2$ N32')
-pl.legend(loc='best',ncol=2,frameon=True)
-pl.ylim(-2e-3,10e-3)
+#pl.plot(L,L**4*Int0,ls='--',color='k',label=r'$L^4 \beta_0$ N32 cross bin0')
+#pl.plot(L,L**4*Int2,ls=':',color='m',label=r'$L^4 \beta_2$ N32 cross bin0')
+#config = 'kkg_g_bin0linlog_halfang_lnPs_Bfit_Planck2015_TTlowPlensingl_max_test14000'
+#params,Limber,L,Int03,Int23=pickle.load(open('I0I1I2%s.pkl'%(config),'r'))
+#pl.plot(L,L**4*Int03*2,ls='-',color='b',label=r'$L^4 \beta_0$ N32')
+#pl.plot(L,L**4*Int23*2,ls='-',color='g',label=r'$L^4 \beta_2$ N32')
+#pl.legend(loc='best',ncol=3,frameon=True)
+pl.ylim(-10e-3,10e-3)
 pl.xlim([50,3000])
 pl.xticks([50,500,1000,2000,3000])
 pl.ylabel(r'Bias Integrals')

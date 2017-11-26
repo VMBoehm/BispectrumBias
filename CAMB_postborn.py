@@ -173,10 +173,8 @@ class PostBorn_Bispec():
         win     = (1/chis-1/chi_source)/chis**2
         # bias and scale factor cancel out
         wing    = self.dndz(zs)/chis**2*Hz#H is in Mpc^-1 -> do not need to divide by c
-        normpB  = simps(self.dndz(zs),zs)
-        wing/=normpB
+        wing/=self.norm
         
-        print self.norm, normpB
         
         cl=np.zeros(self.ls.shape)
         w = np.ones(chis.shape)

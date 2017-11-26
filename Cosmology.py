@@ -259,7 +259,7 @@ class Cosmology():
 			self.class_params['output']= 'lCl tCl'
         
 		if lmax==None:
-			self.class_params['l_max_scalars']= 30000
+			self.class_params['l_max_scalars']= 10000
 		else:
 			self.class_params['l_max_scalars']= lmax
 			print 'l_max_scalars: ',self.class_params['l_max_scalars']
@@ -494,11 +494,11 @@ class CosmoData():
 		print "Calculalating matter power spectrum... with settings",self.cosmo.class_params
 		
 		closmo.compute()
-		 
+		print 'here'  
 		if nl:
 			P_nl 			= np.array([closmo.pk(k,z) for k in k_array])
 		else:
-			P 	 		= np.array([closmo.pk(k,z) for k in k_array])
+			P 	 		    = np.array([closmo.pk(k,z) for k in k_array])
 		
 		sigma8 		 	= closmo.sigma8()
   
