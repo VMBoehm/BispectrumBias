@@ -1,0 +1,339 @@
+% add sync support
+\synctex=1
+
+% add draft option to compile faster
+\documentclass[prd,superscriptaddress,nofootinbib,floatfix,notitlepage]{revtex4-1}
+
+\usepackage{amsmath,amssymb,epsfig}
+\usepackage{hyperref}
+\usepackage{natbib,ifthen}
+\usepackage[toc,page]{appendix}
+
+\usepackage{mathrsfs}
+\usepackage[lofdepth,lotdepth,caption=false]{subfig}
+\usepackage{url}
+\usepackage{color}
+\usepackage{bbold}
+\usepackage{array}
+\usepackage{simplewick}
+
+\newcommand{\todo}[1]{{\color{red}{TODO: #1}}}
+
+
+
+\begin{document}
+
+% journals
+\newcommand{\jcap}{JCAP}
+\newcommand{\apjl}{APJL~}
+\newcommand{\physrep}{Phys. Rep.}
+\newcommand{\aap}{A\&A}
+\newcommand{\na}{New Astronomy}
+\newcommand{\mnras}{Mon.\ Not.\ R.\ Astron.\ Soc.}
+
+% equations
+\newcommand{\beq}{\begin{equation}}
+\newcommand{\eeq}{\end{equation}}
+
+% config space
+\newcommand{\vn}{{\bf\hat{n}}}
+\newcommand{\va}{{\boldsymbol{\alpha}}}
+
+% harmonic space
+\newcommand{\vl}{{\bf l}}
+\renewcommand{\l}{{\bf l}}
+\renewcommand{\k}{{\bf k}}
+\newcommand{\VL}{{\bf L}}
+
+\newcommand{\expt}{\mathrm{expt}}
+
+% polarization
+\newcommand{\WX}{\mathit{WX}}
+\newcommand{\YZ}{\mathit{YZ}}
+
+\newcommand{\TTilde}[2]{\mathit{\tilde #1\!\tilde #2}}
+\newcommand{\tWX}{\TTilde{W}{X}}
+\newcommand{\tST}{\TTilde{S}{T}}
+\newcommand{\tYZ}{\TTilde{Y}{Z}}
+\newcommand{\tWW}{\TTilde{W}{W}}
+\newcommand{\tXX}{\TTilde{X}{X}}
+\newcommand{\tUV}{\TTilde{U}{V}}
+
+
+
+% mathrm
+\newcommand{\ud}{{\rm d}}
+
+% parentheses
+\renewcommand{\(}{\left(}
+\renewcommand{\)}{\right)}
+\renewcommand{\[}{\left[}
+\renewcommand{\]}{\right]}
+\newcommand{\la}{\langle}
+\newcommand{\ra}{\rangle}
+
+% references
+\newcommand{\secref}[1]{Sec.~(\ref{sec:#1})} 
+\renewcommand{\eqref}[1]{Eq.~(\ref{eq:#1})} 
+
+\title{Bispectrum of CMB lensing and galaxy clustering}
+
+\author{Vanessa B\"ohm}
+\affiliation{Max-Planck-Institut f\"ur Astrophysik, Karl-Schwarzschild Strasse 1, 85748 Garching, Germany}
+\affiliation{Berkeley Center for Cosmological Physics, Department of Physics and Lawrence Berkeley National Laboratory, University of California, Berkeley, CA 94720, USA}
+
+\author{Marcel Schmittfull}
+\affiliation{Institute for Advanced Study, Einstein Drive,Princeton, NJ 08540, USA}
+
+\date{\today}
+\begin{abstract}
+Abstract...
+\end{abstract}
+
+\maketitle
+
+\section{Introduction}
+
+
+\subsection{CMB lensing and CMB lensing reconstruction}
+
+Lensing distorts the observed CMB fields by the deflection angle $\va$. For example, the lensed temperature, $\tilde T$, is a remapped version of the unlensed temperature, $T$,
+\beq
+\label{eq:1}
+\tilde T(\vn) =T\left[\vn+\va(\vn)\right].
+\eeq 
+The lensing deflection is to good approximation curl free and we write it in terms of the scalar lensing potential $\phi(\vn)$,
+\beq
+\label{eq:2}
+\va(\vn)=\nabla \phi(\vn),
+\eeq
+which in the Newtonian gauge, flat sky and Born approximation is related to the Newtonian gravitational potential, $\Psi(\vl)$, by
+\beq
+\label{eq:phi}
+\phi(\l)=-\frac{2}{c^2}\int_0^{\chi^*} \ud \chi\, W^{L}(\chi,\chi^*) \Psi(\l,\chi).
+\eeq
+Next to leading order Born corrections are discussed in \secref{PostBorn}. In a spatially flat universe the lensing kernel is given by
+\beq
+W^{L}(\chi,\chi^*)=\frac{\chi^*-\chi}{\chi\chi^*},
+\eeq
+with $\chi^*$ the co-moving angular diameter distance to the last scattering surface.
+Finally, gravitational potential and fractional overdensity, $\delta(\l,\chi)$, are related by the Poisson equation
+\beq
+-\(\frac{l}{\chi}\)^2 \Psi(\l,\chi) = \frac{3}{2}\frac{\Omega_{m0} H_0^2}{a(\chi)} \delta(\l,\chi).
+\eeq
+
+
+Since the average lensing induced deflection angle is small compared to the typical size of CMB fluctuations, the effect of lensing on the CMB can be modeled as a perturbation series in $\va$ or $\phi$,
+\beq
+\tilde{X}(\l)=X(\l)+\delta X(\l) +\delta^2 X(\l)+\mathcal{O}(\phi^3),
+\eeq
+where $X\in \{T,E,B\}$.
+
+
+The first and second order terms in this series are given by
+\begin{align}
+  \label{eq:21}
+  \delta X(\vl) &= -\int_{\vl_1}\bar{X}(\vl_1)\phi(\vl-\vl_1)h_X(\vl_1,\vl)(\vl-\vl_1)\cdot \vl_1 \\
+  \delta^2 X(\vl) &= -\frac{1}{2}\int_{\vl_1,\vl_2}\bar{X}(\vl_1)\phi(\vl_2)\phi(\vl-\vl_1-\vl_2)h_X(\vl_1,\vl)(\vl_1\cdot\vl_2)\left[(\vl_1+\vl_2-\vl)\cdot\vl_1\right],
+\end{align}
+with
+\begin{equation}
+  \label{eq:22}
+  \bar{T}\equiv T,\qquad\bar{E}\equiv E,\qquad \bar{B} \equiv E,\qquad \int_\vl\equiv\int\frac{\ud^2 \vl}{(2\pi)^2}
+\end{equation}
+and
+\begin{equation}
+  \label{eq:hXDef}
+  h_X(\vl_1,\vl) \equiv 
+  \begin{cases}
+    1 & \mbox{if } X=T, \\
+    \cos(2(\varphi_{\vl_1}-\varphi_\vl)) &  \mbox{if } X=E, \\
+    \sin(2(\varphi_{\vl_1}-\varphi_\vl)) & \mbox{if } X=B.
+  \end{cases}
+\end{equation}
+
+A minimum variance estimator for $\phi$ can be constructed from a quadratic combination of CMB fields \cite{Hu0111606}
+\begin{equation}
+    \label{eq:QuadEsti}
+    \hat\phi^\WX(\VL) = A_L^\WX\int_\vl g_\WX(\vl,\VL)\tilde W_\expt(\vl)\tilde{X}^*_\expt(\vl-\VL),
+\end{equation}
+with normalization
+\begin{equation}
+\label{eq:24}
+  A_L^\WX = \left[\int_\vl f_\WX(\vl,\VL-\vl)g_\WX(\vl,\VL)\right]^{-1}
+\end{equation}
+and weight
+\begin{equation}
+\label{eq:25}
+g_\WX(\vl,\VL) = \frac{C_{l,\expt}^\tXX C_{|\VL-\vl|,\expt}^\tWW f_\WX(\vl,\VL-\vl) - C_{l,\expt}^\tWX C^\tWX_{|\VL-\vl|,\expt}f_\WX(\VL-\vl,\vl)}{C_{l,\expt}^\tWW C^\tXX_{|\VL-\vl|,\expt}C^\tXX_{l,\expt}C^\tWW_{|\VL-\vl|,\expt} - (C^\tWX_{l,\expt}C^\tWX_{|\VL-\vl|,\expt})^2},
+\end{equation}
+where $f_\WX$ is defined by $\la \tilde W(\vl)\tilde X(\VL-\vl)\ra_\mathrm{CMB}=f_\WX(\vl,\VL-\vl)\phi(\VL)$ and can be found in \cite{Hu0111606}. We assume a slightly modified form where unlensed spectra are replaced by lensed ones \cite{hanson1008} to avoid the $N^{(2)}$ bias.  Note that $f_\WX(\vl,\VL-\vl)=f_\mathit{XW}(\VL-\vl,\vl)$ and thus 
+\begin{align}
+\label{eq:gSymmetry}
+g_\WX(\vl,\VL)=g_\mathit{XW}(\VL-\vl,\VL).   
+\end{align}
+
+
+\subsection{Cross correlation of CMB lensing with tracers of LSS}
+Cross correlation of CMB lensing with tracers of LSS is a promising tool for measuring the amplitude of matter fluctuations, while breaking the degeneracy with bias parameters. \todo{discuss different tracer samples}
+
+For galaxy clustering we adopt the model 
+\beq
+g(\l)=\int_0^{\chi^*} \ud\chi \, W^{g}(\chi) \delta(\l,\chi),
+\eeq
+where the kernel is given by 
+\beq
+W^{g}(\chi)= b(z) \frac{ \ud \log N}{\ud z} \frac{\ud z}{\ud \chi}.
+\eeq
+For the bias on cross correlation measurements in \secref{bias} and signal-to-noise estimates for cross bispectra in \secref{SN}, we use a simple bias model of the form $b(z)=z+1$. \todo{bias model for Fisher forecast}
+
+\todo{Discuss LSST sample and  redshift bins}
+
+\section{Cross Bispectra $B^{\phi \phi g}$ and $B^{g g \phi}$}
+\label{sec:Bkkg}
+Two different bispectra can be formed from the combination of lensing and galaxy measurements $B_{\phi\phi g}$ and $B_{\phi g g}$. In Limber and flat-sky approximation, they arise from a weighted integration over the matter bispectrum $B_{\delta}$,
+\begin{align}
+\label{eq:Bppg}
+B_{\phi\phi g}(\l_1,\l_2,\l_3)&=\frac{\gamma^2}{l_1^2 l_2^2} \int_0^{\chi^*} \ud \chi\, \[W^{L}(\chi,\chi^*)(1+z)\]^2 W^{g}(\chi) B_{\delta}(\l_1/\chi,\l_2/\chi,\l_3/\chi,\chi)\\%+\(\l_1 \leftrightarrow \l_3\)+\(\l_2 \leftrightarrow \l_3\)
+B_{\phi g g}(\l_1,\l_2,\l_3)&=\frac{\gamma}{l_1^2} \int_0^{\chi^*} \ud \chi\, \frac{W^{L}(\chi,\chi^*)(1+z) \left[W^{g}(\chi)\right]^2}{\chi^2} B_{\delta}(\l_1/\chi,\l_2/\chi,\l_3/\chi,\chi),
+\end{align}
+where we defined the redshift independent factor $\gamma=\frac{3}{c^2}\Omega_\mathrm{m0} H_0^2$.
+
+Note that by writing $B_{\phi\phi g}(\l_1,\l_2,\l_3)$, we mean that $g$ is associated with the wavevector $\l_3$, i.e. we do not symmetrize over all possible permutations of the cross bispectrum\footnote{The permutation in \eqref{Bppg} is the only permutation contributing to the bias described in \secref{bias}}.
+
+\subsection{Post-Born corrections}
+\label{sec:PostBorn}
+Correlated deflections along the photon geodesics source bispectrum terms on their own, i.e. even in the absence of non-linear structure formation. For CMB lensing alone these post Born terms are of similar magnitude as the non-linear bispectrum itself \citep{PrattenLewis2016}.
+
+The next to leading order post Born contribution to the CMB lensing potential is
+\begin{align}
+\nonumber
+\phi^{(2)}(\VL)&=2/L^2 \kappa^{(2)}(\VL)\\
+&=-\(\frac{2}{c}\)^2 L^{-2} \int_0^{\chi^*} \ud \chi\, W^{L}(\chi, \chi^*)\int_0^{\chi}\ud \chi'\, W^{L}(\chi',\chi)\int_{\VL'} \[\VL\cdot\VL'\] \[\VL'\cdot(\VL-\VL')\]\, \psi(\VL',\chi)\,\Psi(\VL-\VL',\chi').
+\end{align}
+The lowest order post Born cross bispectrum terms arise from the three-point functions $\langle\phi^{(1)}(\vl_1) \phi^{(2)}(\vl_2) g(\vl_3) \rangle$ and $\langle\phi^{(2)}(\vl_1) \phi^{(1)}(\vl_2) g(\vl_3) \rangle$. \todo{Could other combinations be important? Seems that the galaxy kernel suppresses the post Born bispectrum from folded/squeezed configurations, which are the important configurations for canceling the LSS bispectrum (could test from computing certain configs only or changing galaxy kernel.). }
+ 
+In complete analogy to the calculations outlines in \citep{PrattenLewis2016}, we obtain
+\begin{align}
+B_{\mathrm{post Born}}^{\phi\phi g}(\l_1,\l_2,\l_3)=&\,\beta \(\frac{l_3}{l_1}\)^2 \[ \l_2 \cdot \l_3 \] \lbrace \[\l_1 \cdot \l_2 \] M^X(\l_2,\l_3)+\[\l_1 \cdot \l_3 \] M^Y(\l_3,\l_2)\rbrace +\(\vl_1\leftrightarrow\vl_2\),
+\end{align}
+where we defined the redshift independent factor
+\beq
+\beta= \(\frac{2}{c}\)^4 \[3\, \Omega_{m0} H_0^2\]^{-1}
+\eeq
+and the two matrices
+\begin{align}
+\nonumber
+M^{X}(\l,\l')&=\int_0^{\chi^*} \ud \chi\, \[\frac{W^{L}(\chi,\chi^*)}{\chi}\]^2 P^{\Psi\Psi}(\l,\chi)\int_0^{\chi} \ud \chi'\, \frac{W^{L}(\chi',\chi)W^{g}(\chi')}{\(\chi'\)^4 (1+z)} P^{\Psi\Psi}(\l',\chi')\\
+M^{Y}(\l,\l')&=\int_0^{\chi^*} \ud \chi\, \frac{W^{L}(\chi,\chi^*)W^{g}(\chi)}{\chi^4 (1+z)} P^{\Psi\Psi}(\l,\chi) \int_0^{\chi} \ud \chi'\, \frac{W^{L}(\chi',\chi)W^{L}(\chi',\chi*)}{\chi'^2} P^{\Psi\Psi}(\l',\chi').
+\end{align}
+\todo{Same for $B^{ggk}$. Or not, if it's probably not important...}
+
+
+\subsection{Signal-to-Noise}
+\label{sec:SN}
+In full sky the integrated bispectrum can be measured with significance~\cite{Hu2000}
+\beq
+\label{eq:SN_full}
+\(\frac{S}{N}\)^2=f_{\mathrm{sky}} \sum_{l_1, l_2, l_3}\sum_{l_1', l_2', l_3'}B^{XXY}_{l_1,l_2,l_3}\left[\mathrm{Cov}^{-1}\right]B^{XXY}_{l_1',l_2',l_3'}
+\eeq
+
+Assuming that the covariance is dominated by its Gaussian contributions, it is given by
+\begin{align}
+\label{eq:Cov}
+\mathrm{Cov}(\phi\phi g) \approx &\[\hat{C}^{\phi\phi}_{l_1} \delta_{l_1 l_1'}\hat{C}^{\phi\phi}_{l_2} \delta_{l_2 l_2'}\hat{C}^{g g}_{l_3} \delta_{l_3 l_3'}+ \hat{C}^{\phi \phi}_{l_1} \delta_{l_1 l_1'} \hat{C}^{\phi g}_{l_2} \delta_{l_2 l_3'}\hat{C}^{\phi g}_{l_3} \delta_{l_3 l_2'}+\hat{C}^{\phi g}_{l_1} \delta_{l_1 l_3'}\hat{C}^{\phi \phi}_{l_2} \delta_{l_2 l_1'} \hat{C}^{\phi g}_{l_3} \delta_{l_3 l_2'}\]+\(l_1' \leftrightarrow l_2'\)
+%& \[\hat{C}^{\phi\phi}_{l_1} \delta_{l_1 l_2'}\hat{C}^{\phi\phi}_{l_2} \delta_{l_2 l_1'}\hat{C}^{g g}_{l_3} \delta_{l_3 l_3'}+ \hat{C}^{\phi \phi}_{l_1} \delta_{l_1 l_2'} \hat{C}^{\phi g}_{l_2} \delta_{l_2 l_3'}\hat{C}^{\phi g}_{l_3} \delta_{l_3 l_1'}+\hat{C}^{\phi g}_{l_1} \delta_{l_1 l_3'}\hat{C}^{\phi \phi}_{l_2} \delta_{l_2 l_2'} \hat{C}^{\phi g}_{l_3} \delta_{l_3 l_1'}\]
+\end{align}
+and
+\beq
+\mathrm{Cov}(\phi g g) \approx \[\hat{C}^{\phi\phi}_{l_1} \delta_{l_1 l_1'} \hat{C}^{g g}_{l_2} \delta_{l_2 l_2'}\hat{C}^{g g}_{l_3} \delta_{l_3 l_3'}+ \hat{C}^{\phi g}_{l_1} \delta_{l_1 l_2'} \hat{C}^{\phi g}_{l_2} \delta_{l_2 l_1'} \hat{C}^{g g}_{l_3} \delta_{l_3 l_3'}+\hat{C}^{\phi g}_{l_1} \delta_{l_1 l_3'} \hat{C}^{g g}_{l_2} \delta_{l_2 l_2'}\hat{C}^{\phi g}_{l_3} \delta_{l_3 l_1'}\]+\(l_2'\leftrightarrow l_3'\)
+\eeq
+with 
+\beq
+\hat{C}^{\phi\phi}_l = C^{\phi\phi}_l + N^{(0)}_l, \qquad
+\hat{C}^{\phi g}_l=C^{\phi g}_l, \qquad
+\hat{C}^{g g}_{l}= C^{g g}_{l}+\frac{1}{\bar{n}},
+\eeq
+where $N^{(0)}_l=A_l^{-1}$ is the CMB lensing Gaussian reconstruction noise and $\bar{n}$ the average number of tracers per $\mathrm{rad}^2$.
+
+The lower bound of the signal-to-noise is given by \citep{Hu2000,2004MNRAS.348..897T}
+\beq
+\left(\frac{S}{N}\right)^2\geq \sum_{l_1 l_2 l_3}\frac{\[B_{l_1 l_2 l_3}^{XXY}\]^2}{6\hat{C}^{XX}_{l_1} \hat{C}^{XX}_{l_2}\hat{C}^{YY}_{l_3}}
+\eeq
+or in flat-sky approximation
+\beq
+\(\frac{S}{N}\)^2\geq \frac{f_{\mathrm{sky}}}{\pi}\frac{1}{(2 \pi)^2} \int \ud^2 \l_1 \int \ud^2 \l_2 \frac{\[B_{XXY}(\l_1,\l_2)\]^2}{6\hat{C}^{XX}_{l_1} \hat{C}^{XX}_{l_2}\hat{C}^{YY}_{l_3}}.
+\eeq
+
+\section{Bispectrum induced bias on the cross spectrum estimator $\hat{C}^{\phi g}_L$}
+\label{sec:bias}
+The cross correlation between CMB lensing and galaxy clustering is measured by correlating a reconstructed map of the CMB lensing potential $\phi(\L)$ with a galaxy sample $g(\L')$. Reconstructions of the CMB lensing potential are commonly based on the quadratic estimator~\eqref{QuadEsti} \footnote{Recently, also maximum a posteriori estimators have been developed for application to real data. These methods rely on a Gaussian prior on $\phi$ and should also be suboptimal in the presence of higher order correlations~\citep{2003HirataSeljak,AnderesWandelt2015,CarronLewis2017,MilleaAnderes2017}.}.
+With this, the estimator for $C^{\phi g}$ is
+\begin{align}
+2\pi \delta(\VL+\VL')\hat{C}^{\phi g}_L&=\langle\hat{\phi}(\VL)g(\VL')\rangle_{(\phi,T)}\\
+&=A_L \int_\vl g_{TT}(\vl, \VL) \langle \tilde T_\expt(\vl) \tilde T_\expt(\VL-\vl) g(\VL')\rangle.
+\end{align}
+
+The expectation value picks up the cross-correlation bispectrum $B^{\phi\phi g}$ between the quadratic CMB lensing reconstruction $\hat\phi$ and the LSS tracer $g$. The two relevant contractions are
+
+\begin{eqnarray}
+  \label{eq:17}
+  \la\tilde T\tilde T \phi_\mathrm{ext}\ra_{\mathcal{O}[(C^{\phi\phi})^{3/2}]} &=&
+\la \delta T\delta T\phi_\mathrm{ext}\ra + 2\la\delta^2 TT\phi_\mathrm{ext}\ra\\
+&=&
+{
+\contraction{\la}{T}{\!{}_{,i}\phi\!{}_{,i}}{T}
+\bcontraction{\la T\!{}_{,i}}{\phi}{\!{}_{,i} T\!{}_{,j}}{\phi}
+\bcontraction{\la T\!{}_{,i}}{\phi}{\!{}_{,i} T\!{}_{,j}\phi\!{}_{,j}\,}{\phi}
+\la T\!{}_{,i}\phi\!{}_{,i} T\!{}_{,j}\phi\!{}_{,j}\,g\ra_{\mathrm{cross 1}}
+}
++2
+{
+\contraction{\la}{T}{\!{}_{,ij}\phi\!{}_{,i}\phi\!{}_{,j}}{T}
+\bcontraction{\la T\!{}_{,ij}}{\phi}{\!{}_{,i}}{\phi}
+\bcontraction{\la T\!{}_{,ij}}{\phi}{\!{}_{,i}\phi\!{}_{,j}T\,}{\phi}
+\la T\!{}_{,ij}\phi\!{}_{,i}\phi\!{}_{,j}T\,g\ra_{\mathrm{cross 2}}
+}.
+\end{eqnarray}
+The resulting bias is analogue to the bias on the CMB lensing auto spectrum, but has only two contributing terms.
+For a temperature-based reconstruction, they read
+\begin{align}
+N^{(3/2)}_{\mathrm{cross 1}}(L)&=A_L \int_{\vl_1} g_{TT}(\vl_1,\VL) C^{TT}_{l_1} \int_{\vl} \[\vl_1\cdot \vl\] \left[(\vl-\vl_1)\cdot(\VL-\vl_1)\right]  B^{\phi \phi g}(\vl,\VL-\vl,-\VL)\\
+N^{(3/2)}_{\mathrm{cross 2}}&=A_L \int_{\vl_1} g_{TT}(\vl_1,\VL)  C^{TT}_l \int_{\vl} \[\vl_1\cdot \vl\] \left[\vl_1 \cdot(\VL-\vl)\right] B^{\phi \phi g}(\vl,\VL-\vl,-\VL),
+\end{align}
+corresponding to the bias terms A1 and C1 in \citep{N32}.
+
+For the evaluation of the second term we use the fast expressions
+
+\beq
+N^{(3/2)}_{\mathrm{cross 2}}=- A_L \[R_{\parallel}(L) \beta_{\parallel}(L)+R_{\perp}(L) \beta_{\perp}(L)\]
+\eeq
+with
+\begin{eqnarray}
+  \label{eq:Rparallel}
+R_\parallel(L) &=& \int_{\vl_1}g(\vl_1,\VL)  l_1^2\cos^2(\mu_{\vl_1}) C_{l_1}^{TT}, \\
+\label{eq:betaparallel}
+  \beta_\parallel(L) &=& \int_{\vl}  l\cos\mu_\vl\left[ l\cos\mu_\vl - L \right] \,B_\phi(\vl,\VL-\vl,-\VL),
+\end{eqnarray}
+and
+\begin{eqnarray}
+\label{eq:Rperp}
+\qquad
+R_\perp(L) &=& \int_{\vl_1}g(\vl_1,\VL)  l_1^2 \sin^2(\mu_{\vl_1}) C^{TT}_{l_1},\\
+  \label{eq:betaperp}
+  \beta_\perp(L) &=& \int_\vl  l^2 \sin^2(\mu_\vl) \,B_\phi(\vl,\VL-\vl,-\VL),
+\end{eqnarray}
+where $\cos\mu_{\vl_1}=\vl_1\cdot\VL/(l_1L)$ and $\cos\mu_\vl=\vl\cdot\VL/(lL)$.
+
+
+Results for $\beta$-Integrals
+\begin{figure}[tp]
+\begin{center}
+\includegraphics{../I0I2_kkg_g_bin0linlog_halfang_lnPs_Bfit_Planck2015_TTlowPlensingl_max_test10000_postBorn_only_pB.pdf}
+\caption{\label{fig:1}  }
+\end{center}
+\end{figure}
+
+
+\bibliography{marcel_lensing_bisp,LensingBispectrumVanessa}
+\end{document}
