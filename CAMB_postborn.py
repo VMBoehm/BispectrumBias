@@ -115,10 +115,8 @@ class PostBorn_Bispec():
             win     = (1/chis-1/chistar)/chis**2
             # bias and scale factor cancel out
             Hz      = [self.results.h_of_z(z_) for z_ in zs]
-            Hz      = Hz[1:-1]
             wing    = self.dndz(zs)/chis**2*Hz #H is in Mpc^-1 -> do not need to divide by c
             wing/=simps(self.dndz(zs),zs)
-            
             cl      = np.zeros(ls.shape)
             w       = np.ones(chis.shape)
             cchi    = cl_chi_chistar2(chis,ls, grid=True)
@@ -200,7 +198,9 @@ class PostBorn_Bispec():
         L1L2 = (L3**2-L1**2-L2**2)/2.
         L2L3 = (L1**2-L2**2-L3**2)/2.
         L3L1 = (L2**2-L3**2-L1**2)/2.
-        return  gamma*(L3/L1)**2*L2L3*(L1L2*self.Mstarsp(L2,L3,grid=False)+L3L1*self.Mstarp2(L3,L2,grid=False))
+        return  gamma*\
+        ((L3/L1)**2*L2L3*(L1L2*self.Mstarsp(L2,L3,grid=False)+L3L1*self.Mstarsp2(L3,L2,grid=False))+\
+        (L3/L2)**2*L3L1*(L1L2*self.Mstarsp(L1,L3,grid=False)+L2L3*self.Mstarsp2(L3,L1,grid=False)))
                 
     def cl_bi_born(self, lset):
         

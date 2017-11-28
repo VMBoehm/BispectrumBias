@@ -101,9 +101,13 @@ def noise_kernel(theta, l1, L, field, cl_unlen, cl_len, cl_tot, lmin, lmax):
     l2[ np.where(l2 < 0.000001) ] = 0.000001 ## Avoid nasty things
     cos_phi = l1dotl2 / ( l1 * l2 )
     phi = np.arccos( cos_phi )
-    sin_phi = np.sin(phi)
-    cos_2phi = np.cos( 2 * phi )
-    sin_2phi = np.sin( 2 * phi )
+    sin_theta = np.sin(theta)
+    cos_theta = np.cos(theta)
+    mu = np.arccos(Ldotl2/l2/L)
+    sin_2mu  = np.sin(2.*(theta-mu))
+    phi      = np.arccos(l1dotl2/l1/l2)
+    sin_2phi = np.sin(2*phi)
+    
     
     kernel={}
 
@@ -111,50 +115,25 @@ def noise_kernel(theta, l1, L, field, cl_unlen, cl_len, cl_tot, lmin, lmax):
         cl1_len   = cl_len['tt'][l1]
         cl1_unlen = cl_unlen['tt'][l1]
         cl1_tot   = cl_tot['tt'][l1]
-        cl2_len, cl2_tot = get_cl2(cl_len['tt'], cl_tot['tt'], l2, lmin, lmax)
+        cl2_len, cl2_tot = get_cl2(cl_unlen['tt'], cl_tot['tt'], l2, lmin, lmax)
         g_    = (cl1_len * Ldotl1 + cl2_len * Ldotl2) / (2. * cl1_tot * cl2_tot)
-        kernel['perp']  = g_*(sin_phi*l1)**2*cl1_unlen
-        kernel['para']  = g_*(cos_phi*l1)**2*cl1_unlen
-        
-    elif field == 'te': 
-        cl2TT = get_cl2(cl_len['tt'], cl_tot['tt'], l2, lmin, lmax)[1]
-        cl2_unlen, cl2_tot = get_cl2(cl_len['te'], cl_tot['te'], l2, lmin, lmax)
-        cl2EE = get_cl2(cl_len['ee'], cl_tot['ee'], l2, lmin, lmax)[1]
-        cl1_unlen = cl_len['te'][l1]
-        
-        f_l1l2 = cl1_unlen * cos_2phi * Ldotl1 + cl2_unlen * Ldotl2
-        f_l2l1 = cl2_unlen * cos_2phi * Ldotl2 + cl1_unlen * Ldotl1
-        F_l1l2 = (cl_tot['ee'][l1] * cl2TT * f_l1l2 - cl_tot['te'][l1] * cl2_tot * f_l2l1)/(cl_tot['tt'][l1]*cl2EE*cl_tot['ee'][l1]*cl2TT - (cl_tot['te'][l1]*cl2_tot)**2)
-        kernel = f_l1l2 * F_l1l2   
-        
-    elif field == 'ee':
-        cl1_tot = cl_tot['ee'][l1]
-        cl1_unlen = cl_len['ee'][l1]
-        cl2_unlen, cl2_tot = get_cl2(cl_len['ee'], cl_tot['ee'], l2, lmin, lmax)
-        kernel = ( (cl1_unlen * Ldotl1 + cl2_unlen*Ldotl2) * cos_2phi ) **2 / (2 * cl1_tot * cl2_tot)
+        kernel['perp']  = g_*(sin_theta*l1)**2*cl1_unlen
+        kernel['para']  = g_*(cos_theta*l1)**2*cl1_unlen
         
     elif field == 'eb':
-        cl1_unlen = cl_len['ee'][l1]
+        cl1_len = cl_len['ee'][l1]
+        cl1_unlen = cl_unlen['ee'][l1]
         cl1_len = cl_len['ee'][l1]
         cl1EE = cl_tot['ee'][l1]
-        cl2_unlen, cl2BB = get_cl2(cl_len['bb'], cl_tot['bb'], l2, lmin, lmax)
-        f_l1l2 = (cl1_unlen * Ldotl1 - cl2_unlen * Ldotl2) * sin_2phi
-        kernel = (f_l1l2)**2 / (cl1EE * cl2BB)
-
-    elif field == 'tb': 
-        cl1TT = cl_tot['tt'][l1]
-        cl2BB = get_cl2(cl_len['bb'], cl_tot['bb'], l2, lmin, lmax)[1]
-        cl1_unlen = cl_len['te'][l1]
-        kernel = (cl1_unlen * Ldotl1 * sin_2phi )**2 / (cl1TT * cl2BB)
-
-    elif field == 'bb':
-        cl1_tot = cl_tot['bb'][l1]
-        cl1_unlen = cl_len['bb'][l1]
-        cl2_unlen, cl2_tot = get_cl2(cl_len['bb'], cl_tot['bb'], l2, lmin, lmax)
-        kernel = ( (cl1_unlen * Ldotl1 + cl2_unlen*Ldotl2) * cos_2phi ) **2 / (2 * cl1_tot * cl2_tot)        
+        cl2_len, cl2BB = get_cl2(cl_len['bb'], cl_tot['bb'], l2, lmin, lmax)
+        f_l1l2 = (cl1_len * Ldotl1 - cl2_len * Ldotl2)*sin_2phi
+        g_ = f_l1l2 / (cl1EE * cl2BB)
+        kernel['perp']  = g_*(sin_theta*l1)**2*cl1_unlen*sin_2mu
+        kernel['para']  = g_*(cos_theta*l1)**2*cl1_unlen*sin_2mu
         
     for tag in ['perp','para']:  
         kernel[tag]*= (l1 * (2. * np.pi)**(-2.))
+        
     return kernel		
 
 		
@@ -170,7 +149,7 @@ def get_lensing_noise(ells, cl_len, cl_unlen, nl, fields,lmin,l_max_T,lmax_P):
     LogLs  = np.linspace(np.log(1.),np.log(max(ells)+0.1), n_Ls)
     Ls     = np.unique(np.floor(np.exp(LogLs)).astype(float))
     
-    for field in fields:
+    for field in ['tt','ee','bb']:
         try:
             cl_tot[field] = cl_len[field]+nl[field]
         except:
@@ -205,7 +184,7 @@ def get_lensing_noise(ells, cl_len, cl_unlen, nl, fields,lmin,l_max_T,lmax_P):
 
 params=Cosmo.Planck2015_TTlowPlensing
 tag=params[0]['name']
-fields = ['tt']#,'te','ee','eb','bb','tb']
+fields = ['tt','eb']#,'te','ee','eb','bb','tb']
 
 thetaFWHMarcmin = 1. #beam FWHM
 noiseUkArcmin = 1.#eval(sys.argv[1]) #Noise level in uKarcmin
@@ -218,6 +197,7 @@ print 'Evaluating reconstruction noise for fields %s, noise level %f muK/arcmin 
 try:
     Parameter,cl_unl,cl_len=pickle.load(open('/home/traveller/Documents/Projekte/LensingBispectrum/class_outputs/class_cls_%s_nl.pkl'%tag,'r'))
     print 'class_cls_%s_nl.pkl'%tag
+    print cl_len['ee']
 except:
     print 'class_cls_%s_nl.pkl not found...'%tag
     l_max = max(l_max_T, l_max_P)+2000
@@ -247,7 +227,6 @@ deltaT = noiseUkArcmin/thetaFWHMarcmin # noise variance per unit area
 nlI = (deltaT*thetaFWHM)**2*np.exp(ll*(ll+1.)*thetaFWHM**2/(8.*np.log(2.)))/TCMB**2 #beam deconvolved noise relative to CMB temperature
 
 nlI[0:2]=1e10
-nlI[3000::]=1e10
 
 #beam deconvolved noise
 nl['tt']  = nlI
@@ -259,18 +238,20 @@ nl['eb']  = np.zeros(len(nlI))
 
 path='./R_files/'
 
-filename = path+'R_'+str(int(noiseUkArcmin*10))+str(int(thetaFWHMarcmin*10))+'_%s_nl.pkl'%tag
+filename = path+'R_'+str(int(noiseUkArcmin*10))+str(int(thetaFWHMarcmin*10))+'_%s_nl'%tag
 try:
-    Ls,results = pickle.load(open(filename,'r'))
-    assert(False)
+    Ls,results = pickle.load(open(filename+'.pkl','r'))
 except:
     Ls,results = get_lensing_noise(ll, cl_len,cl_unl, nl, fields,2,l_max_T,l_max_P)
 
-    pickle.dump([Ls,results],open(filename,'w'))
-    
+    pickle.dump([Ls,results],open(filename+'.pkl','w'))
     
 plt.figure()
-plt.plot(Ls,Ls**(-2)*results['tt']['perp'])
-plt.plot(Ls,Ls**(-2)*results['tt']['para'])
+plt.plot(Ls,Ls**(-2)*results['tt']['perp'],label='tt perp')
+plt.plot(Ls,Ls**(-2)*results['tt']['para'],label='tt para')
+plt.plot(Ls,Ls**(-2)*results['eb']['perp'],label='eb perp')
+plt.plot(Ls,Ls**(-2)*results['eb']['para'],label='eb para')
 plt.xlim(100,3000)
+plt.legend(loc='best',ncol=2,frameon=False)
+plt.savefig(filename+'.png')
 plt.show()

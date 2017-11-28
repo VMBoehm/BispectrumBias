@@ -143,7 +143,7 @@ if __name__ == "__main__":
     dn_filename = 'dndz_LSST_i27_SN5_3y'
     
     #choose Cosmology (see Cosmology module)
-    params      = C.Namikawa#Planck2015_TTlowPlensing
+    params      = C.Planck2015_TTlowPlensing
     #Limber approximation, if true set class_params['l_switch_limber']=100, else 1
     Limber      = False
  
@@ -204,7 +204,7 @@ if __name__ == "__main__":
     
     n_bar           = simps(dndz(z_g),z_g)*(180*60/np.pi)**2
     
-    AI            = pickle.load(open('/home/traveller/Documents/Projekte/LensingBispectrum/CosmoCodes/N0files/Namikawa_N0_mixedlmax_730.pkl','r'))
+    AI            = pickle.load(open('/home/traveller/Documents/Projekte/LensingBispectrum/CosmoCodes/N0files/Planck2015TempLensCombined_N0_mixedlmax_1010_nodiv.pkl','r'))
     L_s           = AI['ls']
     AL            = AI['MV']
     N0            = np.interp(ll,L_s,AL)#(ll)
@@ -213,10 +213,12 @@ if __name__ == "__main__":
     noise_pp      = np.sqrt(2./(2.*ll+1.)/fsky)*(1./4.*(ll*(ll+1.))**2*(cl_pp+N0))   
     noise_gg      = np.sqrt(2./(2.*ll+1.)/fsky)*(cl_gg+1./n_bar)
     
-    noise_gp      = np.sqrt(2./(2.*ll+1.)/fsky*((cl_gg+1./n_bar)*((1./4.*(ll*(ll+1)))**2*(cl_pp+N0))
+    #check factor of 1 or 2!!
+    noise_gp      = np.sqrt(1./(2.*ll+1.)/fsky*((cl_gg+1./n_bar)*((1./4.*(ll*(ll+1)))**2*(cl_pp+N0))
     +(1./2.*(ll*(ll+1))*cl_xx)**2))
     
     pickle.dump([ll,cl_pp+N0,cl_gg+1./n_bar,cl_xx],open('Gaussian_variances_CMB-S4_LSST_bin%s_%s_%s.pkl'%(red_bin,tag,dn_filename),'w'))
+    
 
     pl.figure(figsize=(8,7))
     pl.errorbar(ll, cl_gg , color='g', yerr=noise_gg, label=r'$C_L^{gg}$, z=0-0.5')
@@ -230,3 +232,13 @@ if __name__ == "__main__":
     pl.xlabel('L')
     pl.savefig('Cross_Spectra_%s.pdf'%(tag+dn_filename+red_bin))
     pl.show()
+
+
+    noise_gp={}
+    for field in ['eb','tt']:
+        L_s  = AI['ls']
+        AL   = AI[field]
+        N0   = np.interp(ll,L_s,abs(AL))
+        noise_gp[field]= np.sqrt(1./(2.*ll+1.)/fsky*((cl_gg+1./n_bar)*(cl_pp+N0)+(cl_xx)**2))
+    
+    pickle.dump([ll,cl_xx,noise_gp],open('cross_signal_noise_%s_%s_%s.pkl'%(red_bin,tag,dn_filename),'w'))

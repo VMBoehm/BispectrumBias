@@ -470,10 +470,10 @@ if __name__ == "__main__":
     
         #ell range (for L and l)
         L_min       = 1.
-        L_max       = 8000.
+        L_max       = 10000.
         
         l_min       = 1.
-        l_max       = 8000.
+        l_max       = 10000.
         
         k_min       = None
         k_max       = 100.
@@ -652,15 +652,25 @@ if __name__ == "__main__":
             print 'Done!'
     
             
-            Int0 = I0(bi_phi, bs.ell, angmu ,len_L*len_ang, len_L, fullsky=False)
+            Int0 = I0(bi_phi, bs.ell, angmu ,len_L, len_l, len_ang, fullsky=False)
             
             #Int1 = I1(bi_phi, bs.ell, angmu ,len_L*len_ang, len_L, squeezed=False, fullsky=False)
                 
-            Int2 = I2(bi_phi, bs.ell, angmu ,len_L*len_ang, len_L, fullsky=False)
+            Int2 = I2(bi_phi, bs.ell, angmu ,len_L, len_l, len_ang, fullsky=False)
          
             L=np.unique(ell[0::3])
         
             pickle.dump([params,Limber,L,Int0,Int2],open('I0I1I2%s.pkl'%(config),'w'))
+            
+            Int0 = I0(bi_kkg, bs.ell, angmu ,len_L, len_l, len_ang, fullsky=False)
+            
+            #Int1 = I1(bi_phi, bs.ell, angmu ,len_L*len_ang, len_L, squeezed=False, fullsky=False)
+                
+            Int2 = I2(bi_kkg, bs.ell, angmu ,len_L, len_l, len_ang, fullsky=False)
+         
+            L=np.unique(ell[0::3])
+        
+            pickle.dump([params,Limber,L,Int0,Int2],open('I0I1I2%s_only.pkl'%(config),'w'))
             
         del bs
         try:
