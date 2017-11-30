@@ -339,11 +339,11 @@ nl['TT'] = nlI
 
 len_L       = 163 
 ## L/l sampling points for bispectrum, just a check to see that we loaded the correct interpolation splines
-L_min=1
-L_max=10000
-La        = np.linspace(L_min,50,48,endpoint=False)
-Lb        = np.exp(np.linspace(np.log(50),np.log(L_max),len_L-48))
-L         = np.append(La,Lb)
+L_min       = 1
+L_max       = 10000
+La          = np.linspace(L_min,50,48,endpoint=False)
+Lb          = np.exp(np.linspace(np.log(50),np.log(L_max),len_L-48))
+L           = np.append(La,Lb)
 
 
 

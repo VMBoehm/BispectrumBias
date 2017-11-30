@@ -38,7 +38,7 @@ class Bispectra():
         - newtonian potential bi_psi (function of chi)
         - lensing potential bi_phi
     """
-    def __init__(self,cosmo,data, ell,z,config,ang12,ang23,ang31, path, z_cmb, nonlin=False, B_fit=False, kkg=False, kgg=False, dndz=None,norm=None,k_min=None,k_max=None):
+    def __init__(self,cosmo,data, ell,z,config,ang12,ang23,ang31, path, z_cmb, b=None, nonlin=False, B_fit=False, kkg=False, kgg=False, dndz=None,norm=None,k_min=None,k_max=None):
         """
         initializes/computes all three bispectra
         * cosmo:    instance of class Cosmology
@@ -113,6 +113,8 @@ class Bispectra():
             print "using Gil-Marin et al. fitting formula"
         
         self.path   = path
+        
+        self.b = b
         
         
         
@@ -402,10 +404,10 @@ class Bispectra():
         dchidz  = self.data.dchidz(self.z)
         dzdchi  = 1./dchidz
         if self.kkg:
-            W_gal   = (self.z+1.)*self.dndz(self.z)/self.norm*dzdchi #b=(1+z)
+            W_gal   = self.b*self.dndz(self.z)/self.norm*dzdchi #b=(1+z)
             kernel  = W_gal*W_lens**2
         elif self.kgg:
-            W_gal   = (self.z+1.)*self.dndz(self.z)/self.norm*dzdchi #b=(1+z)
+            W_gal   = self.b*self.dndz(self.z)/self.norm*dzdchi #b=(1+z)
             kernel  = W_gal**2*W_lens/self.chi**2      
         else:
             kernel  = W_lens**3*self.chi**2
@@ -436,6 +438,7 @@ if __name__ == "__main__":
     "---begin settings---"
     kkg       = True
     kgg       = False
+    LSST      = False
 
     assert(kkg+kgg<=1)
 
@@ -512,9 +515,16 @@ if __name__ == "__main__":
         z       = np.exp(np.linspace(np.log(z_min),np.log(z_cmb-0.01),bin_num))
         
         if kkg or kgg:
-            z       = np.linspace(max(bounds[red_bin][0],z_min),bounds[red_bin][1],100)
-            dndz    = interp1d(gz, dgn, kind='linear',fill_value=0.,bounds_error=False)
+            if LSST:
+                z       = np.linspace(max(bounds[red_bin][0],z_min),bounds[red_bin][1],100)
+                dndz    = interp1d(gz, dgn, kind='slinear',fill_value=0.,bounds_error=False)
+            else:
+                z0      = 1./3.
+                dndz    = (z/z0)**2*np.exp(-z/z0)
+                dndz    = interp1d(z,dndz,kind='slinear',fill_value=0.,bounds_error=False)
+                spectrum_config+='ToshiyaSettings'
             norm    = simps(dndz(z),z)
+            bias    = 1.#+z
         else:
             dndz = None
             norm = None
@@ -611,7 +621,7 @@ if __name__ == "__main__":
             
         pickle.dump([cosmo.class_params],open('class_settings_%s.pkl'%config,'w'))
      
-        bs   = Bispectra(cosmo,data,ell,z,config,ang12,ang23,ang31,path,z_cmb, nl,B_fit,kkg, kgg, dndz, norm,k_min,k_max)
+        bs   = Bispectra(cosmo,data,ell,z,config,ang12,ang23,ang31,path,z_cmb, bias, nl,B_fit,kkg, kgg, dndz, norm,k_min,k_max)
         bs()  
         
         Int0 = I0(bs.bi_phi, bs.ell, angmu, len_L, len_l, len_ang, fullsky=False)
