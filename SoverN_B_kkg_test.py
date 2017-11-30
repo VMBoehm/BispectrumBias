@@ -79,7 +79,7 @@ if __name__ == "__main__":
     
     theta       = np.linspace(Delta_theta,np.pi, len_ang)
     
-    ll,var_lens,var_gal,cl_xx = pickle.load(open('Gaussian_variances_CMB-S4_LSST_bin%s_%s_%s.pkl'%(red_bin,tag,dn_filename),'r'))
+    ll,var_lens,var_gal,cl_xx = pickle.load(open('Gaussian_variances_CMB-S4_LSST_binNone_Namikawa_Paper_nl_red_dis_func.pkl','r'))#Gaussian_variances_CMB-S4_LSST_bin%s_%s_%s.pkl'%(red_bin,tag,dn_filename),'r'))
     
     
     Parameter,cl_unl,cl_len   = pickle.load(open('../class_outputs/class_cls_%s.pkl'%tag,'r'))

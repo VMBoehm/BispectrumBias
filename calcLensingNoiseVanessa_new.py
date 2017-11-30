@@ -325,8 +325,10 @@ plt.savefig('noise_kk'+str(int(noiseUkArcmin*10))+str(int(thetaFWHMarcmin*10))+'
 
 
 N02015={}
-data1a=pickle.load(open(path+'noise_levels_n10_beam10_lmax3000_Planck2015TempLensCombined.pkl','r'))
-data2a=pickle.load(open(path+'noise_levels_n10_beam10_lmax5000_Planck2015TempLensCombined.pkl','r'))
+#data1a=pickle.load(open(path+'noise_levels_n10_beam10_lmax3000_Planck2015TempLensCombined.pkl','r'))
+#data2a=pickle.load(open(path+'noise_levels_n10_beam10_lmax5000_Planck2015TempLensCombined.pkl','r'))
+data1a=pickle.load(open(path+'noise_levels_n7_beam30_lmax4000_Namikawa.pkl','r'))
+data2a=pickle.load(open(path+'noise_levels_n7_beam30_lmax4000_Namikawa.pkl','r'))
 N02015['ls']=data1a[0]
 print min(data1a[0])
 N02015['tt']=data1a[1]
@@ -340,7 +342,7 @@ for ff in ['tt','tb','te','ee','eb']:
     N02015['MV']+=1./N02015[ff]
 N02015['MV']=1./N02015['MV']
 #
-pickle.dump(N02015,open(path+'Planck2015TempLensCombined_N0_mixedlmax_1010_nodiv.pkl','w'))
+pickle.dump(N02015,open(path+'Toshiya_N0_lmax4000_S4_nodiv.pkl','w'))
 #
 plt.figure(figsize=(8,6))
 ls = data1a[0]

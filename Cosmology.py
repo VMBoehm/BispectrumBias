@@ -78,14 +78,15 @@ Namikawa=[{
 'n_s'   :0.965,
 'N_ncdm': 2,
 'N_ur':1.0196,
-'m_ncdm': "0.05, 0.01",
+#'m_ncdm': "0.05, 0.01",
 'k_pivot' : 0.05,
 'tau_reio':0.0630,
-'ncdm_fluid_approximation': 2,
-'ncdm_fluid_trigger_tau_over_tau_k':51.,
-'tol_ncdm_synchronous':1.e-10,
-'tol_ncdm_bg':1.e-10,
-'l_max_ncdm':51}]
+#'ncdm_fluid_approximation': 2,
+#'ncdm_fluid_trigger_tau_over_tau_k':51.,
+#'tol_ncdm_synchronous':1.e-10,
+#'tol_ncdm_bg':1.e-10,
+#'l_max_ncdm':51
+}]
 
 Pratten=[{
 'name':"Pratten_Paper"},{
