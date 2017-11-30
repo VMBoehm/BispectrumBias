@@ -12,21 +12,23 @@ import numpy as np
 config = 'kkg_g_bin0linlog_halfang_lnPs_Bfit_Planck2015_TTlowPlensingl_max_test10000'
 params,Limber,L1,Int0,Int2=pickle.load(open('I0I1I2%s.pkl'%(config),'r'))
 print len(L1), len(Int0)
-#config = 'cross_g_linlog_newang_lnPs_Bfit_Planck2013_TempLensCombined'
-#params,Limber,L,Int01,Int11,Int21=pickle.load(open('I0I1I2%s.pkl'%(config),'r'))
-config = 'kkg_g_bin0linlog_halfang_lnPs_Bfit_Planck2015_TTlowPlensingl_max_test10000_postBorn'
+config = 'kkg_g_bin0linlog_halfang_lnPs_Bfit_Planck2015_TTlowPlensing_new_test'
+params,Limber,L3,Int03,Int23=pickle.load(open('I0I1I2%s.pkl'%(config),'r'))
+config = 'kkg_g_bin0linlog_halfang_lnPsToshiyaSettings_Bfit_Planck2015_TTlowPlensingl_max_test10000_postBorn'
 params,Limber,L,Int02,Int22=pickle.load(open('I0I1I2%s.pkl'%(config),'r'))
-config = 'kkg_g_bin0linlog_halfang_lnPs_Bfit_Planck2015_TTlowPlensingl_max_test10000_postBorn_only'
+config = 'kkg_g_bin0linlog_halfang_lnPsToshiyaSettings_Bfit_Planck2015_TTlowPlensingl_max_test10000'
 params,Limber,L2,Int01,Int21=pickle.load(open('I0I1I2%s.pkl'%(config),'r'))
 pl.figure()
 
 
-pl.plot(L1,L1**4*Int0*2,ls='--',color='b',label=r'$L^4 \beta^{\mathrm{cross}}_\perp$')
-pl.plot(L1,L1**4*Int2*2,ls='--',color='g',label=r'$L^4 \beta^{\mathrm{cross}}_\perp$')
-pl.plot(L,L**4*Int02*2,ls=':',color='b',label=r'$L^4 \beta^{\mathrm{cross}}_\parallel$ incl. post Born')
-pl.plot(L,L**4*Int22*2,ls=':',color='g',label=r'$L^4 \beta^{\mathrm{cross}}_\parallel$ incl. post Born')
-#pl.plot(L,L2**4*Int01,ls='-',color='k',label=r'$L^4 \beta_0$ N32 cross post Born only')
-#pl.plot(L,L2**4*Int21,ls='-',color='m',label=r'$L^4 \beta_2$ N32 cross post Born only')
+pl.plot(L1,L1**4*Int0*2,ls='-',color='b',label=r'$L^4 \beta^{\mathrm{cross}}_\perp$')
+pl.plot(L1,L1**4*Int2*2,ls='-',color='g',label=r'$L^4 \beta^{\mathrm{cross}}_\perp$')
+pl.plot(L,L**4*Int02*2,ls='--',color='b',label=r'$L^4 \beta^{\mathrm{cross}}_\parallel$ Toshiya incl. post Born')
+pl.plot(L,L**4*Int22*2,ls='--',color='g',label=r'$L^4 \beta^{\mathrm{cross}}_\parallel$ Toshiya incl. post Born')
+pl.plot(L,L2**4*Int01*2,ls=':',color='b',label=r'$L^4 \beta^{\mathrm{cross}}_\parallel$ Toshiya')
+pl.plot(L,L2**4*Int21*2,ls=':',color='g',label=r'$L^4 \beta^{\mathrm{cross}}_\perp$ Toshiya')
+pl.plot(L,L3**4*Int03*2,ls=':',color='k',label=r'$L^4 \beta^{\mathrm{cross}}_\parallel$ test')
+pl.plot(L,L3**4*Int23*2,ls=':',color='k',label=r'$L^4 \beta^{\mathrm{cross}}_\perp$ test')
 #config = 'kkg_g_bin0linlog_halfang_lnPs_Bfit_Planck2015_TTlowPlensingl_max_test14000'
 #params,Limber,L,Int03,Int23=pickle.load(open('I0I1I2%s.pkl'%(config),'r'))
 #pl.plot(L,L**4*Int03*2,ls='-',color='b',label=r'$L^4 \beta_0$ N32')

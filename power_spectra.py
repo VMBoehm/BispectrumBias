@@ -158,7 +158,7 @@ if __name__ == "__main__":
             
     
     #choose Cosmology (see Cosmology module)
-    params      = C.Namikawa#Planck2015_TTlowPlensing
+    params      = C.Planck2015_TTlowPlensing
     #Limber approximation, if true set class_params['l_switch_limber']=100, else 1
     Limber      = False
  
@@ -204,7 +204,7 @@ if __name__ == "__main__":
     tag     = params[0]['name']
     if nl:
         tag+='_nl'
-    #tag+='Toshiya'
+    tag+='Toshiya_'
     try:
         ll, cl_pp, cl_gg, cl_xx = pickle.load(open('cross_spectrum_%s_%s_bin%s.pkl'%(tag,dn_filename,red_bin),'r'))
     except:
@@ -220,7 +220,7 @@ if __name__ == "__main__":
 
     fsky            = 1.#0.5   
     
-    n_bar           = simps(dndz(z),z)*(180*60/np.pi)**2
+    n_bar           = np.inf#simps(dndz(z),z)*(180*60/np.pi)**2
     
     AI            = pickle.load(open('/home/traveller/Documents/Projekte/LensingBispectrum/CosmoCodes/N0files/Toshiya_iterative_N0.pkl','r'))#Planck2015TempLensCombined_N0_mixedlmax_1010_nodiv.pkl','r'))
     L_s           = AI[0]#['ls']
@@ -236,7 +236,7 @@ if __name__ == "__main__":
     noise_gp*=((cl_gg+1./n_bar)*((1./2.*(ll*(ll+1.)))**2*(cl_pp+N0))+(1./2.*(ll*(ll+1))*cl_xx)**2)
     noise_gp=np.sqrt(noise_gp)
     
-    #tag+='Toshiya_n'
+    tag+='Toshiya_'
     pickle.dump([ll,cl_pp+N0,cl_gg+1./n_bar,cl_xx],open('Gaussian_variances_CMB-S4_LSST_bin%s_%s_%s.pkl'%(red_bin,tag,dn_filename),'w'))
     
 

@@ -404,10 +404,10 @@ class Bispectra():
         dchidz  = self.data.dchidz(self.z)
         dzdchi  = 1./dchidz
         if self.kkg:
-            W_gal   = self.b*self.dndz(self.z)/self.norm*dzdchi #b=(1+z)
+            W_gal   = self.b*self.dndz(self.z)/self.norm*dzdchi 
             kernel  = W_gal*W_lens**2
         elif self.kgg:
-            W_gal   = self.b*self.dndz(self.z)/self.norm*dzdchi #b=(1+z)
+            W_gal   = self.b*self.dndz(self.z)/self.norm*dzdchi
             kernel  = W_gal**2*W_lens/self.chi**2      
         else:
             kernel  = W_lens**3*self.chi**2
@@ -438,7 +438,7 @@ if __name__ == "__main__":
     "---begin settings---"
     kkg       = True
     kgg       = False
-    LSST      = False
+    LSST      = True
 
     assert(kkg+kgg<=1)
 
@@ -518,13 +518,16 @@ if __name__ == "__main__":
             if LSST:
                 z       = np.linspace(max(bounds[red_bin][0],z_min),bounds[red_bin][1],100)
                 dndz    = interp1d(gz, dgn, kind='slinear',fill_value=0.,bounds_error=False)
+                bias    = 1.+z
             else:
                 z0      = 1./3.
                 dndz    = (z/z0)**2*np.exp(-z/z0)
                 dndz    = interp1d(z,dndz,kind='slinear',fill_value=0.,bounds_error=False)
+                bias    = 1.#+z
                 spectrum_config+='ToshiyaSettings'
             norm    = simps(dndz(z),z)
-            bias    = 1.#+z
+            print 'norm ', norm
+            
         else:
             dndz = None
             norm = None
@@ -632,7 +635,7 @@ if __name__ == "__main__":
      
         L    = np.unique(ell[0::3])
     
-        config+='l_max_test%d'%l_max
+        config+='_new_test'
         pickle.dump([params,Limber,L,Int0,Int2],open('I0I1I2%s.pkl'%(config),'w'))
         
         if post_born:
