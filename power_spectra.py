@@ -96,10 +96,12 @@ def compute_power_spectrum(ell_min, ell_max,z,Limber,nl,bias):
     
     pl.figure()
     pl.plot(z,W_gal)
+    pl.xlim(0,1)
     pl.savefig('W_gal_z_test.png')
 
     pl.figure()
     pl.plot(z,W_lens)
+    pl.xlim(0,1)
     pl.savefig('W_lens_z_test.png')
     
     kernel_x  = W_gal*W_lens*bias*dzdchi
@@ -108,6 +110,7 @@ def compute_power_spectrum(ell_min, ell_max,z,Limber,nl,bias):
     pl.figure()
     pl.plot(z,kernel_gg)
     pl.plot(z,kernel_x)
+    pl.xlim(0,1)
     pl.savefig('kernel_gal_test.png')
     
         
@@ -140,7 +143,7 @@ if __name__ == "__main__":
     
     "---begin settings---"
  
-    LSST        = True
+    LSST        = False
     
     if LSST:
         dn_filename = 'dndz_LSST_i27_SN5_3y'
@@ -189,7 +192,10 @@ if __name__ == "__main__":
 
     if LSST:
         gz, dgn     = pickle.load(open(dn_filename+'_extrapolated.pkl','r'))
-        dndz        = interp1d(gz, dgn, kind='linear',bounds_error=False,fill_value=0.) 
+        dndz        = interp1d(gz, dgn, kind='linear')
+        z_g         = np.linspace(max(bounds[red_bin][0],z_min),bounds[red_bin][1],bin_num)
+        dndz        = dndz(z_g)
+        dndz        = interp1d(z_g, dndz, kind='linear',bounds_error=False,fill_value=0.)
         bias        = z+1.
     else:
         bias        = 1.
@@ -198,7 +204,7 @@ if __name__ == "__main__":
     tag     = params[0]['name']
     if nl:
         tag+='_nl'
-    tag+='test'
+    tag+='Toshiya'
     try:
         ll, cl_pp, cl_gg, cl_xx = pickle.load(open('cross_spectrum_%s_%s_bin%s.pkl'%(tag,dn_filename,red_bin),'r'))
     except:
@@ -212,13 +218,13 @@ if __name__ == "__main__":
     cl_phiphi       = cl_len['pp'][ell_min:ell_max+1]
     ells            = cl_len['ell'][ell_min:ell_max+1]
 
-    fsky            = 0.5   
+    fsky            = 1.#0.5   
     
     n_bar           = simps(dndz(z),z)*(180*60/np.pi)**2
     
-    AI            = pickle.load(open('/home/traveller/Documents/Projekte/LensingBispectrum/CosmoCodes/N0files/Planck2015TempLensCombined_N0_mixedlmax_1010_nodiv.pkl','r'))
-    L_s           = AI['ls']
-    AL            = AI['MV']
+    AI            = pickle.load(open('/home/traveller/Documents/Projekte/LensingBispectrum/CosmoCodes/N0files/Toshiya_iterative_N0.pkl','r'))#Planck2015TempLensCombined_N0_mixedlmax_1010_nodiv.pkl','r'))
+    L_s           = AI[0]#['ls']
+    AL            = AI[1]#['MV']
     N0            = np.interp(ll,L_s,AL)#(ll)
     print L_s
     
@@ -230,6 +236,7 @@ if __name__ == "__main__":
     noise_gp*=((cl_gg+1./n_bar)*((1./2.*(ll*(ll+1.)))**2*(cl_pp+N0))+(1./2.*(ll*(ll+1))*cl_xx)**2)
     noise_gp=np.sqrt(noise_gp)
     
+    tag+='Toshiya_n'
     pickle.dump([ll,cl_pp+N0,cl_gg+1./n_bar,cl_xx],open('Gaussian_variances_CMB-S4_LSST_bin%s_%s_%s.pkl'%(red_bin,tag,dn_filename),'w'))
     
 
@@ -247,11 +254,11 @@ if __name__ == "__main__":
     pl.show()
 
 
-    noise_gp={}
-    for field in ['eb','tt']:
-        L_s  = AI['ls']
-        AL   = AI[field]
-        N0   = np.interp(ll,L_s,abs(AL))
-        noise_gp[field]=np.sqrt(1./(2.*ll+1.)/fsky*((cl_gg+1./n_bar)*(cl_pp+N0)+(cl_xx)**2))
-    
-    pickle.dump([ll,cl_xx,noise_gp],open('cross_signal_noise_%s_%s_%s.pkl'%(red_bin,tag,dn_filename),'w'))
+#    noise_gp={}
+#    for field in ['eb','tt']:
+#        L_s  = AI['ls']
+#        AL   = AI[field]
+#        N0   = np.interp(ll,L_s,abs(AL))
+#        noise_gp[field]=np.sqrt(1./(2.*ll+1.)/fsky*((cl_gg+1./n_bar)*(cl_pp+N0)+(cl_xx)**2))
+#    
+#    pickle.dump([ll,cl_xx,noise_gp],open('cross_signal_noise_%s_%s_%s.pkl'%(red_bin,tag,dn_filename),'w'))
