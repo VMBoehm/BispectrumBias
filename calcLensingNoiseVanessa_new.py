@@ -351,8 +351,22 @@ plt.loglog(ls, t(ls)*N02015['te'],ls='-',lw=2,color=colors[3],label='TE')
 plt.loglog(ls, t(ls)*N02015['tb'],ls='-',lw=2,color=colors[4],label='TB')
 plt.loglog(ls, t(ls)*N02015['ee'],ls='-',lw=2,color=colors[2],label='EE')
 plt.loglog(ls, t(ls)*N02015['eb'],ls='-',lw=2,color=colors[5],label='EB')
+
+
+path_Nam='/home/traveller/Documents/Projekte/LensingBispectrum/CMB-nonlinear/ToshiyaData/'
+data=np.loadtxt(path_Nam+'S4_s1_t3_rlmax4000.dat').T
+ls=data[0]
+N01=data[1]
+N02=data[2]
+N03=data[3]
+plt.loglog(ls, t(ls)*N02,ls='--',lw=2,color=colors[2],label='EE')
+plt.loglog(ls, t(ls)*N03,ls='--',lw=2,color=colors[5], label='EB')
+plt.loglog(ls, t(ls)*N01,ls='--',lw=2,color='k',label='MV')
 plt.xlim(2,2000)
 plt.ylim(1e-9,1e-5)
 plt.legend(loc='best',ncol=3)
 plt.savefig('N0_PlanckTemLens2015_1010_lmax3000-5000_ql.png')
 plt.show()
+
+pickle.dump([ls,N01],open(path+'Toshiya_iterative_N0.pkl','w'))
+

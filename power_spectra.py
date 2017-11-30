@@ -25,7 +25,7 @@ import os
 import pickle
 
         
-def compute_power_spectrum(ell_min, ell_max,z,z_g,Limber,nl):
+def compute_power_spectrum(ell_min, ell_max,z,Limber,nl,bias):
 
     ell = np.exp(np.linspace(np.log(ell_min),np.log(ell_max),200))
     
@@ -82,39 +82,39 @@ def compute_power_spectrum(ell_min, ell_max,z,z_g,Limber,nl):
     C_pp=np.array(C_pp)
     C_pp*=(data.prefacs**2/(ell+0.5)**4)
     
-    data    = C.CosmoData(cosmo,z_g)
-    chi     = data.chi(z_g)
+    data    = C.CosmoData(cosmo,z)
+    chi     = data.chi(z)
 
     k    = np.outer(1./chi,ell+0.5)
 
         
-    W_lens  = ((chi_cmb-chi)/(chi_cmb*chi))*(z_g+1.)
-    dchidz  = data.dchidz(z_g)
-    norm    = simps(dndz(z_g),z_g)
+    W_lens  = ((chi_cmb-chi)/(chi_cmb*chi))*(z+1.)
+    dchidz  = data.dchidz(z)
+    norm    = simps(dndz(z),z)
     dzdchi  = 1./dchidz
-    W_gal   = dndz(z_g)/norm
+    W_gal   = dndz(z)/norm
     
     pl.figure()
-    pl.plot(z_g,W_gal)
+    pl.plot(z,W_gal)
     pl.savefig('W_gal_z_test.png')
 
     pl.figure()
-    pl.plot(z_g,W_lens)
+    pl.plot(z,W_lens)
     pl.savefig('W_lens_z_test.png')
     
-    kernel_x  = W_gal*W_lens*(z_g+1.)*dzdchi
-    kernel_gg = (W_gal*(z_g+1.)*dzdchi/chi)**2
+    kernel_x  = W_gal*W_lens*bias*dzdchi
+    kernel_gg = (W_gal*bias*dzdchi/chi)**2
     
     pl.figure()
-    pl.plot(z_g,kernel_gg)
-    pl.plot(z_g,kernel_x)
+    pl.plot(z,kernel_gg)
+    pl.plot(z,kernel_x)
     pl.savefig('kernel_gal_test.png')
     
         
-    spec_z  =np.zeros((len(z_g),len(ell)))
+    spec_z  =np.zeros((len(z),len(ell)))
 
-    for ii in xrange(len(z_g)):
-        spec =[cosmo_pk(k[ii][j],z_g[ii]) for j in xrange(len(k[ii]))]
+    for ii in xrange(len(z)):
+        spec =[cosmo_pk(k[ii][j],z[ii]) for j in xrange(len(k[ii]))]
         spec = np.array(spec)
         spec_z[ii] = spec
     spec_z=np.transpose(spec_z)
@@ -140,7 +140,19 @@ if __name__ == "__main__":
     
     "---begin settings---"
  
-    dn_filename = 'dndz_LSST_i27_SN5_3y'
+    LSST        = True
+    
+    if LSST:
+        dn_filename = 'dndz_LSST_i27_SN5_3y'
+        red_bin     = '0'
+        bounds      = {'0':[0.0,0.5],'1':[0.5,1.],'2':[1.-2.]}
+    else:
+        dn_filename = 'red_dis_func'
+        red_bin     = 'None'
+        z0=1./3.
+        def red_dis(z):
+            return (z/z0)**2*np.exp(-z/z0)
+            
     
     #choose Cosmology (see Cosmology module)
     params      = C.Planck2015_TTlowPlensing
@@ -148,9 +160,7 @@ if __name__ == "__main__":
     Limber      = False
  
     #binbounds
-    red_bin     = '0'
-    
-    bounds      = {'0':[0.0,0.5],'1':[0.5,1.],'2':[1.-2.]}
+
 				    
     #number of redshift bins 
     bin_num     = 200
@@ -161,48 +171,50 @@ if __name__ == "__main__":
       
     nl          = True
 
-    gz, dgn     = pickle.load(open(dn_filename+'_extrapolated.pkl','r'))
+    z_min       = 1e-3
+    
+    cosmo       = C.Cosmology(zmin=0.00, zmax=1200, Params=params, Limber = Limber, lmax=2000, mPk=False, Neutrinos=False)
+    closmo      = Class()
+    closmo.set(params[1])
+    closmo.compute()
+    #set up z range and binning in z space
+    
+    z_cmb       = closmo.get_current_derived_parameters(['z_rec'])['z_rec']
+    closmo.struct_cleanup()
+    closmo.empty()
+    
+    z           = np.exp(np.linspace(np.log(z_min),np.log(z_cmb-0.01),bin_num))
+    
+    print "z_cmb: %f"%z_cmb
 
-    dndz        = interp1d(gz, dgn, kind='linear')        
-    #initialize cosmology
-#    cosmo   = C.Cosmology(zmin=0.00, zmax=1200, Params=params, Limber = Limber, lmax=ell_max, mPk=False, Neutrinos=False)
-#    closmo  = Class()
-#    params[1]['l_max_scalars']=4000
-#    closmo.set(params[1])
-#    closmo.compute()
-#    #set up z range and binning in z space
-    z_min   = 1e-3
-#    z_cmb   = closmo.get_current_derived_parameters(['z_rec'])['z_rec']
-#    closmo.struct_cleanup()
-#    closmo.empty()
-#    
-#    print "z_cmb: %f"%z_cmb
-#
-#    #linear sampling in z is ok
-#    z       = np.exp(np.linspace(np.log(z_min),np.log(z_cmb-0.01),bin_num))
-#
-#
-    z_g     = np.linspace(max(bounds[red_bin][0],z_min),bounds[red_bin][1],bin_num)
-
+    if LSST:
+        gz, dgn     = pickle.load(open(dn_filename+'_extrapolated.pkl','r'))
+        dndz        = interp1d(gz, dgn, kind='linear',bounds_error=False,fill_value=0.) 
+        bias        = z+1.
+    else:
+        bias        = 1.
+        dndz        = interp1d(z,red_dis(z),bounds_error=False,fill_value=0.)
+        
     tag     = params[0]['name']
     if nl:
         tag+='_nl'
+    tag+='test'
     try:
         ll, cl_pp, cl_gg, cl_xx = pickle.load(open('cross_spectrum_%s_%s_bin%s.pkl'%(tag,dn_filename,red_bin),'r'))
     except:
         print 'cross_spectrum_%s_%s_bin%s.pkl not found'%(tag,dn_filename,red_bin)  
-        ll, cl_pp, cl_gg, cl_xx = compute_power_spectrum(ell_min, ell_max, z, z_g, Limber, nl)
+        ll, cl_pp, cl_gg, cl_xx = compute_power_spectrum(ell_min, ell_max, z, Limber, nl,bias)
         pickle.dump([ll,cl_pp, cl_gg, cl_xx],open('cross_spectrum_%s_%s_bin%s.pkl'%(tag,dn_filename,red_bin),'w'))
-    
+    tag     = params[0]['name']
+    if nl:
+        tag+='_nl'
     Parameter,cl_unl,cl_len=pickle.load(open('../class_outputs/class_cls_%s.pkl'%tag,'r'))
-    cl_phiphi     = cl_len['pp'][ell_min:ell_max+1]
-    ells          = cl_len['ell'][ell_min:ell_max+1]
+    cl_phiphi       = cl_len['pp'][ell_min:ell_max+1]
+    ells            = cl_len['ell'][ell_min:ell_max+1]
 
-#    noiseUkArcmin   = 1.
-#    thetaFWHMarcmin = 1.
     fsky            = 0.5   
     
-    n_bar           = simps(dndz(z_g),z_g)*(180*60/np.pi)**2
+    n_bar           = simps(dndz(z),z)*(180*60/np.pi)**2
     
     AI            = pickle.load(open('/home/traveller/Documents/Projekte/LensingBispectrum/CosmoCodes/N0files/Planck2015TempLensCombined_N0_mixedlmax_1010_nodiv.pkl','r'))
     L_s           = AI['ls']
