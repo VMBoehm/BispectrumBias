@@ -10,7 +10,7 @@ import pylab as plt
 import pickle
 from scipy.integrate import simps
 import numpy as np
-from scipy.interpolate import splev, splrep, interp1d
+from scipy.interpolate import interp1d
 import Cosmology as Cosmo
                
 def SN_integral(bispec,var_len, var_gal, var_xx, Ls, ls, Lls, ang, bin_size, sample1d, min_index, max_index):
@@ -41,12 +41,12 @@ def SN_integral(bispec,var_len, var_gal, var_xx, Ls, ls, Lls, ang, bin_size, sam
             fac         = np.ones(len(Ll))
 
              
-            if j==i:
-                 fac*=2.
-                 fac[np.where(np.isclose(ang_,np.pi/3.))]=6.
+#            if j==i:
+#                 fac*=2.
+#                 fac[np.where(np.isclose(ang_,np.pi/3.))]=6.
             if len(Ll)>=1:    
                 num   = (spec_int*2)**2
-                denom = fac*splev(L_,var_lens,ext=0)*splev(l_const,var_lens,ext=0)*splev(Ll,var_gal,ext=0)#extrapolate
+                denom = fac*var_lens(L_)*var_lens(l_const)*var_gal(Ll)#extrapolate
                 integrand+=[simps(num/denom,ang_)]
             else:
                 integrand+=[0]
@@ -60,7 +60,7 @@ def SN_integral(bispec,var_len, var_gal, var_xx, Ls, ls, Lls, ang, bin_size, sam
 
 if __name__ == "__main__":  				
     
-    LSST        = True
+    LSST        = False
     red_bin     = '0'
     params      = Cosmo.Planck2015_TTlowPlensing
     tag         = params[0]['name']+'_nl'  
@@ -88,15 +88,15 @@ if __name__ == "__main__":
     #Parameter,cl_unl,cl_len   = pickle.load(open('../class_outputs/class_cls_%s.pkl'%tag,'r'))   
             
     tag+='Toshiya'
-    ll,var_lens,var_gal,cl_xx = pickle.load(open('Gaussian_variances_CMB-S4_LSST_bin%s_%s_%s.pkl'%(red_bin,tag,dn_filename),'r'))   
-    print 'Gaussian_variances_CMB-S4_LSST_bin%s_%s_%s.pkl'%(red_bin,tag,dn_filename)
+    ll,var_lens,var_gal,cl_xx = pickle.load(open('Gaussian_variances_CMB-S4_bin%s_%s_%s.pkl'%(red_bin,tag,dn_filename),'r'))   
+    print 'Gaussian_variances_CMB-S4_bin%s_%s_%s.pkl'%(red_bin,tag,dn_filename)
     
-    b_kkg       = np.load("bispec_phi_kkg_g_bin0linlog_halfang_lnPsToshiyaSettings_Bfit_Planck2015_TTlowPlensing_Lmin1-Lmax10000-lmax10000-lenBi4330747.npy")     
+    b_kkg       = np.load("bispec_phi_kkg_g_bin0linlog_halfang_lnPsToshiyaSettings_Bfit_Planck2015_TTlowPlensing_Lmin1-Lmax10000-lmax10000-lenBi4330747_sym.npy")     
     Ll          = np.asarray(np.load(open('Ll_file_linlog_halfang_1e+00_10000_lenL163_lenang163_1e-02.pkl','r')))
 
-    var_gal     = splrep(ll,var_gal)
-    var_lens    = splrep(ll,var_lens)
-#    var_xx      = splrep(ll,cl_xx)
+    var_gal     = interp1d(ll,var_gal, bounds_error=False, fill_value=np.inf)
+    var_lens    = interp1d(ll,var_lens, bounds_error=False, fill_value=np.inf)
+    var_xx      = interp1d(ll,cl_xx, bounds_error=False, fill_value=np.inf)
     
     min_L       = []
     SN          = []
@@ -127,8 +127,9 @@ if __name__ == "__main__":
         SN        +=[SN_*fsky/(2*np.pi**2)]
         plt.plot(max_L, np.sqrt(SN) ,marker="o")
     plt.xlim(0,2000)
+    plt.ylim(0,200)
     plt.legend()
     plt.xlabel(r'$L_{max}$')
     plt.ylabel("S/N")
-    plt.savefig("S_over_N_Toshiya_B_kkg_lmin%d_thetaFWHMarcmin30_noiseUkArcmin07_fsky%.1f.pdf"%(minL_,fsky), bbox_inches="tight")
+    plt.savefig("S_over_N_Toshiya_B_kkg_lmin%d_thetaFWHMarcmin30_noiseUkArcmin07_fsky%.1f_sym.pdf"%(minL_,fsky), bbox_inches="tight")
     plt.show()

@@ -107,8 +107,8 @@ def get_typeA(double[:]  Ls, int sample1d, cl_fid, field , nl, int lmin, int lma
 	cdef unsigned int N = 1400 #len(mu1s)
 	cdef unsigned int M = 1400 #len(mus)
 	
-	cdef unsigned int K = 256*18 #len(ls) 
-	cdef unsigned int P = 256*18 #len(l1s) #dividable 256 to distribute among cores
+	cdef unsigned int K = 16*18 #len(ls) 
+	cdef unsigned int P = 16*18 #len(l1s) #dividable 256 to distribute among cores
     
 	if rank==0:
 		print "ell-range for integration: ", minl, K, minl1, P
@@ -292,16 +292,16 @@ def get_typeA(double[:]  Ls, int sample1d, cl_fid, field , nl, int lmin, int lma
 
 
 ### settings ###
-tag="class_cls_Planck2015_TTlowPlensing_nl"
+tag="Planck2015_TTlowPlensing_nl"
 field ='TT'
 cl, nl = {}, {}
 
 ##load power spectra created with class (Parameter is a list of the cosmologocal parameters used)
-Parameter,cl_unl,cl_len=pickle.load(open('../class_outputs/class_cls_%s.pkl'%tag,'r'))
+Parameter,cl_unl,cl_len=pickle.load(open('/u/vboehm/class_outputs/class_cls_%s.pkl'%tag,'r'))
 
 ##load spline interpolation of bispectrum
 res_tag="kkg_g_bin0linlog_halfang_lnPs_Bfit_Planck2015_TTlowPlensing_mu"
-bispec_file='../interp_bispectra/bispec_interp_%s.pkl'%res_tag
+bispec_file='/u/vboehm/interp_bispec/bispec_interp_%s.pkl'%res_tag
 ## bispectrum was interpolated along mu-axis for l=l3 and L kept fixed
 # x: mu for which it was interpolated
 # Ls, l3s: ls and ls for which it was intrepolated
@@ -320,13 +320,13 @@ lmax=max(cl_unl['ell'])
 lmin=min(cl_unl['ell'])
 
 assert(lmin==0)
-assert(lmax>=8000)
+assert(lmax>=5000)
 ells=np.arange(lmin,lmax+1)
 
 ### beam, noise etc (taken from code for Type C integraks over CTT)
 thetaFWHMarcmin = 1.
 noiseUkArcmin = 1.
-lcut = 5000
+lcut = 3000
 TCMB = 2.725e6
 thetaFWHM = thetaFWHMarcmin*np.pi/(180.*60.)
 deltaT = noiseUkArcmin/thetaFWHMarcmin
@@ -351,7 +351,7 @@ assert(len_L==len(l3s))
 
 def run():
    #index of L
-	for j in [100,106]:#[104,116]:#[64,80,95]:#,104,116]:
+	for j in [20,30]:#[104,116]:#[64,80,95]:#,104,116]:
 		print j, Ls[j]
 		num, L, l1, res, M, P= get_typeA(Ls,len_L,cl,field,nl,lmin,lmax,ang_min,ang_max, j)
 		#send results to process with id 0      
@@ -364,4 +364,4 @@ def run():
 			#do integration over l1  
 			sumres=simps(integrand,x)
 			#save final result
-			pickle.dump([L,sumres],open("./TypeA_res%d_%d_%d_%s.pkl"%(num,M,P,res_tag),'w'))
+			pickle.dump([L,sumres],open("/u/vboehm/cross_results/TypeA_res%d_%d_%d_%s.pkl"%(num,M,P,res_tag),'w'))

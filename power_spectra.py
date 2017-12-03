@@ -27,7 +27,7 @@ import pickle
         
 def compute_power_spectrum(ell_min, ell_max,z,Limber,nl,bias):
 
-    ell = np.exp(np.linspace(np.log(ell_min),np.log(ell_max),200))
+    ell = np.exp(np.linspace(np.log(ell_min),np.log(ell_max),400))
     
     cosmo   = C.Cosmology(zmin=0.00, zmax=1200, Params=params, Limber = Limber, lmax=ell_max, mPk=False, Neutrinos=False)
     data    = C.CosmoData(cosmo,z)
@@ -168,13 +168,19 @@ if __name__ == "__main__":
     #number of redshift bins 
     bin_num     = 200
 
-    #ell range (for L and l)
-    ell_min     = 1
-    ell_max     = 3000
       
     nl          = True
 
     z_min       = 1e-3
+    
+    AI            = pickle.load(open('/home/traveller/Documents/Projekte/LensingBispectrum/CosmoCodes/N0files/Toshiya_iterative_N0.pkl','r'))#Planck2015TempLensCombined_N0_mixedlmax_1010_nodiv.pkl','r'))
+    L_s           = AI[0]#['ls']
+    AL            = AI[1]#['MV']
+    
+    ell_min       = min(L_s) 
+    ell_max       = max(L_s)
+    
+    print ell_min, ell_max
     
     cosmo       = C.Cosmology(zmin=0.00, zmax=1200, Params=params, Limber = Limber, lmax=2000, mPk=False, Neutrinos=False)
     closmo      = Class()
@@ -217,6 +223,8 @@ if __name__ == "__main__":
     Parameter,cl_unl,cl_len=pickle.load(open('../class_outputs/class_cls_%s.pkl'%tag,'r'))
     cl_phiphi       = cl_len['pp'][ell_min:ell_max+1]
     ells            = cl_len['ell'][ell_min:ell_max+1]
+    
+    N0              = np.interp(ll,L_s,AL)
 
     fsky            = 1.#0.5   
     
@@ -236,21 +244,30 @@ if __name__ == "__main__":
     noise_gp*=((cl_gg+1./n_bar)*((1./2.*(ll*(ll+1.)))**2*(cl_pp+N0))+(1./2.*(ll*(ll+1))*cl_xx)**2)
     noise_gp=np.sqrt(noise_gp)
     
-    tag+='Toshiya_'
-    pickle.dump([ll,cl_pp+N0,cl_gg+1./n_bar,cl_xx],open('Gaussian_variances_CMB-S4_LSST_bin%s_%s_%s.pkl'%(red_bin,tag,dn_filename),'w'))
+#    tag+='Toshiya'
+#    pickle.dump([ll,cl_pp+N0,cl_gg+1./n_bar,cl_xx],open('Gaussian_variances_CMB-S4_bin%s_%s_%s.pkl'%(red_bin,tag,dn_filename),'w'))
+#    
+#
+#    pl.figure(figsize=(8,7))
+#    pl.errorbar(ll, cl_gg , color='g', yerr=noise_gg, label=r'$C_L^{gg}$, z=0-0.5')
+#    noise_gp[np.where(noise_gp>1./2.*(ll*(ll+1))*cl_xx)]=1./2.*(ll*(ll+1))*cl_xx-1e-20
+#    pl.errorbar(ll,1./4.*(ll*(ll+1.))**2*cl_pp,yerr=noise_pp,label=r'$C_L^{\kappa \kappa}$')
+#    pl.loglog(ells,1./4.*(ells*(ells+1.))**2*cl_phiphi, 'k',label=r'$C_L^{\kappa \kappa}$ theory')
+#    pl.errorbar(ll,1./2.*(ll*(ll+1))*cl_xx, yerr=noise_gp, color='r',label=r'$C_L^{\kappa g}$, z=0-0.5')
+#    pl.legend(loc='lower left',ncol=3, columnspacing=0.8, frameon=False)
+#    pl.ylim([1e-9,1e-4])
+#    pl.xlim([2,2000])
+#    pl.xlabel('L')
+#    pl.savefig('Cross_Spectra_%s.pdf'%(tag+dn_filename+red_bin))
+#    pl.show()
     
-
     pl.figure(figsize=(8,7))
-    pl.errorbar(ll, cl_gg , color='g', yerr=noise_gg, label=r'$C_L^{gg}$, z=0-0.5')
-    noise_gp[np.where(noise_gp>1./2.*(ll*(ll+1))*cl_xx)]=1./2.*(ll*(ll+1))*cl_xx-1e-20
-    pl.errorbar(ll,1./4.*(ll*(ll+1.))**2*cl_pp,yerr=noise_pp,label=r'$C_L^{\kappa \kappa}$')
-    pl.loglog(ells,1./4.*(ells*(ells+1.))**2*cl_phiphi, 'k',label=r'$C_L^{\kappa \kappa}$ theory')
-    pl.errorbar(ll,1./2.*(ll*(ll+1))*cl_xx, yerr=noise_gp, color='r',label=r'$C_L^{\kappa g}$, z=0-0.5')
+    pl.loglog(ll, cl_gg , color='g', label=r'$C_L^{gg}$, z=0-0.5')
     pl.legend(loc='lower left',ncol=3, columnspacing=0.8, frameon=False)
-    pl.ylim([1e-9,1e-4])
-    pl.xlim([2,2000])
+    pl.ylim([1e-8,1e-5])
+    pl.xlim([1,2000])
     pl.xlabel('L')
-    pl.savefig('Cross_Spectra_%s.pdf'%(tag+dn_filename+red_bin))
+    pl.savefig('CLgg_%s.pdf'%(tag+dn_filename+red_bin))
     pl.show()
 
 

@@ -25,8 +25,8 @@ pl.ioff()
 from classy import Class
 import Cosmology as C
 
-from N32biasIntegrals import I0, I2
-#from BispectrumIntegrals import integrate_bispec
+from N32biasIntegrals import I0, I2, bi_cum
+from BkkgSkewness import beta_RR as skew
 import os
 import pickle
 
@@ -38,7 +38,7 @@ class Bispectra():
         - newtonian potential bi_psi (function of chi)
         - lensing potential bi_phi
     """
-    def __init__(self,cosmo,data, ell,z,config,ang12,ang23,ang31, path, z_cmb, b=None, nonlin=False, B_fit=False, kkg=False, kgg=False, dndz=None,norm=None,k_min=None,k_max=None):
+    def __init__(self,cosmo,data, ell,z,config,ang12,ang23,ang31, path, z_cmb, b=None, nonlin=False, B_fit=False, kkg=False, kgg=False, dndz=None,norm=None,k_min=None,k_max=None,sym=False):
         """
         initializes/computes all three bispectra
         * cosmo:    instance of class Cosmology
@@ -114,7 +114,9 @@ class Bispectra():
         
         self.path   = path
         
-        self.b = b
+        self.b      = b
+        
+        self.sym    = sym
         
         
         
@@ -125,7 +127,8 @@ class Bispectra():
         """
 
         self.filename=self.path+"bispec_phi_%s_Lmin%d-Lmax%d-lmax%d-lenBi%d"%(self.config,self.L_min,self.L_max,self.l_max,self.len_bi)
-          
+        if self.sym:
+            self.filename+='_sym'
         try:
             self.bi_phi=np.load(self.filename+'.npy')
             print "loading file %s"%(self.filename+'.npy')									
@@ -419,11 +422,17 @@ class Bispectra():
         self.bi_phi=np.array(bi_phi)
         
         if self.kkg:
-            fac = self.data.prefacs**2*(1./((self.ell[1::3]+0.5)*(self.ell[2::3]+0.5))**2)
-            #+(1./((self.ell[1::3]+0.5)*(self.ell[2::3]+0.5)))**2\
-            #+(1./((self.ell[2::3]+0.5)*(self.ell[0::3]+0.5)))**2)
+            if self.sym:
+                fac = self.data.prefacs**2*(1./((self.ell[1::3]+0.5)*(self.ell[2::3]+0.5))**2\
+                +(1./((self.ell[1::3]+0.5)*(self.ell[2::3]+0.5)))**2\
+                +(1./((self.ell[2::3]+0.5)*(self.ell[0::3]+0.5)))**2)
+            else:
+                fac = self.data.prefacs**2*(1./((self.ell[1::3]+0.5)*(self.ell[2::3]+0.5))**2)
         elif self.kgg:
-            fac =self.data.prefacs/(self.ell[0::3]+0.5)**2
+            if self.sym:
+                fac =self.data.prefacs*(1./(self.ell[0::3]+0.5)**2+1./(self.ell[1::3]+0.5)**2+1./(self.ell[2::3]+0.5)**2)
+            else:
+                fac =self.data.prefacs/(self.ell[0::3]+0.5)**2
         else:
             fac =(self.data.prefacs)**3/((self.ell[1::3]+0.5)*(self.ell[2::3]+0.5)*(self.ell[0::3]+0.5))**2
         self.bi_phi*=fac
@@ -436,9 +445,11 @@ class Bispectra():
 if __name__ == "__main__":  
     
     "---begin settings---"
-    kkg       = True
-    kgg       = False
-    LSST      = True
+    kkg     = True
+    kgg     = False
+    LSST    = False
+    
+    sym     = False  
 
     assert(kkg+kgg<=1)
 
@@ -451,12 +462,12 @@ if __name__ == "__main__":
     #Limber approximation, if true set class_params['l_switch_limber']=100, else 1
     Limber      = True    
     #post Born (use post Born terms from Pratten & Lewis arXiv:1605.05662
-    post_born   = True
+    post_born   = False
     #fitting formula (use B_delta fitting formula from Gil-Marin et al. arXiv:1111.4477
     B_fit       = True
-    # compute C^(phi,g)
-    kkg_spec    = False
-    pow_spec    = False
+    
+    rad         = np.linspace(10,500)
+
     #binbounds
     
     for red_bin in ['0']:#,'1','2']:
@@ -518,7 +529,7 @@ if __name__ == "__main__":
             if LSST:
                 z       = np.linspace(max(bounds[red_bin][0],z_min),bounds[red_bin][1],100)
                 dndz    = interp1d(gz, dgn, kind='slinear',fill_value=0.,bounds_error=False)
-                bias    = 1.+z
+                bias    = z+1.
             else:
                 z0      = 1./3.
                 dndz    = (z/z0)**2*np.exp(-z/z0)
@@ -624,19 +635,26 @@ if __name__ == "__main__":
             
         pickle.dump([cosmo.class_params],open('class_settings_%s.pkl'%config,'w'))
      
-        bs   = Bispectra(cosmo,data,ell,z,config,ang12,ang23,ang31,path,z_cmb, bias, nl,B_fit,kkg, kgg, dndz, norm,k_min,k_max)
+        bs   = Bispectra(cosmo,data,ell,z,config,ang12,ang23,ang31,path,z_cmb, bias, nl,B_fit,kkg, kgg, dndz, norm,k_min,k_max,sym)
         bs()  
         
         Int0 = I0(bs.bi_phi, bs.ell, angmu, len_L, len_l, len_ang, fullsky=False)
         
-        #Int1 = I1(bs.bi_phi, bs.ell, angmu, len_L, len_l, len_ang, squeezed=False, fullsky=False)
+        #Bi_cum = bi_cum(bs.bi_phi, bs.ell, angmu, len_L, len_l, len_ang, fullsky=False)
             
         Int2 = I2(bs.bi_phi, bs.ell, angmu ,len_L, len_l, len_ang, fullsky=False)
+        
+        Bi_cum=[]
+        
+        for R in rad:
+            Bi_cum+=[skew(bs.bi_phi, bs.ell, angmu ,len_L, len_l, len_ang, R=R,fullsky=False)]
      
         L    = np.unique(ell[0::3])
+        
+        if sym:
+            config+='_sym'
     
-        config+='_new_test'
-        pickle.dump([params,Limber,L,Int0,Int2],open('I0I1I2%s.pkl'%(config),'w'))
+        pickle.dump([params,Limber,L,Int0,Int2,rad,np.asarray(Bi_cum)],open('I0I1I2%s.pkl'%(config),'w'))
         
         if post_born:
             print 'computing post Born corrections...'
@@ -667,23 +685,23 @@ if __name__ == "__main__":
             
             Int0 = I0(bi_phi, bs.ell, angmu ,len_L, len_l, len_ang, fullsky=False)
             
-            #Int1 = I1(bi_phi, bs.ell, angmu ,len_L*len_ang, len_L, squeezed=False, fullsky=False)
+            #B_cum = bi_cum(bi_phi, bs.ell, angmu ,len_l, len_ang, len_L, fullsky=False)
                 
             Int2 = I2(bi_phi, bs.ell, angmu ,len_L, len_l, len_ang, fullsky=False)
          
             L=np.unique(ell[0::3])
         
-            pickle.dump([params,Limber,L,Int0,Int2],open('I0I1I2%s.pkl'%(config),'w'))
+            pickle.dump([params,Limber,L,Int0,Int2,Bi_cum],open('I0I1I2%s.pkl'%(config),'w'))
             
             Int0 = I0(bi_kkg, bs.ell, angmu ,len_L, len_l, len_ang, fullsky=False)
             
-            #Int1 = I1(bi_phi, bs.ell, angmu ,len_L*len_ang, len_L, squeezed=False, fullsky=False)
+            #B_cum = bi_cum(bi_phi, bs.ell, angmu ,len_l, len_ang, len_L, fullsky=False)
                 
             Int2 = I2(bi_kkg, bs.ell, angmu ,len_L, len_l, len_ang, fullsky=False)
          
             L=np.unique(ell[0::3])
         
-            pickle.dump([params,Limber,L,Int0,Int2],open('I0I1I2%s_only.pkl'%(config),'w'))
+            pickle.dump([params,Limber,L,Int0,Int2,Bi_cum],open('I0I1I2%s_only.pkl'%(config),'w'))
             
         del bs
         try:
