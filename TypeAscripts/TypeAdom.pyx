@@ -107,8 +107,8 @@ def get_typeA(double[:]  Ls, int sample1d, cl_fid, field , nl, int lmin, int lma
 	cdef unsigned int N = 1400 #len(mu1s)
 	cdef unsigned int M = 1400 #len(mus)
 	
-	cdef unsigned int K = 16*18 #len(ls) 
-	cdef unsigned int P = 16*18 #len(l1s) #dividable 256 to distribute among cores
+	cdef unsigned int K = 256*18 #len(ls) 
+	cdef unsigned int P = 256*18 #len(l1s) #dividable 256 to distribute among cores
     
 	if rank==0:
 		print "ell-range for integration: ", minl, K, minl1, P

@@ -66,6 +66,27 @@ Planck2013_TempLensCombined=[{
 'A_s'    : 2.215*1e-9,
 'n_s'    : 0.9675,
 'k_pivot' : 0.05}]
+
+ToshiyaComparison=[{
+'name':"Toshiya"},{
+'h': 0.6751,
+'omega_b':0.0223,
+'omega_cdm':0.119,
+'Omega_k':0.0,
+'tau_reio':0.063,
+'A_s'   :2.13e-9,
+'n_s'   :0.965,
+#'N_ncdm': 2,
+#'N_ur':1.0196,
+#'m_ncdm': "0.05, 0.01",
+'k_pivot' : 0.05,
+'tau_reio':0.0630,
+#'ncdm_fluid_approximation': 2,
+#'ncdm_fluid_trigger_tau_over_tau_k':51.,
+#'tol_ncdm_synchronous':1.e-10,
+#'tol_ncdm_bg':1.e-10,
+#'l_max_ncdm':51
+}]
                
 Namikawa=[{
 'name':"Namikawa_Paper"},{
@@ -479,17 +500,21 @@ class CosmoData():
 			params['output']='tCl lCl mPk'
 			params['tol_perturb_integration']=1.e-6
 			
-		params['z_max_pk']=1.5
-		params['P_k_max_1/Mpc'] = kmax
-		params['k_min_tau0'] = kmin*13000.
-		
+   
+		params['z_max_pk']     = 10.#1.5
+		params['P_k_max_1/Mpc']= kmax
+		if kmin>1e-5:
+				params['k_min_tau0']   = kmin*13000.
+		else:
+				params['k_min_tau0']   = 1e-6*13000.
+		print kmin, 1e-6
 		
 		if nl:
 			params['non linear'] = "halofit"
 		else:
 			params['non linear'] = ""
 		
-		closmo 					 = Class()
+		closmo 					      = Class()
 		closmo.set(params)
 		
 		print "Calculalating matter power spectrum... with settings",self.cosmo.class_params
@@ -527,6 +552,23 @@ class CosmoData():
 			except:
 				raise ValueError('Spectral index should only be calculated from linear power spectrum!')
 			self.n = HF.get_derivative(np.log(k_array),np.log(P),method="si")
+
+		h   = self.cosmo.class_params['h']
+		k_  = np.exp(np.linspace(np.log(1e-4*h),np.log(100.*h),100))
+		print min(k_)
+		pl.figure()
+		for z_ in [0.,1.,10.]:
+				plk =[]
+				for kk in k_:
+						plk+=[closmo.pk(kk,z_)]
+				pl.loglog(k_/h,np.asarray(plk)*h**3,label='z=%d'%z_)
+		pl.xlabel(r'$k [h/Mpc]$')
+		pl.xlim(1e-4,1.)    
+		pl.ylabel(r'$P(k) [Mpc/h]^3$')
+		pl.ylim(0.1,100000)
+		pl.legend(loc='best')
+		pl.savefig('pow_spec_lin.png')
+   
 
 				
 		if test:

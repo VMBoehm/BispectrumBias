@@ -249,6 +249,30 @@ class Bispectra():
             pickle.dump([self.cosmo.class_params,cl_unl,cl_len],open('../class_outputs/class_cls_%s_lensed.pkl'%self.cosmo.tag,'w'))
         except:
             pickle.dump([self.cosmo.class_params,cl_unl],open('../class_outputs/class_cls_%s_le.pkl'%self.cosmo.tag,'w'))
+            
+        if equilat:
+            pickle.dump([self.chi,self.z,self.k],open(self.path+'z_k_equilat.pkl','w'))
+            
+            
+        h   = self.cosmo.class_params['h']
+        k_  = np.exp(np.linspace(np.log(1e-4*h),np.log(100.*h),100))
+        pl.figure()
+        for z_ in [0.,1.,10.]:
+            plk =[]
+            for kk in k_:
+                plk+=[self.closmo_nl.pk(kk,z_)]
+            pl.loglog(k_/h,np.asarray(plk)*h**3,label='z=%d'%z_)
+            print min(k_/h), max(k_/h)
+        pl.xlim(1e-4,1.) 
+        pl.ylim(0.1,100000)
+        pl.xlabel(r'$k [h/Mpc]$')
+        pl.ylabel(r'$P(k) [Mpc/h]^3$')
+        pl.legend(loc='best')
+        pl.savefig('pow_spec_nl.png')
+        
+        
+            
+        
         
             
     def compute_Bispectrum_delta(self):
@@ -449,15 +473,20 @@ if __name__ == "__main__":
     kgg     = False
     LSST    = False
     
-    sym     = False  
+    sym     = False
 
+    equilat = True
+    squeezed  = False
+    
+    integrals = False
+    
     assert(kkg+kgg<=1)
 
     if kkg or kgg:   
         dn_filename = 'dndz_LSST_i27_SN5_3y'
     
     #choose Cosmology (see Cosmology module)
-    params      = C.Planck2015_TTlowPlensing
+    params      = C.ToshiyaComparison
 
     #Limber approximation, if true set class_params['l_switch_limber']=100, else 1
     Limber      = True    
@@ -472,10 +501,10 @@ if __name__ == "__main__":
     
     for red_bin in ['0']:#,'1','2']:
     
-        bounds      = {'0':[0.0,0.5],'1':[0.5,1.],'2':[1.-2.]}
+        bounds      = {'0':[0.0,0.5],'1':[0.5,1.],'2':[1.,2.]}
     				    
         #number of redshift bins 
-        bin_num     = 150
+        bin_num     = 200
         
         #sampling in L/l and angle
         len_L       = 163
@@ -489,11 +518,18 @@ if __name__ == "__main__":
         l_min       = 1.
         l_max       = 10000.
         
-        k_min       = None
-        k_max       = 100.
+        k_min       = 1e-4*params[1]['h']#h/Mpc
+        k_max       = 100.*params[1]['h']#h/Mpc
         
         #tag for L-sampling
         ell_type    ="linlog_halfang"
+        
+        if equilat:
+            ell_type="equilat"
+            len_side= 250
+        if squeezed:
+            ell_type="squeezed"
+            len_side= 250
         
         #regularizing theta bounds
         Delta_theta = 1e-2
@@ -516,7 +552,7 @@ if __name__ == "__main__":
         closmo.set(params[1])
         closmo.compute()
         #set up z range and binning in z space
-        z_min   = 1e-3
+        z_min   = 5e-5
         z_cmb   = closmo.get_current_derived_parameters(['z_rec'])['z_rec']
         closmo.struct_cleanup()
         closmo.empty()
@@ -537,6 +573,11 @@ if __name__ == "__main__":
                 bias    = 1.#+z
                 spectrum_config+='ToshiyaSettings'
             norm    = simps(dndz(z),z)
+            
+            pl.figure()
+            pl.semilogx(z,dndz(z)/norm)
+            pl.xlim(1e-3,100)
+            pl.savefig('dndz.png')
             print 'norm ', norm
             
         else:
@@ -574,12 +615,29 @@ if __name__ == "__main__":
                 #L = |-L|, equally spaced in lin at low L and in log at high L 
                 L         = np.linspace(L_min,L_max,len_L)
                 l         = np.linspace(l_min,l_max,len_l)
+            elif ell_type=='equilat':
+                assert(len_side>150)
+                La        = np.arange(L_min,150)
+                Lb        = np.ceil(np.exp(np.linspace(np.log(150),np.log(L_max),len_side-len(La),)))
+                L         = np.append(La,Lb)
+            elif ell_type=='squeezed':
+                assert(len_side>150)
+                La        = np.arange(L_min,150)
+                Lb        = np.ceil(np.exp(np.linspace(np.log(150),np.log(L_max),len_side-len(La))))
+                
+                L         = np.append(La,Lb)
+                l         = np.append(La,Lb)*0.5
             else:
                 raise Exception("ell type not consistent with any sampling method")
                 
             # angle, cut edges to avoid numerical instabilities
             #TODO: try halving this angle, probably requires multiplication by 2, but should avoid l2=0
             theta   = np.linspace(Delta_theta,np.pi, len_ang)
+            if ell_type=='equilat':
+                theta   = np.asarray([np.pi/3.]*len_side)
+            if ell_type=='squeezed':
+                theta   = np.asarray([np.pi/1000.]*len_side)
+                
             cosmu   = np.cos(theta) #Ldotl/Ll or -l1dotl3/l1/l3 (l1+l2+l3=0) (angle used in beta Integrals)
             
             ang31=[]
@@ -589,19 +647,45 @@ if __name__ == "__main__":
     
             sqrt=np.sqrt
             #all combinations of the two sides and the angles
-            for i in range(len_L):
-                for j in range(len_l):
-                    for k in range(len_ang):
+            
+            if equilat:
+                for i in range(len_side):
                         l1= L[i]
-                        l3= l[j]
-                        l2= sqrt(l1*l1+l3*l3-2.*l1*l3*cosmu[k])
+                        l3= L[i]
+                        l2= sqrt(l1*l1+l3*l3-2.*l1*l3*cosmu[i])
                         if l2<1e-5:
                             l2=1e-5
                         ell+=[l1]+[l2]+[l3]
-                        ang31+=[-cosmu[k]]
+                        ang31+=[-cosmu[i]]
                         ang12+=[(l3*l3-l1*l1-l2*l2)/(2.*l1*l2)]
                         ang23+=[(l1*l1-l3*l3-l2*l2)/(2.*l3*l2)]
-                        angmu+=[theta[k]]
+                        angmu+=[theta[i]]
+            elif squeezed:
+                for i in range(len_side):
+                        l1= L[i]
+                        l3= l[i]
+                        l2= sqrt(l1*l1+l3*l3-2.*l1*l3*cosmu[i])
+                        if l2<1e-5:
+                            l2=1e-5
+                        ell+=[l1]+[l2]+[l3]
+                        ang31+=[-cosmu[i]]
+                        ang12+=[(l3*l3-l1*l1-l2*l2)/(2.*l1*l2)]
+                        ang23+=[(l1*l1-l3*l3-l2*l2)/(2.*l3*l2)]
+                        angmu+=[theta[i]]                
+            else:                       
+                for i in range(len_L):
+                    for j in range(len_l):
+                        for k in range(len_ang):
+                            l1= L[i]
+                            l3= l[j]
+                            l2= sqrt(l1*l1+l3*l3-2.*l1*l3*cosmu[k])
+                            if l2<1e-5:
+                                l2=1e-5
+                            ell+=[l1]+[l2]+[l3]
+                            ang31+=[-cosmu[k]]
+                            ang12+=[(l3*l3-l1*l1-l2*l2)/(2.*l1*l2)]
+                            ang23+=[(l1*l1-l3*l3-l2*l2)/(2.*l3*l2)]
+                            angmu+=[theta[k]]
             #array of length 3*number of triangles  
         
             ang12=np.array(ang12)
@@ -614,8 +698,9 @@ if __name__ == "__main__":
         ell=np.asarray(ell)
         print "ell_type: %s"%ell_type
         
-        ff_name     = path+"Ll_file_%s_%.0e_%d_lenL%d_lenang%d_%.0e.pkl"%(ell_type,l_min,l_max,len_L,len_ang,Delta_theta)
-        pickle.dump(ell[1::3],open(ff_name,'w'))
+        if not equilat:
+            ff_name     = path+"Ll_file_%s_%.0e_%d_lenL%d_lenang%d_%.0e.pkl"%(ell_type,l_min,l_max,len_L,len_ang,Delta_theta)
+            pickle.dump(ell[1::3],open(ff_name,'w'))
     
         if kkg:
             config = 'kkg_g_bin%s'%red_bin+ell_type
@@ -638,23 +723,24 @@ if __name__ == "__main__":
         bs   = Bispectra(cosmo,data,ell,z,config,ang12,ang23,ang31,path,z_cmb, bias, nl,B_fit,kkg, kgg, dndz, norm,k_min,k_max,sym)
         bs()  
         
-        Int0 = I0(bs.bi_phi, bs.ell, angmu, len_L, len_l, len_ang, fullsky=False)
-        
-        #Bi_cum = bi_cum(bs.bi_phi, bs.ell, angmu, len_L, len_l, len_ang, fullsky=False)
+        if integrals:
+            Int0 = I0(bs.bi_phi, bs.ell, angmu, len_L, len_l, len_ang, fullsky=False)
             
-        Int2 = I2(bs.bi_phi, bs.ell, angmu ,len_L, len_l, len_ang, fullsky=False)
+            #Bi_cum = bi_cum(bs.bi_phi, bs.ell, angmu, len_L, len_l, len_ang, fullsky=False)
+                
+            Int2 = I2(bs.bi_phi, bs.ell, angmu ,len_L, len_l, len_ang, fullsky=False)
+            
+            Bi_cum=[]
+            
+            for R in rad:
+                Bi_cum+=[skew(bs.bi_phi, bs.ell, angmu ,len_L, len_l, len_ang, R=R,fullsky=False)]
+         
+            L    = np.unique(ell[0::3])
+            
+            if sym:
+                config+='_sym'
         
-        Bi_cum=[]
-        
-        for R in rad:
-            Bi_cum+=[skew(bs.bi_phi, bs.ell, angmu ,len_L, len_l, len_ang, R=R,fullsky=False)]
-     
-        L    = np.unique(ell[0::3])
-        
-        if sym:
-            config+='_sym'
-    
-        pickle.dump([params,Limber,L,Int0,Int2,rad,np.asarray(Bi_cum)],open('I0I1I2%s.pkl'%(config),'w'))
+            pickle.dump([params,Limber,L,Int0,Int2,rad,np.asarray(Bi_cum)],open('I0I1I2%s.pkl'%(config),'w'))
         
         if post_born:
             print 'computing post Born corrections...'
@@ -682,26 +768,26 @@ if __name__ == "__main__":
                 bi_phi = bi_post+bs.bi_phi
             print 'Done!'
     
-            
-            Int0 = I0(bi_phi, bs.ell, angmu ,len_L, len_l, len_ang, fullsky=False)
-            
-            #B_cum = bi_cum(bi_phi, bs.ell, angmu ,len_l, len_ang, len_L, fullsky=False)
+            if integrals:
+                Int0 = I0(bi_phi, bs.ell, angmu ,len_L, len_l, len_ang, fullsky=False)
                 
-            Int2 = I2(bi_phi, bs.ell, angmu ,len_L, len_l, len_ang, fullsky=False)
-         
-            L=np.unique(ell[0::3])
-        
-            pickle.dump([params,Limber,L,Int0,Int2,Bi_cum],open('I0I1I2%s.pkl'%(config),'w'))
+                #B_cum = bi_cum(bi_phi, bs.ell, angmu ,len_l, len_ang, len_L, fullsky=False)
+                    
+                Int2 = I2(bi_phi, bs.ell, angmu ,len_L, len_l, len_ang, fullsky=False)
+             
+                L=np.unique(ell[0::3])
             
-            Int0 = I0(bi_kkg, bs.ell, angmu ,len_L, len_l, len_ang, fullsky=False)
-            
-            #B_cum = bi_cum(bi_phi, bs.ell, angmu ,len_l, len_ang, len_L, fullsky=False)
+                pickle.dump([params,Limber,L,Int0,Int2,Bi_cum],open('I0I1I2%s.pkl'%(config),'w'))
                 
-            Int2 = I2(bi_kkg, bs.ell, angmu ,len_L, len_l, len_ang, fullsky=False)
-         
-            L=np.unique(ell[0::3])
-        
-            pickle.dump([params,Limber,L,Int0,Int2,Bi_cum],open('I0I1I2%s_only.pkl'%(config),'w'))
+                Int0 = I0(bi_kkg, bs.ell, angmu ,len_L, len_l, len_ang, fullsky=False)
+                
+                #B_cum = bi_cum(bi_phi, bs.ell, angmu ,len_l, len_ang, len_L, fullsky=False)
+                    
+                Int2 = I2(bi_kkg, bs.ell, angmu ,len_L, len_l, len_ang, fullsky=False)
+             
+                L=np.unique(ell[0::3])
+            
+                pickle.dump([params,Limber,L,Int0,Int2,Bi_cum],open('I0I1I2%s_only.pkl'%(config),'w'))
             
         del bs
         try:
