@@ -488,12 +488,8 @@ class CosmoData():
 		return True
 		
 	
-	def get_Pm(self,kmin,kmax,k_array,test=False,nl=False,get_n=False,z=None,z_=None):
-		
-
-		if z==None:
-			z=0.
-   
+	def get_Pm(self,kmin,kmax,k_array,test=False,nl=False,get_n=False,z_max=1.5,z_=None):
+																				
 		params=copy.deepcopy(self.cosmo.class_params)
           
 		if params['output']!='tCl lCl mPk':
@@ -501,7 +497,7 @@ class CosmoData():
 			params['tol_perturb_integration']=1.e-6
 			
    
-		params['z_max_pk']     = 10.#1.5
+		params['z_max_pk']     = z_max
 		params['P_k_max_1/Mpc']= kmax
 		if kmin>1e-5:
 				params['k_min_tau0']   = kmin*13000.
@@ -520,26 +516,22 @@ class CosmoData():
 		print "Calculalating matter power spectrum... with settings",self.cosmo.class_params
 		
 		closmo.compute()
-		print 'here'  
 		if nl:
-			P_nl 			= np.array([closmo.pk(k,z) for k in k_array])
+			P_nl 			= np.array([closmo.pk(k,0.) for k in k_array])
+			assert(False)   
 		else:
-			P 	 		    = np.array([closmo.pk(k,z) for k in k_array])
+			P 	 		    = np.array([closmo.pk(k,0.) for k in k_array])
 		
 		sigma8 		 	= closmo.sigma8()
-  
-		print sigma8
-  
-          
 		
 		self.k_NL 				= []
-		j=0
+
 		k_i=k_array#1./self.cosmo.class_params['h']
-		for z in z_[np.where(z_<=10.)]:
-			z=0.
-			self.k_NL+=[min(k_i[np.where((self.LJ_D_z(z)**2)*P*k_i**3/(2*np.pi**2)>1.)])]
-			print self.k_NL[j], self.LJ_D_z(z)**2*P[np.where(k_i==self.k_NL[j])]*self.k_NL[j]**3/(2.*np.pi**2)
-			j+=1				
+		for z in z_[np.where(z_<=z_max)]:
+			Pk = np.asarray([closmo.pk(k,z) for k in k_i])   
+			print z   
+			self.k_NL+=[min(k_i[np.where(Pk*k_i**3/(2*np.pi**2)>1.)])]
+ 
 #		self.k_NL=np.asarray(self.k_NL)*self.cosmo.class_params['h']
 		
 		print "sigma8:", sigma8
@@ -551,13 +543,13 @@ class CosmoData():
 				assert(nl==False)
 			except:
 				raise ValueError('Spectral index should only be calculated from linear power spectrum!')
-			self.n = HF.get_derivative(np.log(k_array),np.log(P),method="si")
+			self.n   = HF.get_derivative(np.log(k_array),np.log(P),method="si")
 
 		h   = self.cosmo.class_params['h']
 		k_  = np.exp(np.linspace(np.log(1e-4*h),np.log(100.*h),100))
 		print min(k_)
 		pl.figure()
-		for z_ in [0.,1.,10.]:
+		for z_ in [0.,1.,z_max]:
 				plk =[]
 				for kk in k_:
 						plk+=[closmo.pk(kk,z_)]
@@ -609,7 +601,7 @@ class CosmoData():
 		try:
 			self.n
 		except:
-			self.get_Pm(min(k),max(k),k,test=False,nl=False,get_n=True,z=None,z_=z)
+			self.get_Pm(min(k),max(k),k,test=False,nl=False,get_n=True,z_max=z_max,z_=z)
 	
 		n=splev(np.log(k),self.n,ext=2)
 

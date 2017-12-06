@@ -383,14 +383,14 @@ class Bispectra():
  
     def get_F2_kernel_fit(self,k1,k2,cos,i):
 
-        ak1=splev(k1, self.data.a_nk[i],ext=1)
-        ak2=splev(k2, self.data.a_nk[i],ext=1)
+        ak1=splev(k1, self.data.a_nk[i],ext=0)
+        ak2=splev(k2, self.data.a_nk[i],ext=0)
         
-        bk1=splev(k1, self.data.b_nk[i],ext=1)
-        bk2=splev(k2, self.data.b_nk[i],ext=1)
+        bk1=splev(k1, self.data.b_nk[i],ext=0)
+        bk2=splev(k2, self.data.b_nk[i],ext=0)
         
-        ck1=splev(k1, self.data.c_nk[i],ext=1)
-        ck2=splev(k2, self.data.c_nk[i],ext=1)
+        ck1=splev(k1, self.data.c_nk[i],ext=0)
+        ck2=splev(k2, self.data.c_nk[i],ext=0)
         
         a=5./7.*ak1*ak2 #growth
         b=0.5*(k1/k2+k2/k1)*cos*bk1*bk2 #shift
@@ -431,9 +431,6 @@ class Bispectra():
             if j in [5,8,12,19]:
                 pl.loglog(self.z,self.bi_delta[j],label='L=%d'%self.ell[0::3][j])
 
-            
-
-            
             integrand   = self.bi_delta[j]*kernel
             bi_phi+=[simps(integrand,self.chi)]
         self.bi_phi=np.array(bi_phi)
@@ -527,7 +524,7 @@ if __name__ == "__main__":
         k_min       = None#1e-4*params[1]['h']#h/Mpc
         k_max       = 500.*params[1]['h']#h/Mpc
         
-        fit_z_max   = 10.
+        fit_z_max   = 1.5
         
         #tag for L-sampling
         ell_type    ="linlog_halfang"
