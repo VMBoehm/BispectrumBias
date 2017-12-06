@@ -38,7 +38,7 @@ class Bispectra():
         - newtonian potential bi_psi (function of chi)
         - lensing potential bi_phi
     """
-    def __init__(self,cosmo,data, ell,z,config,ang12,ang23,ang31, path, z_cmb, b=None, nonlin=False, B_fit=False, kkg=False, kgg=False, dndz=None,norm=None,k_min=None,k_max=None,sym=False):
+    def __init__(self,cosmo,data, ell,z,config,ang12,ang23,ang31, path, z_cmb, b=None, nonlin=False, B_fit=False, kkg=False, kgg=False, dndz=None,norm=None,k_min=None,k_max=None,sym=False, fit_z_max=1.5):
         """
         initializes/computes all three bispectra
         * cosmo:    instance of class Cosmology
@@ -109,6 +109,7 @@ class Bispectra():
 
 
         self.B_fit  = B_fit
+        self.fit_z_max = fit_z_max
         if self.B_fit:
             print "using Gil-Marin et al. fitting formula"
         
@@ -175,6 +176,7 @@ class Bispectra():
         		
         kmax    = max(self.pow_ell)/min(self.chi)
         kmin    = min(self.pow_ell)/max(self.chi)
+        print k_min, min(self.pow_ell)/min(self.chi)
         if self.kmin==None:
             self.kmin=kmin
         if self.kmax==None:
@@ -185,7 +187,7 @@ class Bispectra():
             k4n=np.exp(np.linspace(np.log(self.kmin),np.log(self.kmax),100))
             k4n=np.concatenate((k4n,np.exp(np.linspace(-4,-1,100))))
             k4n=np.sort(k4n)
-            self.data.get_abc(k4n,self.z[np.where(self.z<=1.5)])
+            self.data.get_abc(k4n,self.z[np.where(self.z<=self.fit_z_max)],fit_z_max)
 
 
         print "kmin and kmax for bispectrum calculation", self.kmin,self.kmax 
@@ -199,7 +201,7 @@ class Bispectra():
             self.cosmo.class_params['tol_perturb_integration']=1.e-6
 					
         self.cosmo.class_params['l_max_scalars']=min(self.L_max,4000)+2000
-        self.cosmo.class_params['z_max_pk'] = max(z)		
+        self.cosmo.class_params['z_max_pk'] = max(z)	
         #Maximum k value in matter power spectrum
         self.cosmo.class_params['P_k_max_1/Mpc'] = self.kmax
         self.cosmo.class_params['k_min_tau0'] = self.kmin*13000.
@@ -310,9 +312,9 @@ class Bispectra():
             if self.B_fit==False:
                     bi_delta_chi    = self.bispectrum_delta(spec,k_spec,k_i)
                     
-            elif self.B_fit and self.z[i]<=1.5:
+            elif self.B_fit and self.z[i]<=self.fit_z_max:
                     bi_delta_chi    = self.bispectrum_delta_fit(spec,k_spec,k_i,i)
-            elif self.B_fit and self.z[i]>1.5:
+            elif self.B_fit and self.z[i]>self.fit_z_max:
                     bi_delta_chi    = self.bispectrum_delta(spec,k_spec,k_i)
             else:
                 raise ValueError('Something went wrong with matter bispectrum specifications')
@@ -367,11 +369,14 @@ class Bispectra():
         B+=2.*self.get_F2_kernel_fit(k1,k3,self.ang31,i)*np.exp(spec(np.log(k3)))*np.exp(spec(np.log(k1)))
         
         index=np.where(np.any([(k1>self.kmax),(k1<self.kmin)],axis=0))
+        print index
         B[index]=0.
         index=np.where(np.any([(k2>self.kmax),(k2<self.kmin)],axis=0))
+        print index
         B[index]=0.
         index=np.where(np.any([(k3>self.kmax),(k3<self.kmin)],axis=0))
         B[index]=0.
+        print index
 
         return B
         
@@ -395,27 +400,6 @@ class Bispectra():
         
         return F2
         
-        
-    def delta2psi(self,k,shape,i,bi_spec=True):
-        """ returns the factor that converts the bispectrum in delta to the bispectrum in psi at given chi
-        * k:        array of k at fixed chi
-        * shape:    shape of delta bispectrum
-        * i:        index in chi  
-        * bi_spec:  whether to return the delta2psi prefactor for the bispectrum (=True) or the power spectrum (=False)
-        * bi_spec:  if False, equivalent operation for power spectrum is performed
-        """
-        if bi_spec:
-            if self.kkg:
-                alpha       = np.ones(shape)*self.data.Poisson_prefac[i]**2
-                alpha      *= 1./(k[::3]*k[2::3])**2               
-            else:
-                alpha       = np.ones(shape)*self.data.Poisson_prefac[i]**3
-                alpha      *= 1./(k[::3]*k[1::3]*k[2::3])**2
-        else:
-            alpha       = np.ones(shape)*self.data.Poisson_prefac[i]**2
-            alpha      *= 1./(k)**4
-        
-        return alpha
    
     def compute_Bispectrum_Phi(self):
         """ computes the bispectrum of the lensing potential 
@@ -440,10 +424,32 @@ class Bispectra():
             kernel  = W_lens**3*self.chi**2
 
         bi_phi=[]
+        pl.figure()
         for j in index:
+            
+            
+            if j in [5,8,12,19]:
+                pl.loglog(self.z,self.bi_delta[j],label='L=%d'%self.ell[0::3][j])
+
+            
+
+            
             integrand   = self.bi_delta[j]*kernel
             bi_phi+=[simps(integrand,self.chi)]
         self.bi_phi=np.array(bi_phi)
+        pl.legend()
+        pl.xlabel('z')
+        pl.ylabel(r'Bispectrum delta equilat')
+        pl.savefig('bi_delta_l.png')
+        pl.close()
+        pl.figure()
+        pl.loglog(z,kernel)
+        pl.ylim(1e-13,1e-9)
+        pl.xlim(1e-3,100)
+        pl.xlabel(r'$z$')
+        pl.ylabel(r'$b W_{gal} W_{lens}^2 dz/d\chi$')
+        pl.savefig('bispectrum_kernel.png')
+        pl.close()        
         
         if self.kkg:
             if self.sym:
@@ -518,8 +524,10 @@ if __name__ == "__main__":
         l_min       = 1.
         l_max       = 10000.
         
-        k_min       = 1e-4*params[1]['h']#h/Mpc
-        k_max       = 100.*params[1]['h']#h/Mpc
+        k_min       = None#1e-4*params[1]['h']#h/Mpc
+        k_max       = 500.*params[1]['h']#h/Mpc
+        
+        fit_z_max   = 10.
         
         #tag for L-sampling
         ell_type    ="linlog_halfang"
@@ -720,7 +728,7 @@ if __name__ == "__main__":
             
         pickle.dump([cosmo.class_params],open('class_settings_%s.pkl'%config,'w'))
      
-        bs   = Bispectra(cosmo,data,ell,z,config,ang12,ang23,ang31,path,z_cmb, bias, nl,B_fit,kkg, kgg, dndz, norm,k_min,k_max,sym)
+        bs   = Bispectra(cosmo,data,ell,z,config,ang12,ang23,ang31,path,z_cmb, bias, nl,B_fit,kkg, kgg, dndz, norm,k_min,k_max,sym,fit_z_max)
         bs()  
         
         if integrals:

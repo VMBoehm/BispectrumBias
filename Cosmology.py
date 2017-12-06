@@ -535,7 +535,7 @@ class CosmoData():
 		self.k_NL 				= []
 		j=0
 		k_i=k_array#1./self.cosmo.class_params['h']
-		for z in z_[np.where(z_<=1.5)]:
+		for z in z_[np.where(z_<=10.)]:
 			z=0.
 			self.k_NL+=[min(k_i[np.where((self.LJ_D_z(z)**2)*P*k_i**3/(2*np.pi**2)>1.)])]
 			print self.k_NL[j], self.LJ_D_z(z)**2*P[np.where(k_i==self.k_NL[j])]*self.k_NL[j]**3/(2.*np.pi**2)
@@ -593,7 +593,7 @@ class CosmoData():
 		closmo.struct_cleanup()
 		closmo.empty()
 			
-	def get_abc(self,k,z):
+	def get_abc(self,k,z,z_max):
 
 		#checked
 		a1 = 0.484
@@ -625,7 +625,7 @@ class CosmoData():
 		j=0
 		#checked
 		pl.figure()  
-		for z_ in z[np.where(z<=1.5)]:
+		for z_ in z[np.where(z<=z_max)]:
 			q=k/self.k_NL[j]
 			a_nk_z=(1.+splev(z_,self.sigma8_z)**a6*np.sqrt(0.7*Q)*(a1*q)**(n+a2))/(1.+(q*a1)**(n+a2))
    			pl.plot(k,a_nk_z)
