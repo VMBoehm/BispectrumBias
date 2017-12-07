@@ -76,16 +76,9 @@ ToshiyaComparison=[{
 'tau_reio':0.063,
 'A_s'   :2.13e-9,
 'n_s'   :0.965,
-#'N_ncdm': 2,
-#'N_ur':1.0196,
-#'m_ncdm': "0.05, 0.01",
 'k_pivot' : 0.05,
 'tau_reio':0.0630,
-#'ncdm_fluid_approximation': 2,
-#'ncdm_fluid_trigger_tau_over_tau_k':51.,
-#'tol_ncdm_synchronous':1.e-10,
-#'tol_ncdm_bg':1.e-10,
-#'l_max_ncdm':51
+
 }]
                
 Namikawa=[{
@@ -245,7 +238,7 @@ MatterOnly=[{'name':"Matter_Only"},{
 
 class Cosmology():
 	""" cosmological parameter """
-	def __init__(self, zmin=None, zmax=None, Params=None, Limber=False, lmax=None, mPk=False, Neutrinos=False,lensing=False):   
+	def __init__(self, zmin=None, zmax=None, Params=None, Limber=False, lmax=None, mPk=False, Neutrinos=False,polarization=False,lensing=False,no_output=True):   
 		
 		if zmin==None:
 			self.z_min      = 0.005
@@ -271,17 +264,19 @@ class Cosmology():
 		else:
 			self.class_params={}
 			print "cosmological parameter: CLASS default" 
-        	if lensing:
+		if lensing:
 			self.class_params['lensing']='yes'
 
-		if mPk:
-			self.class_params['output']= 'tCl lCl mPk'
-			self.class_params['tol_perturb_integration']=1.e-6
-		else:
-			self.class_params['output']= 'lCl tCl'
-        
+		self.class_params['output']='tCl'
+    		if mPk:
+    			self.class_params['output']+=' mPk'
+    			self.class_params['tol_perturb_integration']=1.e-6
+    		if lensing:
+    			self.class_params['output']+=' lCl'
+    		if polarization:
+    			self.class_params['output']+=' pCl'        
 		if lmax==None:
-			self.class_params['l_max_scalars']= 10000
+			self.class_params['l_max_scalars']= 8000
 		else:
 			self.class_params['l_max_scalars']= lmax
 			print 'l_max_scalars: ',self.class_params['l_max_scalars']

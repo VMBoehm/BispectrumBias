@@ -24,24 +24,19 @@ import Cosmology as C
 import os
 import pickle
 
-        
 def compute_power_spectrum(ell_min, ell_max,z,Limber,nl,bias):
 
     ell = np.exp(np.linspace(np.log(ell_min),np.log(ell_max),400))
     
-    cosmo   = C.Cosmology(zmin=0.00, zmax=1200, Params=params, Limber = Limber, lmax=ell_max, mPk=False, Neutrinos=False)
+    cosmo   = C.Cosmology(zmin=0.00, zmax=1200, Params=params, Limber = True, lmax=200, mPk=False, Neutrinos=False)
     data    = C.CosmoData(cosmo,z)
     chi     = data.chi(z)
 
     k    = np.outer(1./chi,ell+0.5)
+    
     cosmo.class_params['l_switch_limber']=1.#00
     cosmo.class_params['perturb_sampling_stepsize']=0.01
-
-
-    cosmo.class_params['output']='tCl, mPk'
-    #cosmo.class_params['lensing']='yes'
-    cosmo.class_params['tol_perturb_integration']=1.e-6
-								
+    cosmo.class_params['output']='tCl, mPk'			
     cosmo.class_params['z_max_pk'] = max(z)		
     cosmo.class_params['P_k_max_1/Mpc'] = max(k.flatten())
     cosmo.class_params['k_min_tau0'] = min(k.flatten())*13000.
@@ -58,10 +53,7 @@ def compute_power_spectrum(ell_min, ell_max,z,Limber,nl,bias):
     print cosmo.class_params
     closmo.compute()
     cosmo_pk = closmo.pk    
-#    cl_unl   = closmo.raw_cl(ell_max)
-#    cl_len   = closmo.lensed_cl(ell_max)
-    
-    #pickle.dump([cosmo.class_params,cl_unl,cl_len],open('../class_outputs/class_cls_%s.pkl'%tag,'w'))
+
     z_cmb    = closmo.get_current_derived_parameters(['z_rec'])['z_rec']
     print '$\sigma_8$=', closmo.get_current_derived_parameters(['sigma8'])
     chi_cmb  = data.chi(z_cmb)
@@ -158,20 +150,16 @@ if __name__ == "__main__":
             
     
     #choose Cosmology (see Cosmology module)
-    params      = C.Planck2015_TTlowPlensing
-    #Limber approximation, if true set class_params['l_switch_limber']=100, else 1
-    Limber      = False
- 
-    #binbounds
+    params      = C.ToshiyaComparison
 
+    Limber      = True
 				    
     #number of redshift bins 
     bin_num     = 200
-
-      
+  
     nl          = True
 
-    z_min       = 1e-3
+    z_min       = 1e-5
     
     AI            = pickle.load(open('/home/traveller/Documents/Projekte/LensingBispectrum/CosmoCodes/N0files/Toshiya_iterative_N0.pkl','r'))#Planck2015TempLensCombined_N0_mixedlmax_1010_nodiv.pkl','r'))
     L_s           = AI[0]#['ls']
@@ -182,7 +170,7 @@ if __name__ == "__main__":
     
     print ell_min, ell_max
     
-    cosmo       = C.Cosmology(zmin=0.00, zmax=1200, Params=params, Limber = Limber, lmax=2000, mPk=False, Neutrinos=False)
+    cosmo       = C.Cosmology(zmin=0.00, zmax=1200, Params=params, Limber = Limber, lmax=200 , mPk=False, Neutrinos=False)
     closmo      = Class()
     closmo.set(params[1])
     closmo.compute()
@@ -210,16 +198,14 @@ if __name__ == "__main__":
     tag     = params[0]['name']
     if nl:
         tag+='_nl'
-    tag+='Toshiya_'
     try:
         ll, cl_pp, cl_gg, cl_xx = pickle.load(open('cross_spectrum_%s_%s_bin%s.pkl'%(tag,dn_filename,red_bin),'r'))
     except:
         print 'cross_spectrum_%s_%s_bin%s.pkl not found'%(tag,dn_filename,red_bin)  
         ll, cl_pp, cl_gg, cl_xx = compute_power_spectrum(ell_min, ell_max, z, Limber, nl,bias)
         pickle.dump([ll,cl_pp, cl_gg, cl_xx],open('cross_spectrum_%s_%s_bin%s.pkl'%(tag,dn_filename,red_bin),'w'))
-    tag     = params[0]['name']
-    if nl:
-        tag+='_nl'
+
+
     Parameter,cl_unl,cl_len=pickle.load(open('../class_outputs/class_cls_%s.pkl'%tag,'r'))
     cl_phiphi       = cl_len['pp'][ell_min:ell_max+1]
     ells            = cl_len['ell'][ell_min:ell_max+1]
@@ -239,13 +225,12 @@ if __name__ == "__main__":
     noise_pp      = np.sqrt(2./(2.*ll+1.)/fsky)*(1./4.*(ll*(ll+1.))**2*(cl_pp+N0))   
     noise_gg      = np.sqrt(2./(2.*ll+1.)/fsky)*(cl_gg+1./n_bar)
     
-    #check factor of 1 or 2!!
-    noise_gp      =1./(2.*ll+1.)/fsky
+    noise_gp      = 1./(2.*ll+1.)/fsky
     noise_gp*=((cl_gg+1./n_bar)*((1./2.*(ll*(ll+1.)))**2*(cl_pp+N0))+(1./2.*(ll*(ll+1))*cl_xx)**2)
-    noise_gp=np.sqrt(noise_gp)
+    noise_gp      = np.sqrt(noise_gp)
     
-#    tag+='Toshiya'
-#    pickle.dump([ll,cl_pp+N0,cl_gg+1./n_bar,cl_xx],open('Gaussian_variances_CMB-S4_bin%s_%s_%s.pkl'%(red_bin,tag,dn_filename),'w'))
+
+    pickle.dump([ll,cl_pp+N0,cl_gg+1./n_bar,cl_xx],open('Gaussian_variances_CMB-S4_bin%s_%s_%s.pkl'%(red_bin,tag,dn_filename),'w'))
 #    
 #
 #    pl.figure(figsize=(8,7))

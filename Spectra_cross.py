@@ -256,21 +256,21 @@ class Bispectra():
             pickle.dump([self.chi,self.z,self.k],open(self.path+'z_k_equilat.pkl','w'))
             
             
-        h   = self.cosmo.class_params['h']
-        k_  = np.exp(np.linspace(np.log(1e-4*h),np.log(100.*h),100))
-        pl.figure()
-        for z_ in [0.,1.,10.]:
-            plk =[]
-            for kk in k_:
-                plk+=[self.closmo_nl.pk(kk,z_)]
-            pl.loglog(k_/h,np.asarray(plk)*h**3,label='z=%d'%z_)
-            print min(k_/h), max(k_/h)
-        pl.xlim(1e-4,1.) 
-        pl.ylim(0.1,100000)
-        pl.xlabel(r'$k [h/Mpc]$')
-        pl.ylabel(r'$P(k) [Mpc/h]^3$')
-        pl.legend(loc='best')
-        pl.savefig('pow_spec_nl.png')
+#        h   = self.cosmo.class_params['h']
+#        k_  = np.exp(np.linspace(np.log(1e-4*h),np.log(100.*h),100))
+#        pl.figure()
+#        for z_ in [0.,1.,10.]:
+#            plk =[]
+#            for kk in k_:
+#                plk+=[self.closmo_nl.pk(kk,z_)]
+#            pl.loglog(k_/h,np.asarray(plk)*h**3,label='z=%d'%z_)
+#            print min(k_/h), max(k_/h)
+#        pl.xlim(1e-4,1.) 
+#        pl.ylim(0.1,100000)
+#        pl.xlabel(r'$k [h/Mpc]$')
+#        pl.ylabel(r'$P(k) [Mpc/h]^3$')
+#        pl.legend(loc='best')
+#        pl.savefig('pow_spec_nl.png')
         
         
             
@@ -424,29 +424,29 @@ class Bispectra():
             kernel  = W_lens**3*self.chi**2
 
         bi_phi=[]
-        pl.figure()
+#        pl.figure()
         for j in index:
             
             
-            if j in [5,8,12,19]:
-                pl.loglog(self.z,self.bi_delta[j],label='L=%d'%self.ell[0::3][j])
+#            if j in [5,8,12,19]:
+#                pl.loglog(self.z,self.bi_delta[j],label='L=%d'%self.ell[0::3][j])
 
             integrand   = self.bi_delta[j]*kernel
             bi_phi+=[simps(integrand,self.chi)]
         self.bi_phi=np.array(bi_phi)
-        pl.legend()
-        pl.xlabel('z')
-        pl.ylabel(r'Bispectrum delta equilat')
-        pl.savefig('bi_delta_l.png')
-        pl.close()
-        pl.figure()
-        pl.loglog(z,kernel)
-        pl.ylim(1e-13,1e-9)
-        pl.xlim(1e-3,100)
-        pl.xlabel(r'$z$')
-        pl.ylabel(r'$b W_{gal} W_{lens}^2 dz/d\chi$')
-        pl.savefig('bispectrum_kernel.png')
-        pl.close()        
+#        pl.legend()
+#        pl.xlabel('z')
+#        pl.ylabel(r'Bispectrum delta equilat')
+#        pl.savefig('bi_delta_l.png')
+#        pl.close()
+#        pl.figure()
+#        pl.loglog(z,kernel)
+#        pl.ylim(1e-13,1e-9)
+#        pl.xlim(1e-3,100)
+#        pl.xlabel(r'$z$')
+#        pl.ylabel(r'$b W_{gal} W_{lens}^2 dz/d\chi$')
+#        pl.savefig('bispectrum_kernel.png')
+#        pl.close()        
         
         if self.kkg:
             if self.sym:
@@ -478,8 +478,8 @@ if __name__ == "__main__":
     
     sym     = False
 
-    equilat = True
-    squeezed  = False
+    equilat = False
+    squeezed= False
     
     integrals = False
     
@@ -498,6 +498,7 @@ if __name__ == "__main__":
     #fitting formula (use B_delta fitting formula from Gil-Marin et al. arXiv:1111.4477
     B_fit       = True
     
+    # smoothing scale for integrated bispectrum
     rad         = np.linspace(10,500)
 
     #binbounds
@@ -507,7 +508,7 @@ if __name__ == "__main__":
         bounds      = {'0':[0.0,0.5],'1':[0.5,1.],'2':[1.,2.]}
     				    
         #number of redshift bins 
-        bin_num     = 200
+        bin_num     = 150
         
         #sampling in L/l and angle
         len_L       = 163
@@ -521,8 +522,8 @@ if __name__ == "__main__":
         l_min       = 1.
         l_max       = 10000.
         
-        k_min       = None#1e-4*params[1]['h']#h/Mpc
-        k_max       = 500.*params[1]['h']#h/Mpc
+        k_min       = 1e-4/params[1]['h']#h/Mpc
+        k_max       = 100./params[1]['h']#h/Mpc
         
         fit_z_max   = 1.5
         
@@ -552,12 +553,13 @@ if __name__ == "__main__":
             gz, dgn = pickle.load(open(dn_filename+'_extrapolated.pkl','r'))
             
         #initialize cosmology
-        cosmo   = C.Cosmology(zmin=0.00, zmax=1200, Params=params, Limber=Limber, mPk=False, Neutrinos=False)
+        cosmo   = C.Cosmology(zmin=0.00, zmax=1190, Params=params, Limber=Limber, mPk=False, Neutrinos=False)
         closmo  = Class()
-        closmo.set(params[1])
+        #closmo.set(params[1])
+							
         closmo.compute()
         #set up z range and binning in z space
-        z_min   = 5e-5
+        z_min   = 1e-4
         z_cmb   = closmo.get_current_derived_parameters(['z_rec'])['z_rec']
         closmo.struct_cleanup()
         closmo.empty()
@@ -579,10 +581,10 @@ if __name__ == "__main__":
                 spectrum_config+='ToshiyaSettings'
             norm    = simps(dndz(z),z)
             
-            pl.figure()
-            pl.semilogx(z,dndz(z)/norm)
-            pl.xlim(1e-3,100)
-            pl.savefig('dndz.png')
+#            pl.figure()
+#            pl.semilogx(z,dndz(z)/norm)
+#            pl.xlim(1e-3,100)
+#            pl.savefig('dndz.png')
             print 'norm ', norm
             
         else:
