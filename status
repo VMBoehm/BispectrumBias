@@ -1,0 +1,55 @@
+Cross Bias
+
+- the galaxy leg should be associated with L (not l or L-l) in order to comply with TypeA1 and TypeA2 codes
+  - flag cross_bias in Spectra_cross.py, recalculate bispectrum for bias, add to git!
+  - compute also for extended lensing kernel
+  - put all into separate folder 9also I integrals)
+  - update interpolated bispectrum for Type1 calculation
+  - run also for different delta_theta and full angle
+
+- check that g is at correct position in PostBorn
+
+- test Type A code for different configs 
+  - l sampling 256/512 (TypeAdom)
+  - ang sampling (TypeAdom1)
+  - lcut dependence (TypeAdom2)
+  - lmin, lmax dependence (TypeAdom3 lmin, TypeAdom4)
+  - ang cutoff
+  - look for cancelation at low ell
+
+- need to compile TypeAdomi.pyx and run
+  
+- check if you integrate correctly for Type1/Type2 bias
+- implement for EB
+  - same tests for EB
+  
+- measure bias in simulations with iterative estimator
+
+
+S/N 
+
+- not that in S/N code g is associated with L3 = Ll, while for Bias Code g must be associated with L (change in Spectra_cross)
+- read bias review
+- read Takada & Jain
+  - how to combine different bins/bispectra?
+  
+
+- test Post Born corrections
+  - change galaxy kernel to lensing kernel
+  - expand galaxy kernel
+  - test for different triangle configs
+  
+- matched S/N with Toshiya?
+  - agree on configuration to use (cosmology, bins, noise, experiments)
+  
+- compute B_kgg and B_kkg S/N
+
+- speed up code for calculation with different parameters settings
+
+
+
+
+
+
+
+  
