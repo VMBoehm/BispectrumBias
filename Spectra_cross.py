@@ -15,7 +15,9 @@ import numpy as np
 import HelperFunctions as hf
 from scipy.integrate import simps
 from scipy.interpolate import interp1d, splev
-import CAMB_postborn as postborn
+import pickle
+from copy import deepcopy
+
 
 import matplotlib
 matplotlib.use('Agg')
@@ -23,12 +25,12 @@ import matplotlib.pyplot as pl
 pl.ioff()
 
 from classy import Class
-import Cosmology as C
 
-from N32biasIntegrals import I0, I2, bi_cum
+import Cosmology as C
+from N32biasIntegrals import I0, I2#, bi_cum
 from BkkgSkewness import beta_RR as skew
-import os
-import pickle
+import CAMB_postborn as postborn
+
 
 
 
@@ -115,7 +117,7 @@ class Bispectra():
         if self.B_fit:
             print "using Gil-Marin et al. fitting formula"
         
-        self.path   = path
+        self.path   = path+'cross_bias_spectra'
         
         self.b      = b
         
@@ -492,12 +494,9 @@ if __name__ == "__main__":
     
     assert(kkg+kgg<=1)
 
-    if kkg or kgg:   
+    if LSST:   
         dn_filename = 'dndz_LSST_i27_SN5_3y'
     
-    #choose Cosmology (see Cosmology module)
-    params      = C.Planck2015_TTlowPlensing
-
     #Limber approximation, if true set class_params['l_switch_limber']=100, else 1
     Limber      = True    
     #post Born (use post Born terms from Pratten & Lewis arXiv:1605.05662
@@ -509,61 +508,63 @@ if __name__ == "__main__":
     rad         = np.linspace(10,500)
 
     #binbounds
+    bounds      = {'0':[0.0,0.5],'1':[0.5,1.],'2':[1.,2.]}
+
+    #number of redshift bins 
+    bin_num     = 150
     
+    #sampling in L/l and angle
+    len_L       = 163
+    len_l       = 163
+    len_ang     = 163
+
+    #ell range (for L and l)
+    L_min       = 1.
+    L_max       = 10000.
+    
+    l_min       = 1.
+    l_max       = 10000.
+    
+    k_min       = 1e-4
+    k_max       = 100.
+    
+    fit_z_max   = 1.5
+    
+    #tag for L-sampling
+    ell_type    ="linlog_halfang"
+    
+    if equilat:
+        ell_type="equilat"
+        len_side= 250
+    if squeezed:
+        ell_type="squeezed"
+        len_side= 250
+    
+    #regularizing theta bounds
+    Delta_theta = 1e-2
+    
+    nl          = True
+    
+    cparams     = C.Planck2015_TTlowPlensing        
+				    
+
+    if nl==False:
+        spectrum_config='_linPs'
+    else:
+        spectrum_config='_lnPs'
+    #path, where to store results
+    path            = "/afs/mpa/temp/vboehm/spectra/"
+    
+    "---end settings---"
+
     for red_bin in ['0','1','2']:
     
-        bounds      = {'0':[0.0,0.5],'1':[0.5,1.],'2':[1.,2.]}
-    				    
-        #number of redshift bins 
-        bin_num     = 150
-        
-        #sampling in L/l and angle
-        len_L       = 163
-        len_l       = 163
-        len_ang     = 163
-    
-        #ell range (for L and l)
-        L_min       = 1.
-        L_max       = 10000.
-        
-        l_min       = 1.
-        l_max       = 10000.
-        
-        k_min       = 1e-4
-        k_max       = 100.
-        
-        fit_z_max   = 1.5
-        
-        #tag for L-sampling
-        ell_type    ="linlog_halfang"
-        
-        if equilat:
-            ell_type="equilat"
-            len_side= 250
-        if squeezed:
-            ell_type="squeezed"
-            len_side= 250
-        
-        #regularizing theta bounds
-        Delta_theta = 1e-2
-        
-        nl          = True
-        if nl==False:
-            spectrum_config='_linPs'
-        else:
-            spectrum_config='_lnPs'
-        #path, where to store results
-        path            = "/afs/mpa/temp/vboehm/spectra/"
-        
-        "---end settings---"
+        #choose Cosmology (see Cosmology module)
         if kkg or kgg: 
             gz, dgn = pickle.load(open(dn_filename+'_extrapolated.pkl','r'))
             
         #initialize cosmology
-        try:
-            del cosmo
-        except:
-            pass
+        params  = deepcopy(cparams)
         cosmo   = C.Cosmology(zmin=0.00, zmax=1190, Params=params, Limber=Limber, mPk=False, Neutrinos=False,lensing=True)
         closmo  = Class()
         closmo.set(cosmo.class_params)
@@ -587,8 +588,8 @@ if __name__ == "__main__":
                 z0      = 1./3.
                 dndz    = (z/z0)**2*np.exp(-z/z0)
                 dndz    = interp1d(z,dndz,kind='slinear',fill_value=0.,bounds_error=False)
-                bias    = 1.#+z
-                spectrum_config+='ToshiyaSettings'
+                bias    = 1.+z
+                
             norm    = simps(dndz(z),z)
             
 #            pl.figure()
@@ -719,12 +720,17 @@ if __name__ == "__main__":
             ff_name     = path+"Ll_file_%s_%.0e_%d_lenL%d_lenang%d_%.0e.pkl"%(ell_type,l_min,l_max,len_L,len_ang,Delta_theta)
             pickle.dump(ell[1::3],open(ff_name,'w'))
     
+    
         if kkg:
-            config = 'kkg_g_bin%s'%red_bin+ell_type
+            config = 'kkg_%s'%ell_type
         elif kgg:
-            config = 'kgg_g_bin%s'%red_bin+ell_type
+            config = 'kgg_%s'%ell_type
         else:
             config = ell_type
+        if LSST:
+            config+='bin_%s_%s'%(red_bin,dn_filename)
+        else:
+            config+='no_binning'
         
         config+=spectrum_config
        

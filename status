@@ -19,7 +19,7 @@ Cross Bias
 
 - need to compile TypeAdomi.pyx and run
   
-- check if you integrate correctly for Type1/Type2 bias
+- (check if you integrate correctly for Type1 bias) probably yes
 - implement for EB
   - same tests for EB
   

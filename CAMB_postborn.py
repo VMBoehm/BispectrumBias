@@ -114,9 +114,9 @@ class PostBorn_Bispec():
         if self.cross:
             win     = (1/chis-1/chistar)/chis**2
             # bias and scale factor cancel out
-            Hz      = [self.results.h_of_z(z_) for z_ in zs]
-            wing    = self.dndz(zs)/chis**2*Hz #H is in Mpc^-1 -> do not need to divide by c
-            wing/=simps(self.dndz(zs),zs)
+            #Hz      = [self.results.h_of_z(z_) for z_ in zs]
+            wing    = win#self.dndz(zs)/chis**2*Hz #H is in Mpc^-1 -> do not need to divide by c
+            #wing/=simps(self.dndz(zs),zs)
             cl      = np.zeros(ls.shape)
             w       = np.ones(chis.shape)
             cchi    = cl_chi_chistar2(chis,ls, grid=True)
@@ -163,15 +163,15 @@ class PostBorn_Bispec():
         chi_source = np.float64(chi_source)
         chis    = np.linspace(0,chi_source,self.nz, dtype=np.float64)
         zs      = self.results.redshift_at_comoving_radial_distance(chis)
-        Hz      = [self.results.h_of_z(z_) for z_ in zs]
+        #Hz      = [self.results.h_of_z(z_) for z_ in zs]
         dchis   = (chis[2:]-chis[:-2])/2
         chis    = chis[1:-1]
         zs      = zs[1:-1]
-        Hz      = Hz[1:-1]
+        #Hz      = Hz[1:-1]
         win     = (1/chis-1/chi_source)/chis**2
         # bias and scale factor cancel out
-        wing    = self.dndz(zs)/chis**2*Hz#H is in Mpc^-1 -> do not need to divide by c
-        wing/=self.norm
+        wing    = win#self.dndz(zs)/chis**2*Hz#H is in Mpc^-1 -> do not need to divide by c
+        #wing/=self.norm
         
         
         cl=np.zeros(self.ls.shape)
