@@ -117,7 +117,7 @@ class Bispectra():
         if self.B_fit:
             print "using Gil-Marin et al. fitting formula"
         
-        self.path   = path+'cross_bias_spectra'
+        self.path   = path+'cross_bias_spectra/'
         
         self.b      = b
         
@@ -482,7 +482,7 @@ if __name__ == "__main__":
     "---begin settings---"
     kkg     = True
     kgg     = False
-    LSST    = True
+    LSST    = False
     cross_bias = True
     
     sym     = False
@@ -558,11 +558,7 @@ if __name__ == "__main__":
     "---end settings---"
 
     for red_bin in ['0','1','2']:
-    
-        #choose Cosmology (see Cosmology module)
-        if kkg or kgg: 
-            gz, dgn = pickle.load(open(dn_filename+'_extrapolated.pkl','r'))
-            
+     
         #initialize cosmology
         params  = deepcopy(cparams)
         cosmo   = C.Cosmology(zmin=0.00, zmax=1190, Params=params, Limber=Limber, mPk=False, Neutrinos=False,lensing=True)
@@ -581,6 +577,7 @@ if __name__ == "__main__":
         
         if kkg or kgg:
             if LSST:
+                gz, dgn = pickle.load(open(dn_filename+'_extrapolated.pkl','r'))
                 z       = np.linspace(max(bounds[red_bin][0],z_min),bounds[red_bin][1],100)
                 dndz    = interp1d(gz, dgn, kind='slinear',fill_value=0.,bounds_error=False)
                 bias    = z+1.
@@ -748,8 +745,6 @@ if __name__ == "__main__":
         
         if integrals:
             Int0 = I0(bs.bi_phi, bs.ell, angmu, len_L, len_l, len_ang, fullsky=False)
-            
-            #Bi_cum = bi_cum(bs.bi_phi, bs.ell, angmu, len_L, len_l, len_ang, fullsky=False)
                 
             Int2 = I2(bs.bi_phi, bs.ell, angmu ,len_L, len_l, len_ang, fullsky=False)
             
@@ -794,7 +789,6 @@ if __name__ == "__main__":
             if integrals:
                 Int0 = I0(bi_phi, bs.ell, angmu ,len_L, len_l, len_ang, fullsky=False)
                 
-                #B_cum = bi_cum(bi_phi, bs.ell, angmu ,len_l, len_ang, len_L, fullsky=False)
                     
                 Int2 = I2(bi_phi, bs.ell, angmu ,len_L, len_l, len_ang, fullsky=False)
              
@@ -803,8 +797,6 @@ if __name__ == "__main__":
                 pickle.dump([params,Limber,L,Int0,Int2,Bi_cum],open('I0I1I2%s.pkl'%(config),'w'))
                 
                 Int0 = I0(bi_kkg, bs.ell, angmu ,len_L, len_l, len_ang, fullsky=False)
-                
-                #B_cum = bi_cum(bi_phi, bs.ell, angmu ,len_l, len_ang, len_L, fullsky=False)
                     
                 Int2 = I2(bi_kkg, bs.ell, angmu ,len_L, len_l, len_ang, fullsky=False)
              

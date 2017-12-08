@@ -21,7 +21,7 @@ from camb import model
 
 class PostBorn_Bispec():
     
-    def __init__(self,CLASSparams,k_min,k_max,cross, dndz=None, norm=None, lmax=None, acc=None, NL=True):
+    def __init__(self,CLASSparams,k_min=1e-4,k_max=100,cross=False, dndz=None, norm=None, lmax=None, acc=None, NL=True):
         pars = camb.CAMBparams()
         try:
             A_s=CLASSparams['A_s']
@@ -194,26 +194,34 @@ class PostBorn_Bispec():
                 - 2*cos23*((l2/l3+cos23)*self.Mstarsp(l2,l3,grid=False) + (l3/l2+cos23)*self.Mstarsp(l3,l2, grid=False) )\
                 - 2*cos31*((l3/l1+cos31)*self.Mstarsp(l3,l1,grid=False) + (l1/l3+cos31)*self.Mstarsp(l1,l3 ,grid=False) ) 
     
-    def bi_born_cross(self,L1,L2,L3,gamma):
+    def bi_born_cross(self,L1,L2,L3):#,gamma):
         L1L2 = (L3**2-L1**2-L2**2)/2.
         L2L3 = (L1**2-L2**2-L3**2)/2.
         L3L1 = (L2**2-L3**2-L1**2)/2.
-        return  gamma*\
-        ((L3/L1)**2*L2L3*(L1L2*self.Mstarsp(L2,L3,grid=False)+L3L1*self.Mstarsp2(L3,L2,grid=False))+\
-        (L3/L2)**2*L3L1*(L1L2*self.Mstarsp(L1,L3,grid=False)+L2L3*self.Mstarsp2(L3,L1,grid=False)))
-                
+        #return  gamma*\
+        #((L3/L1)**2*L2L3*(L1L2*self.Mstarsp(L2,L3,grid=False)+L3L1*self.Mstarsp2(L3,L2,grid=False))+\
+        #(L3/L2)**2*L3L1*(L1L2*self.Mstarsp(L1,L3,grid=False)+L2L3*self.Mstarsp2(L3,L1,grid=False)))
+        return 16*((1./L1)**2*L2L3*(L1L2*self.Mstarsp(L2,L3,grid=False)+L3L1*self.Mstarsp2(L3,L2,grid=False))+\
+        (1./L2)**2*L3L1*(L1L2*self.Mstarsp(L1,L3,grid=False)+L2L3*self.Mstarsp2(L3,L1,grid=False))+\
+        (1./L3)**2*L1L2*(L3L1*self.Mstarsp(L1,L2,grid=False)+L2L3*self.Mstarsp2(L2,L1,grid=False)))*2
+        
+        
     def cl_bi_born(self, lset):
         
         if self.cross:
+            print 'here'
             bi   = self.bi_born_cross
         else:
+            print 'wrong'
             bi   = self.bi_born
+            
             
         lset = lset.astype(np.float64)
         cl   = np.zeros(lset.shape[0])
         for i, (l1,l2,l3) in enumerate(lset):
             cl[i] = bi(l1,l2,l3)
         return cl
+        
     
     def plot(self):
 
@@ -259,5 +267,5 @@ class PostBorn_Bispec():
 
 if __name__ == "__main__":
     
-    PBB=PostBorn_Bispec(C.SimulationCosmology[1])
+    PBB=PostBorn_Bispec(C.SimulationCosmology[1],cross=True)
     PBB.plot()
