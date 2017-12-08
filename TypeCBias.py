@@ -114,3 +114,11 @@ plt.ylabel('Bias Term 2/Noise')
 plt.ylim(-0.2,0.1)
 plt.xlim(100,3000)
 plt.show()
+
+for ii in [20,30]:
+    typeA=pickle.load(open('TypeA_res%d_1400_2304_kkg_g_bin0linlog_halfang_lnPs_Bfit_Planck2015_TTlowPlensing_mu.pkl'%ii,'r'))
+    L=Ls1[ii]
+    AL=np.interp(L,N0['ls'],abs(N0['tt']))
+    print typeA[1]*AL, np.interp(L,ll,result['tt'])
+
+    

@@ -86,24 +86,24 @@ def compute_power_spectrum(ell_min, ell_max,z,Limber,nl,bias):
     dzdchi  = 1./dchidz
     W_gal   = dndz(z)/norm
     
-    pl.figure()
-    pl.plot(z,W_gal)
-    pl.xlim(0,1)
-    pl.savefig('W_gal_z_test.png')
-
-    pl.figure()
-    pl.plot(z,W_lens)
-    pl.xlim(0,1)
-    pl.savefig('W_lens_z_test.png')
+#    pl.figure()
+#    pl.plot(z,W_gal)
+#    pl.xlim(0,1)
+#    pl.savefig('W_gal_z_test.png')
+#
+#    pl.figure()
+#    pl.plot(z,W_lens)
+#    pl.xlim(0,1)
+#    pl.savefig('W_lens_z_test.png')
     
     kernel_x  = W_gal*W_lens*bias*dzdchi
     kernel_gg = (W_gal*bias*dzdchi/chi)**2
     
-    pl.figure()
-    pl.plot(z,kernel_gg)
-    pl.plot(z,kernel_x)
-    pl.xlim(0,1)
-    pl.savefig('kernel_gal_test.png')
+#    pl.figure()
+#    pl.plot(z,kernel_gg)
+#    pl.plot(z,kernel_x)
+#    pl.xlim(0,1)
+#    pl.savefig('kernel_gal_test.png')
     
         
     spec_z  =np.zeros((len(z),len(ell)))
@@ -161,7 +161,8 @@ if __name__ == "__main__":
 
     z_min       = 1e-5
     
-    AI            = pickle.load(open('/home/traveller/Documents/Projekte/LensingBispectrum/CosmoCodes/N0files/Toshiya_iterative_N0.pkl','r'))#Planck2015TempLensCombined_N0_mixedlmax_1010_nodiv.pkl','r'))
+    tag     = params[0]['name']    
+    AI            = pickle.load(open('/home/traveller/Documents/Projekte/LensingBispectrum/CosmoCodes/N0files/Toshiya_iterative_N0.pkl','r'))#Planck2015TempLensCombined_N0_mixedlmax_1010_nodiv.pkl','r'))/home/traveller/Documents/Projekte/LensingBispectrum/CosmoCodes/N0files/
     L_s           = AI[0]#['ls']
     AL            = AI[1]#['MV']
     
@@ -169,13 +170,28 @@ if __name__ == "__main__":
     ell_max       = max(L_s)
     
     print ell_min, ell_max
-    
-    cosmo       = C.Cosmology(zmin=0.00, zmax=1200, Params=params, Limber = Limber, lmax=200 , mPk=False, Neutrinos=False)
-    closmo      = Class()
-    closmo.set(params[1])
-    closmo.compute()
-    #set up z range and binning in z space
-    
+				
+    try:
+        Parameter,cl_unl,cl_len=pickle.load(open('../class_outputs/class_cls_%s.pkl'%tag,'r'))
+        cl_phiphi       = cl_len['pp'][ell_min:ell_max+1]
+        ells            = cl_len['ell'][ell_min:ell_max+1]
+        cosmo       = C.Cosmology(zmin=0.00, zmax=1200, Params=params, Limber = True, lmax=200 , mPk=False, Neutrinos=False)
+        closmo      = Class()
+        closmo.set(cosmo.params)
+        closmo.compute()
+    except:
+        cosmo       = C.Cosmology(zmin=0.00, zmax=1200, Params=params, Limber = False, lmax=ell_max+2000, mPk=False, Neutrinos=False,lensing=True)
+        cosmo.class_params['non linear']='halofit'
+        closmo      = Class()
+        closmo.set(cosmo.class_params)
+        closmo.compute()
+        cl_len= closmo.lensed_cl(ell_max+1)
+        cl_unl= closmo.raw_cl(ell_max+1)
+        pickle.dump([cosmo.class_params,cl_unl,cl_len],open('../class_outputs/class_cls_%s.pkl'%tag,'w'))
+        cl_phiphi       = cl_len['pp'][ell_min:ell_max+1]
+        ells            = cl_len['ell'][ell_min:ell_max+1]
+
+    #set up z range and binning in z space    
     z_cmb       = closmo.get_current_derived_parameters(['z_rec'])['z_rec']
     closmo.struct_cleanup()
     closmo.empty()
@@ -194,8 +210,7 @@ if __name__ == "__main__":
     else:
         bias        = 1.
         dndz        = interp1d(z,red_dis(z),bounds_error=False,fill_value=0.)
-        
-    tag     = params[0]['name']
+    
     if nl:
         tag+='_nl'
     try:
@@ -205,10 +220,8 @@ if __name__ == "__main__":
         ll, cl_pp, cl_gg, cl_xx = compute_power_spectrum(ell_min, ell_max, z, Limber, nl,bias)
         pickle.dump([ll,cl_pp, cl_gg, cl_xx],open('cross_spectrum_%s_%s_bin%s.pkl'%(tag,dn_filename,red_bin),'w'))
 
+		
 
-    Parameter,cl_unl,cl_len=pickle.load(open('../class_outputs/class_cls_%s.pkl'%tag,'r'))
-    cl_phiphi       = cl_len['pp'][ell_min:ell_max+1]
-    ells            = cl_len['ell'][ell_min:ell_max+1]
     
     N0              = np.interp(ll,L_s,AL)
 
@@ -216,11 +229,6 @@ if __name__ == "__main__":
     
     n_bar           = np.inf#simps(dndz(z),z)*(180*60/np.pi)**2
     
-    AI            = pickle.load(open('/home/traveller/Documents/Projekte/LensingBispectrum/CosmoCodes/N0files/Toshiya_iterative_N0.pkl','r'))#Planck2015TempLensCombined_N0_mixedlmax_1010_nodiv.pkl','r'))
-    L_s           = AI[0]#['ls']
-    AL            = AI[1]#['MV']
-    N0            = np.interp(ll,L_s,AL)#(ll)
-    print L_s
     
     noise_pp      = np.sqrt(2./(2.*ll+1.)/fsky)*(1./4.*(ll*(ll+1.))**2*(cl_pp+N0))   
     noise_gg      = np.sqrt(2./(2.*ll+1.)/fsky)*(cl_gg+1./n_bar)
@@ -233,18 +241,18 @@ if __name__ == "__main__":
     pickle.dump([ll,cl_pp+N0,cl_gg+1./n_bar,cl_xx],open('Gaussian_variances_CMB-S4_bin%s_%s_%s.pkl'%(red_bin,tag,dn_filename),'w'))
 #    
 #
-#    pl.figure(figsize=(8,7))
-#    pl.errorbar(ll, cl_gg , color='g', yerr=noise_gg, label=r'$C_L^{gg}$, z=0-0.5')
-#    noise_gp[np.where(noise_gp>1./2.*(ll*(ll+1))*cl_xx)]=1./2.*(ll*(ll+1))*cl_xx-1e-20
-#    pl.errorbar(ll,1./4.*(ll*(ll+1.))**2*cl_pp,yerr=noise_pp,label=r'$C_L^{\kappa \kappa}$')
-#    pl.loglog(ells,1./4.*(ells*(ells+1.))**2*cl_phiphi, 'k',label=r'$C_L^{\kappa \kappa}$ theory')
-#    pl.errorbar(ll,1./2.*(ll*(ll+1))*cl_xx, yerr=noise_gp, color='r',label=r'$C_L^{\kappa g}$, z=0-0.5')
-#    pl.legend(loc='lower left',ncol=3, columnspacing=0.8, frameon=False)
-#    pl.ylim([1e-9,1e-4])
-#    pl.xlim([2,2000])
-#    pl.xlabel('L')
-#    pl.savefig('Cross_Spectra_%s.pdf'%(tag+dn_filename+red_bin))
-#    pl.show()
+    pl.figure(figsize=(8,7))
+    pl.errorbar(ll, cl_gg , color='g', yerr=noise_gg, label=r'$C_L^{gg}$',elinewidth=0.1)
+    noise_gp[np.where(noise_gp>1./2.*(ll*(ll+1))*cl_xx)]=1./2.*(ll*(ll+1))*cl_xx-1e-20
+    pl.errorbar(ll,1./4.*(ll*(ll+1.))**2*cl_pp,yerr=noise_pp,label=r'$C_L^{\kappa \kappa}$',elinewidth=0.1)
+    pl.loglog(ells,1./4.*(ells*(ells+1.))**2*cl_phiphi, 'k',label=r'$C_L^{\kappa \kappa}$ theory')
+    pl.errorbar(ll,1./2.*(ll*(ll+1))*cl_xx, yerr=noise_gp, color='r',label=r'$C_L^{\kappa g}$',elinewidth=0.1)
+    pl.legend(loc='lower left',ncol=3, columnspacing=0.8, frameon=False)
+    pl.ylim([1e-9,1e-4])
+    pl.xlim([2,2000])
+    pl.xlabel('L')
+    pl.savefig('Cross_Spectra_%s.pdf'%(tag+dn_filename+red_bin))
+    pl.show()
     
     pl.figure(figsize=(8,7))
     pl.loglog(ll, cl_gg , color='g', label=r'$C_L^{gg}$, z=0-0.5')

@@ -38,7 +38,7 @@ class Bispectra():
         - newtonian potential bi_psi (function of chi)
         - lensing potential bi_phi
     """
-    def __init__(self,cosmo,data, ell,z,config,ang12,ang23,ang31, path, z_cmb, b=None, nonlin=False, B_fit=False, kkg=False, kgg=False, dndz=None,norm=None,k_min=None,k_max=None,sym=False, fit_z_max=1.5):
+    def __init__(self,cosmo,data, ell,z,config,ang12,ang23,ang31, path, z_cmb, b=None, nonlin=False, B_fit=False, kkg=False, kgg=False, dndz=None,norm=None,k_min=None,k_max=None,sym=False, fit_z_max=1.5, cross_bias=False):
         """
         initializes/computes all three bispectra
         * cosmo:    instance of class Cosmology
@@ -97,6 +97,8 @@ class Bispectra():
         self.dndz       = dndz
         self.norm       = norm
         
+        self.cross_bias = cross_bias
+        
         if kkg:
             print 'Computing $B_{\phi\phig}$'
             
@@ -130,6 +132,8 @@ class Bispectra():
         self.filename=self.path+"bispec_phi_%s_Lmin%d-Lmax%d-lmax%d-lenBi%d"%(self.config,self.L_min,self.L_max,self.l_max,self.len_bi)
         if self.sym:
             self.filename+='_sym'
+        if self.cross_bias:
+            self.filename+='_4bias'
         try:
             self.bi_phi=np.load(self.filename+'.npy')
             print "loading file %s"%(self.filename+'.npy')									
@@ -202,6 +206,7 @@ class Bispectra():
 					
         self.cosmo.class_params['l_max_scalars']=min(self.L_max,4000)+2000
         self.cosmo.class_params['z_max_pk'] = max(z)	
+        print max(z), self.z_cmb
         #Maximum k value in matter power spectrum
         self.cosmo.class_params['P_k_max_1/Mpc'] = self.kmax
         self.cosmo.class_params['k_min_tau0'] = self.kmin*13000.
@@ -369,14 +374,11 @@ class Bispectra():
         B+=2.*self.get_F2_kernel_fit(k1,k3,self.ang31,i)*np.exp(spec(np.log(k3)))*np.exp(spec(np.log(k1)))
         
         index=np.where(np.any([(k1>self.kmax),(k1<self.kmin)],axis=0))
-        print index
         B[index]=0.
         index=np.where(np.any([(k2>self.kmax),(k2<self.kmin)],axis=0))
-        print index
         B[index]=0.
         index=np.where(np.any([(k3>self.kmax),(k3<self.kmin)],axis=0))
         B[index]=0.
-        print index
 
         return B
         
@@ -451,10 +453,14 @@ class Bispectra():
         if self.kkg:
             if self.sym:
                 fac = self.data.prefacs**2*(1./((self.ell[1::3]+0.5)*(self.ell[2::3]+0.5))**2\
-                +(1./((self.ell[1::3]+0.5)*(self.ell[2::3]+0.5)))**2\
+                +(1./((self.ell[1::3]+0.5)*(self.ell[0::3]+0.5)))**2\
                 +(1./((self.ell[2::3]+0.5)*(self.ell[0::3]+0.5)))**2)
             else:
-                fac = self.data.prefacs**2*(1./((self.ell[1::3]+0.5)*(self.ell[2::3]+0.5))**2)
+                #for S/N code, L3 =Ll=associated with galaxy leg
+                if self.cross_bias:
+                    fac = self.data.prefacs**2*(1./((self.ell[0::3]+0.5)*(self.ell[2::3]+0.5))**2)
+                else:
+                    fac = self.data.prefacs**2*(1./((self.ell[0::3]+0.5)*(self.ell[2::3]+0.5))**2)
         elif self.kgg:
             if self.sym:
                 fac =self.data.prefacs*(1./(self.ell[0::3]+0.5)**2+1./(self.ell[1::3]+0.5)**2+1./(self.ell[2::3]+0.5)**2)
@@ -474,14 +480,15 @@ if __name__ == "__main__":
     "---begin settings---"
     kkg     = True
     kgg     = False
-    LSST    = False
+    LSST    = True
+    cross_bias = True
     
     sym     = False
 
     equilat = False
     squeezed= False
     
-    integrals = False
+    integrals = True
     
     assert(kkg+kgg<=1)
 
@@ -489,7 +496,7 @@ if __name__ == "__main__":
         dn_filename = 'dndz_LSST_i27_SN5_3y'
     
     #choose Cosmology (see Cosmology module)
-    params      = C.ToshiyaComparison
+    params      = C.Planck2015_TTlowPlensing
 
     #Limber approximation, if true set class_params['l_switch_limber']=100, else 1
     Limber      = True    
@@ -503,7 +510,7 @@ if __name__ == "__main__":
 
     #binbounds
     
-    for red_bin in ['0']:#,'1','2']:
+    for red_bin in ['0','1','2']:
     
         bounds      = {'0':[0.0,0.5],'1':[0.5,1.],'2':[1.,2.]}
     				    
@@ -522,8 +529,8 @@ if __name__ == "__main__":
         l_min       = 1.
         l_max       = 10000.
         
-        k_min       = 1e-4/params[1]['h']#h/Mpc
-        k_max       = 100./params[1]['h']#h/Mpc
+        k_min       = 1e-4
+        k_max       = 100.
         
         fit_z_max   = 1.5
         
@@ -553,10 +560,13 @@ if __name__ == "__main__":
             gz, dgn = pickle.load(open(dn_filename+'_extrapolated.pkl','r'))
             
         #initialize cosmology
-        cosmo   = C.Cosmology(zmin=0.00, zmax=1190, Params=params, Limber=Limber, mPk=False, Neutrinos=False)
+        try:
+            del cosmo
+        except:
+            pass
+        cosmo   = C.Cosmology(zmin=0.00, zmax=1190, Params=params, Limber=Limber, mPk=False, Neutrinos=False,lensing=True)
         closmo  = Class()
-        #closmo.set(params[1])
-							
+        closmo.set(cosmo.class_params)
         closmo.compute()
         #set up z range and binning in z space
         z_min   = 1e-4
@@ -727,7 +737,7 @@ if __name__ == "__main__":
             
         pickle.dump([cosmo.class_params],open('class_settings_%s.pkl'%config,'w'))
      
-        bs   = Bispectra(cosmo,data,ell,z,config,ang12,ang23,ang31,path,z_cmb, bias, nl,B_fit,kkg, kgg, dndz, norm,k_min,k_max,sym,fit_z_max)
+        bs   = Bispectra(cosmo,data,ell,z,config,ang12,ang23,ang31,path,z_cmb, bias, nl,B_fit,kkg, kgg, dndz, norm,k_min,k_max,sym,fit_z_max,cross_bias)
         bs()  
         
         if integrals:

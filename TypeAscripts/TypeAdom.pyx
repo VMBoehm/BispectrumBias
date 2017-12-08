@@ -288,7 +288,7 @@ def get_typeA(double[:]  Ls, int sample1d, cl_fid, field , nl, int lmin, int lma
 
 	print "time in min: ", (time.time()-start)/60.
 
-	return num, L, l1s ,np.asarray(integrand_l1)*((2*np.pi)**(-4)), M, P
+	return num, L, l1s ,np.asarray(integrand_l1)*((2.*np.pi)**(-4)), M, P
 
 
 ### settings ###
