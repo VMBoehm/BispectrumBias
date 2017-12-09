@@ -2,9 +2,12 @@ Cross Bias
 
 - the galaxy leg should be associated with L (not l or L-l) in order to comply with TypeA1 and TypeA2 codes
   - flag cross_bias in Spectra_cross.py, recalculate bispectrum for bias, add to git!
-  - compute also for extended lensing kernel
-  - put all into separate folder 9also I integrals)
-  - update interpolated bispectrum for Type1 calculation
+    - noticed wrong 1/l convention, recomputing bi_phiphig and interp 
+    
+ 
+  - cross_integral folder contains beta integrals for bias
+  - cross_bias_spectra contains bispectra for bias computation
+
   - run also for different delta_theta and full angle
 
 - check that g is at correct position in PostBorn

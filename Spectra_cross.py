@@ -117,7 +117,7 @@ class Bispectra():
         if self.B_fit:
             print "using Gil-Marin et al. fitting formula"
         
-        self.path   = path+'cross_bias_spectra/'
+        self.path   = path#+'cross_bias_spectra/'
         
         self.b      = b
         
@@ -458,9 +458,10 @@ class Bispectra():
                 +(1./((self.ell[1::3]+0.5)*(self.ell[0::3]+0.5)))**2\
                 +(1./((self.ell[2::3]+0.5)*(self.ell[0::3]+0.5)))**2)
             else:
-                #for S/N code, L3 =Ll=associated with galaxy leg
+                #for bias code, L=associated with galaxy leg
                 if self.cross_bias:
-                    fac = self.data.prefacs**2*(1./((self.ell[0::3]+0.5)*(self.ell[2::3]+0.5))**2)
+                    fac = self.data.prefacs**2*(1./((self.ell[1::3]+0.5)*(self.ell[2::3]+0.5))**2)
+                #for S/N code, L3 =Ll=associated with galaxy leg
                 else:
                     fac = self.data.prefacs**2*(1./((self.ell[0::3]+0.5)*(self.ell[2::3]+0.5))**2)
         elif self.kgg:
@@ -482,7 +483,7 @@ if __name__ == "__main__":
     "---begin settings---"
     kkg     = True
     kgg     = False
-    LSST    = False
+    LSST    = True
     cross_bias = True
     
     sym     = False
@@ -493,9 +494,6 @@ if __name__ == "__main__":
     integrals = True
     
     assert(kkg+kgg<=1)
-
-    if LSST:   
-        dn_filename = 'dndz_LSST_i27_SN5_3y'
     
     #Limber approximation, if true set class_params['l_switch_limber']=100, else 1
     Limber      = True    
@@ -541,7 +539,7 @@ if __name__ == "__main__":
         len_side= 250
     
     #regularizing theta bounds
-    Delta_theta = 1e-2
+    Delta_theta = 0.
     
     nl          = True
     
@@ -557,7 +555,13 @@ if __name__ == "__main__":
     
     "---end settings---"
 
-    for red_bin in ['0','1','2']:
+    for red_bin in ['None']:#'0','1','2',
+        
+        if red_bin=='None':
+            LSST = False
+        else:
+            LSST = True  
+            dn_filename = 'dndz_LSST_i27_SN5_3y'
      
         #initialize cosmology
         params  = deepcopy(cparams)
@@ -740,6 +744,7 @@ if __name__ == "__main__":
             
         pickle.dump([cosmo.class_params],open('class_settings_%s.pkl'%config,'w'))
      
+        config+='test3'
         bs   = Bispectra(cosmo,data,ell,z,config,ang12,ang23,ang31,path,z_cmb, bias, nl,B_fit,kkg, kgg, dndz, norm,k_min,k_max,sym,fit_z_max,cross_bias)
         bs()  
         
