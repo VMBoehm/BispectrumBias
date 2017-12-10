@@ -512,9 +512,9 @@ if __name__ == "__main__":
     bin_num     = 150
     
     #sampling in L/l and angle
-    len_L       = 163
-    len_l       = 163
-    len_ang     = 163
+    len_L       = 150
+    len_l       = 150
+    len_ang     = 190
 
     #ell range (for L and l)
     L_min       = 1.
@@ -523,8 +523,8 @@ if __name__ == "__main__":
     l_min       = 1.
     l_max       = 10000.
     
-    k_min       = 1e-4
-    k_max       = 100.
+    k_min       = None#1e-4
+    k_max       = None#100.
     
     fit_z_max   = 1.5
     
@@ -539,7 +539,7 @@ if __name__ == "__main__":
         len_side= 250
     
     #regularizing theta bounds
-    Delta_theta = 0.
+    Delta_theta = 1e-4
     
     nl          = True
     
@@ -555,7 +555,7 @@ if __name__ == "__main__":
     
     "---end settings---"
 
-    for red_bin in ['None']:#'0','1','2',
+    for red_bin in ['0']:#'0','1','2',
         
         if red_bin=='None':
             LSST = False
@@ -589,7 +589,7 @@ if __name__ == "__main__":
                 z0      = 1./3.
                 dndz    = (z/z0)**2*np.exp(-z/z0)
                 dndz    = interp1d(z,dndz,kind='slinear',fill_value=0.,bounds_error=False)
-                bias    = 1.+z
+                bias    = z+1.
                 
             norm    = simps(dndz(z),z)
             
@@ -630,8 +630,8 @@ if __name__ == "__main__":
                 la        = np.linspace(l_min,50,48,endpoint=False)
                 lb        = np.exp(np.linspace(np.log(50),np.log(l_max),len_l-48))
                 l         = np.append(la,lb)                
-            elif ell_type=="lin":
-                #L = |-L|, equally spaced in lin at low L and in log at high L 
+            elif ell_type=="lin_halfang":
+                #L = |-L|, equally spaced in lin
                 L         = np.linspace(L_min,L_max,len_L)
                 l         = np.linspace(l_min,l_max,len_l)
             elif ell_type=='equilat':
@@ -651,7 +651,7 @@ if __name__ == "__main__":
                 
             # angle, cut edges to avoid numerical instabilities
             #TODO: try halving this angle, probably requires multiplication by 2, but should avoid l2=0
-            theta   = np.linspace(Delta_theta,np.pi, len_ang)
+            theta   = np.linspace(Delta_theta,np.pi-Delta_theta, len_ang)
             if ell_type=='equilat':
                 theta   = np.asarray([np.pi/3.]*len_side)
             if ell_type=='squeezed':
@@ -744,7 +744,7 @@ if __name__ == "__main__":
             
         pickle.dump([cosmo.class_params],open('class_settings_%s.pkl'%config,'w'))
      
-        config+='test3'
+        config+='test7'
         bs   = Bispectra(cosmo,data,ell,z,config,ang12,ang23,ang31,path,z_cmb, bias, nl,B_fit,kkg, kgg, dndz, norm,k_min,k_max,sym,fit_z_max,cross_bias)
         bs()  
         

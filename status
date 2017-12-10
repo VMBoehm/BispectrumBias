@@ -3,6 +3,17 @@ Cross Bias
 - the galaxy leg should be associated with L (not l or L-l) in order to comply with TypeA1 and TypeA2 codes
   - flag cross_bias in Spectra_cross.py, recalculate bispectrum for bias, add to git!
     - noticed wrong 1/l convention, recomputing bi_phiphig and interp 
+    - spike in beta para/ starting test series 
+      - test1: higher angular sampling -> better!
+      - test2: delta_theta=0 -> slightly more power in parallel integral
+      - test4: linear l-spacing -> same result as for lin spampling
+      
+      - better angular sampling seems to remedy this. 
+      - test5 with 150/150/190 -> not really better and less power
+      - test6 with 160/160/210 -> same power as test5 but not better
+      - test7 with 150/150/190, delta theta=1e-4, both sides, no kmin and kmax
+      
+     - check tests before continuing with bias evaluation
     
  
   - cross_integral folder contains beta integrals for bias
