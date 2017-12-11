@@ -11,9 +11,15 @@ Cross Bias
       - better angular sampling seems to remedy this. 
       - test5 with 150/150/190 -> not really better and less power
       - test6 with 160/160/210 -> same power as test5 but not better
-      - test7 with 150/150/190, delta theta=1e-4, both sides, no kmin and kmax
+      - test7 with 150/150/190, delta theta=1e-4, both sides, kmin and kmax, 5e-5, 1000
+       -> no significant difference, also spiky...
+      - test8 with 150/150/190, full angle, delta theta=1e-4 both sides, kmin 1e-4, kmax 100
+      - 
+     
       
-     - check tests before continuing with bias evaluation
+     --> no significant difference between tests, continue with 163**3, to avoid bugs due to non symmetric sampling
+  
+    
     
  
   - cross_integral folder contains beta integrals for bias
@@ -23,12 +29,19 @@ Cross Bias
 
 - check that g is at correct position in PostBorn
 
+- seems that Post Born corrections are small because g is a density and converting to Psi gives extra factor of 1/chi**2
+  (tested by comparing Post Born kkg to kkk without this factor)
+- make plots of folded and equilateral configuration (B_kkk, B_kkg, and their Post Born corrections) 
+- use wide redshift kernel
+  
+  
 - test Type A code for different configs 
   - l sampling 256/512 (TypeAdom)
   - ang sampling (TypeAdom1)
   - lcut dependence (TypeAdom2)
   - lmin, lmax dependence (TypeAdom3 lmin, TypeAdom4)
-  - ang cutoff
+  - delta theta: 1e-4, 1e-2, 0.
+  - full angle
   - look for cancelation at low ell
 
 - need to compile TypeAdomi.pyx and run

@@ -483,15 +483,15 @@ if __name__ == "__main__":
     "---begin settings---"
     kkg     = True
     kgg     = False
-    LSST    = True
-    cross_bias = True
+    LSST    = False
+    cross_bias = False
     
-    sym     = False
+    sym     = True
 
-    equilat = False
-    squeezed= False
+    equilat = True
+    folded  = False
     
-    integrals = True
+    integrals = False
     
     assert(kkg+kgg<=1)
     
@@ -514,7 +514,7 @@ if __name__ == "__main__":
     #sampling in L/l and angle
     len_L       = 150
     len_l       = 150
-    len_ang     = 190
+    len_ang     = 150
 
     #ell range (for L and l)
     L_min       = 1.
@@ -523,19 +523,19 @@ if __name__ == "__main__":
     l_min       = 1.
     l_max       = 10000.
     
-    k_min       = None#1e-4
-    k_max       = None#100.
+    k_min       = 1e-4
+    k_max       = 100.
     
     fit_z_max   = 1.5
     
     #tag for L-sampling
-    ell_type    ="linlog_halfang"
+    ell_type    ="linlog_fullang"
     
     if equilat:
         ell_type="equilat"
         len_side= 250
-    if squeezed:
-        ell_type="squeezed"
+    if folded:
+        ell_type="folded"
         len_side= 250
     
     #regularizing theta bounds
@@ -555,7 +555,7 @@ if __name__ == "__main__":
     
     "---end settings---"
 
-    for red_bin in ['0']:#'0','1','2',
+    for red_bin in ['None']:#,'1','2','None']:
         
         if red_bin=='None':
             LSST = False
@@ -621,7 +621,7 @@ if __name__ == "__main__":
         except:
             ell         = []
             print "ell file not found"
-            if ell_type=="linlog_halfang":
+            if ell_type=="linlog_fullang":
                 #L = |-L|, equally spaced in lin at low L and in log at high L 
                 La        = np.linspace(L_min,50,48,endpoint=False)
                 Lb        = np.exp(np.linspace(np.log(50),np.log(L_max),len_L-48))
@@ -630,7 +630,7 @@ if __name__ == "__main__":
                 la        = np.linspace(l_min,50,48,endpoint=False)
                 lb        = np.exp(np.linspace(np.log(50),np.log(l_max),len_l-48))
                 l         = np.append(la,lb)                
-            elif ell_type=="lin_halfang":
+            elif ell_type=="lin_fullang":
                 #L = |-L|, equally spaced in lin
                 L         = np.linspace(L_min,L_max,len_L)
                 l         = np.linspace(l_min,l_max,len_l)
@@ -639,7 +639,7 @@ if __name__ == "__main__":
                 La        = np.arange(L_min,150)
                 Lb        = np.ceil(np.exp(np.linspace(np.log(150),np.log(L_max),len_side-len(La),)))
                 L         = np.append(La,Lb)
-            elif ell_type=='squeezed':
+            elif ell_type=='folded':
                 assert(len_side>150)
                 La        = np.arange(L_min,150)
                 Lb        = np.ceil(np.exp(np.linspace(np.log(150),np.log(L_max),len_side-len(La))))
@@ -651,11 +651,11 @@ if __name__ == "__main__":
                 
             # angle, cut edges to avoid numerical instabilities
             #TODO: try halving this angle, probably requires multiplication by 2, but should avoid l2=0
-            theta   = np.linspace(Delta_theta,np.pi-Delta_theta, len_ang)
+            theta   = np.linspace(Delta_theta,2*np.pi-Delta_theta, len_ang)
             if ell_type=='equilat':
                 theta   = np.asarray([np.pi/3.]*len_side)
-            if ell_type=='squeezed':
-                theta   = np.asarray([np.pi/1000.]*len_side)
+            if ell_type=='folded':
+                theta   = np.asarray([0.]*len_side)
                 
             cosmu   = np.cos(theta) #Ldotl/Ll or -l1dotl3/l1/l3 (l1+l2+l3=0) (angle used in beta Integrals)
             
@@ -679,7 +679,7 @@ if __name__ == "__main__":
                         ang12+=[(l3*l3-l1*l1-l2*l2)/(2.*l1*l2)]
                         ang23+=[(l1*l1-l3*l3-l2*l2)/(2.*l3*l2)]
                         angmu+=[theta[i]]
-            elif squeezed:
+            elif folded:
                 for i in range(len_side):
                         l1= L[i]
                         l3= l[i]
@@ -744,7 +744,6 @@ if __name__ == "__main__":
             
         pickle.dump([cosmo.class_params],open('class_settings_%s.pkl'%config,'w'))
      
-        config+='test7'
         bs   = Bispectra(cosmo,data,ell,z,config,ang12,ang23,ang31,path,z_cmb, bias, nl,B_fit,kkg, kgg, dndz, norm,k_min,k_max,sym,fit_z_max,cross_bias)
         bs()  
         
@@ -779,13 +778,13 @@ if __name__ == "__main__":
                     bi_kkg_sum = np.load(bs.filename+"_post_born_sum.npy")
                     bi_kkg     = np.load(bs.filename+"_post_born.npy")
                 except:
-                    bi_kkg = PBB.bi_born_cross(ell[0::3],ell[1::3],ell[2::3],16./(3*data.Omega_m0*data.H_0**2))
+                    bi_kkg = PBB.bi_born_cross(ell[0::3],ell[1::3],ell[2::3],16./(3.*data.Omega_m0*data.H_0**2),sym=bs.sym)
                     bi_kkg_sum = bi_kkg+bs.bi_phi
                     np.save(bs.filename+"_post_born.npy",bi_kkg)
                     np.save(bs.filename+"_post_born_sum.npy",bi_kkg_sum)
                 bi_phi = bi_kkg_sum
             else:
-                bi_post  = (PBB.bi_born(ell[0::3],ell[1::3],ell[2::3])*8./(ell[0::3]*ell[1::3]*ell[2::3])**2)
+                bi_post  = (PBB.bi_born(ell[0::3],ell[1::3],ell[0::3])*8./(ell[0::3]*ell[1::3]*ell[2::3])**2)
                 np.save(bs.filename+"_post_born.npy",bi_post)
                 np.save(bs.filename+"_post_born_sum.npy",bi_post+bs.bi_phi)
                 bi_phi = bi_post+bs.bi_phi
