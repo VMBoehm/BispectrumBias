@@ -27,8 +27,6 @@ pl.plot(L2,L2**4*Int01*2,ls='-',color='b',label=r'$L^4 \beta^{\mathrm{cross}}_\p
 pl.plot(L2,L2**4*Int21*2,ls='-',color='g',label=r'$L^4 \beta^{\mathrm{cross}}_\parallel$')
 pl.plot(L,L**4*Int02,ls='--',color='k',label=r'$L^4 \beta^{\mathrm{cross}}_\perp$')
 pl.plot(L,L**4*Int22,ls='--',color='k',label=r'$L^4 \beta^{\mathrm{cross}}_\parallel$')
-
-
 pl.legend(loc='best',ncol=2,frameon=False)
 pl.ylim(-10e-3,10e-3)
 pl.xlim([50,3000])

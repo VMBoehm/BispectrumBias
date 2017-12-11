@@ -18,10 +18,10 @@ Cross Bias
      
       
      --> no significant difference between tests, continue with 163**3, to avoid bugs due to non symmetric sampling
-      - slightly change the way bin is enforced to match power_spectra.py
-      - add to git once completed!
+      - slightly change the way bin is enforced to match power_spectra.py -> no impact on result
+      - added to git
     
-    
+  - spline smoothing for Type C to get rid of spikes in Type C bias 
  
   - cross_integral folder contains beta integrals for bias
   - cross_bias_spectra contains bispectra for bias computation
