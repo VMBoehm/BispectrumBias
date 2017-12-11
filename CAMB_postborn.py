@@ -46,7 +46,7 @@ class PostBorn_Bispec():
         if lmax==None:
             lmax=20000
         if acc==None:
-            acc=2 #(change back to 1 unless you need high accuracy - much faster)
+            acc=4 #(change back to 1 unless you need high accuracy - much faster)
         self.nz = 200*acc
 
         chistar = self.results.conformal_time(0)- model.tau_maxvis.value #chi_cmb

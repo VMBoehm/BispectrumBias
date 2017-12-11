@@ -14,11 +14,12 @@ Cross Bias
       - test7 with 150/150/190, delta theta=1e-4, both sides, kmin and kmax, 5e-5, 1000
        -> no significant difference, also spiky...
       - test8 with 150/150/190, full angle, delta theta=1e-4 both sides, kmin 1e-4, kmax 100
-      - 
+      - full ang without factor of 2 gives same result as half and with factor of 2!
      
       
      --> no significant difference between tests, continue with 163**3, to avoid bugs due to non symmetric sampling
-  
+      - slightly change the way bin is enforced to match power_spectra.py
+      - add to git once completed!
     
     
  

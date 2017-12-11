@@ -117,7 +117,7 @@ class Bispectra():
         if self.B_fit:
             print "using Gil-Marin et al. fitting formula"
         
-        self.path   = path#+'cross_bias_spectra/'
+        self.path   = path+'cross_bias_spectra/'
         
         self.b      = b
         
@@ -483,15 +483,15 @@ if __name__ == "__main__":
     "---begin settings---"
     kkg     = True
     kgg     = False
-    LSST    = False
-    cross_bias = False
+    LSST    = True
+    cross_bias = True
     
-    sym     = True
+    sym     = False
 
-    equilat = True
+    equilat = False
     folded  = False
     
-    integrals = False
+    integrals = True
     
     assert(kkg+kgg<=1)
     
@@ -509,12 +509,12 @@ if __name__ == "__main__":
     bounds      = {'0':[0.0,0.5],'1':[0.5,1.],'2':[1.,2.]}
 
     #number of redshift bins 
-    bin_num     = 150
+    bin_num     = 200
     
     #sampling in L/l and angle
-    len_L       = 150
-    len_l       = 150
-    len_ang     = 150
+    len_L       = 163
+    len_l       = 163
+    len_ang     = 163
 
     #ell range (for L and l)
     L_min       = 1.
@@ -529,7 +529,7 @@ if __name__ == "__main__":
     fit_z_max   = 1.5
     
     #tag for L-sampling
-    ell_type    ="linlog_fullang"
+    ell_type    ="linlog_halfang"
     
     if equilat:
         ell_type="equilat"
@@ -555,7 +555,7 @@ if __name__ == "__main__":
     
     "---end settings---"
 
-    for red_bin in ['None']:#,'1','2','None']:
+    for red_bin in ['0','1','2','None']:
         
         if red_bin=='None':
             LSST = False
@@ -582,8 +582,10 @@ if __name__ == "__main__":
         if kkg or kgg:
             if LSST:
                 gz, dgn = pickle.load(open(dn_filename+'_extrapolated.pkl','r'))
-                z       = np.linspace(max(bounds[red_bin][0],z_min),bounds[red_bin][1],100)
-                dndz    = interp1d(gz, dgn, kind='slinear',fill_value=0.,bounds_error=False)
+                dndz    = interp1d(gz, dgn, kind='linear')
+                z_g     = np.linspace(max(bounds[red_bin][0],z_min),bounds[red_bin][1],bin_num)
+                dndz    = dndz(z_g)
+                dndz    = interp1d(z_g, dndz, kind='linear',bounds_error=False,fill_value=0.)
                 bias    = z+1.
             else:
                 z0      = 1./3.
@@ -592,16 +594,13 @@ if __name__ == "__main__":
                 bias    = z+1.
                 
             norm    = simps(dndz(z),z)
-            
-#            pl.figure()
-#            pl.semilogx(z,dndz(z)/norm)
-#            pl.xlim(1e-3,100)
-#            pl.savefig('dndz.png')
+        
             print 'norm ', norm
             
         else:
-            dndz = None
-            norm = None
+            dndz    = None
+            norm    = None
+            bias    = None
         #cosmo dependent functions
         data    = C.CosmoData(cosmo,z)
         print 'z:', z
@@ -621,7 +620,7 @@ if __name__ == "__main__":
         except:
             ell         = []
             print "ell file not found"
-            if ell_type=="linlog_fullang":
+            if ell_type=="linlog_halfang":
                 #L = |-L|, equally spaced in lin at low L and in log at high L 
                 La        = np.linspace(L_min,50,48,endpoint=False)
                 Lb        = np.exp(np.linspace(np.log(50),np.log(L_max),len_L-48))
@@ -630,7 +629,7 @@ if __name__ == "__main__":
                 la        = np.linspace(l_min,50,48,endpoint=False)
                 lb        = np.exp(np.linspace(np.log(50),np.log(l_max),len_l-48))
                 l         = np.append(la,lb)                
-            elif ell_type=="lin_fullang":
+            elif ell_type=="lin_halfang":
                 #L = |-L|, equally spaced in lin
                 L         = np.linspace(L_min,L_max,len_L)
                 l         = np.linspace(l_min,l_max,len_l)
@@ -651,7 +650,7 @@ if __name__ == "__main__":
                 
             # angle, cut edges to avoid numerical instabilities
             #TODO: try halving this angle, probably requires multiplication by 2, but should avoid l2=0
-            theta   = np.linspace(Delta_theta,2*np.pi-Delta_theta, len_ang)
+            theta   = np.linspace(Delta_theta,np.pi-Delta_theta, len_ang)
             if ell_type=='equilat':
                 theta   = np.asarray([np.pi/3.]*len_side)
             if ell_type=='folded':
@@ -717,7 +716,7 @@ if __name__ == "__main__":
         ell=np.asarray(ell)
         print "ell_type: %s"%ell_type
         
-        if not equilat:
+        if not (cross_bias or equilat or folded):
             ff_name     = path+"Ll_file_%s_%.0e_%d_lenL%d_lenang%d_%.0e.pkl"%(ell_type,l_min,l_max,len_L,len_ang,Delta_theta)
             pickle.dump(ell[1::3],open(ff_name,'w'))
     
