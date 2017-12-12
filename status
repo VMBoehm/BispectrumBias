@@ -26,26 +26,23 @@ Cross Bias
   - cross_integral folder contains beta integrals for bias
   - cross_bias_spectra contains bispectra for bias computation
 
-  - run also for different delta_theta and full angle
 
-- check that g is at correct position in PostBorn
 
-- seems that Post Born corrections are small because g is a density and converting to Psi gives extra factor of 1/chi**2
+- seems that Post Born corrections are small because g is a density and converting to Psi gives extra factor of 1/chi**2 - check what this means
   (tested by comparing Post Born kkg to kkk without this factor)
-- make plots of folded and equilateral configuration (B_kkk, B_kkg, and their Post Born corrections) 
-- use wide redshift kernel
+- make plots of folded and equilateral configuration (B_kkk, B_kkg, and their Post Born corrections) - done and uploaded, ipython notebook
   
   
-- test Type A code for different configs 
-  - l sampling 256/512 (TypeAdom)
-  - ang sampling (TypeAdom1)
-  - lcut dependence (TypeAdom2)
-  - lmin, lmax dependence (TypeAdom3 lmin, TypeAdom4)
+- test Type A code for different configs (bin 0)
+  - l sampling 256/512 (TypeAdom,TypeAdom1), both queued
+  - ang sampling 
+  - lcut dependence
+  - lmin, lmax dependence
   - delta theta: 1e-4, 1e-2, 0.
   - full angle
   - look for cancelation at low ell
 
-- need to compile TypeAdomi.pyx and run
+- need to compile TypeAdom_i.pyx and run
   
 - (check if you integrate correctly for Type1 bias) probably yes
 - implement for EB

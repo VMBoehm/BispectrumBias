@@ -117,7 +117,7 @@ class Bispectra():
         if self.B_fit:
             print "using Gil-Marin et al. fitting formula"
         
-        self.path   = path+'cross_bias_spectra/'
+        self.path   = path#+'cross_bias_spectra/'
         
         self.b      = b
         
@@ -426,31 +426,20 @@ class Bispectra():
             kernel  = W_gal**2*W_lens/self.chi**2      
         else:
             kernel  = W_lens**3*self.chi**2
+            
+        pl.figure()
+        pl.loglog(self.z,W_gal*W_lens**2,label='ppg')
+        pl.loglog(self.z,W_lens**3*self.chi**2*self.data.prefacs,label='ppp*fac')
+        pl.legend()
+        pl.gca().set_ylim(bottom=1e-15)
+        pl.savefig('Kernel_Comparison.png')
 
         bi_phi=[]
-#        pl.figure()
         for j in index:
-            
-            
-#            if j in [5,8,12,19]:
-#                pl.loglog(self.z,self.bi_delta[j],label='L=%d'%self.ell[0::3][j])
-
             integrand   = self.bi_delta[j]*kernel
             bi_phi+=[simps(integrand,self.chi)]
         self.bi_phi=np.array(bi_phi)
-#        pl.legend()
-#        pl.xlabel('z')
-#        pl.ylabel(r'Bispectrum delta equilat')
-#        pl.savefig('bi_delta_l.png')
-#        pl.close()
-#        pl.figure()
-#        pl.loglog(z,kernel)
-#        pl.ylim(1e-13,1e-9)
-#        pl.xlim(1e-3,100)
-#        pl.xlabel(r'$z$')
-#        pl.ylabel(r'$b W_{gal} W_{lens}^2 dz/d\chi$')
-#        pl.savefig('bispectrum_kernel.png')
-#        pl.close()        
+
         
         if self.kkg:
             if self.sym:
@@ -483,15 +472,17 @@ if __name__ == "__main__":
     "---begin settings---"
     kkg     = True
     kgg     = False
-    LSST    = True
-    cross_bias = True
+    LSST    = False
+    cross_bias = False
     
-    sym     = False
+    sym     = True
 
-    equilat = False
+    equilat = True
     folded  = False
     
-    integrals = True
+    integrals = False
+    
+    tag     = 'kernel_test'
     
     assert(kkg+kgg<=1)
     
@@ -555,7 +546,7 @@ if __name__ == "__main__":
     
     "---end settings---"
 
-    for red_bin in ['0','1','2','None']:
+    for red_bin in ['None']:#0','1','2','None']:
         
         if red_bin=='None':
             LSST = False
@@ -738,6 +729,8 @@ if __name__ == "__main__":
             config+="_Bfit"
         
         config +="_"+params[0]['name']
+        
+        config+=tag
             
         print "config: %s"%config
             

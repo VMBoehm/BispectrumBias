@@ -66,88 +66,90 @@ def bispec_interp(bispec, ell, cos13, len_l, len_ang, len_L, plot=True):
 
 
 """Settings to chosse correct Bispectrum"""
-for red_bin in ['0','1','2']:
+#for red_bin in ['0','1','2']:
     
     
-    LSST        = False 
-    dn_filename = 'dndz_LSST_i27_SN5_3y'
-    cross_bias  = True
-    #red_bin     = '0'
-    #choose Cosmology (see Cosmology module)
-    params      = C.Planck2015_TTlowPlensing
+LSST        = False
+dn_filename = 'dndz_LSST_i27_SN5_3y'
+cross_bias  = True
+
+#choose Cosmology (see Cosmology module)
+params      = C.Planck2015_TTlowPlensing
+
+#fitting formula (use B_delta fitting formula from Gil-Marin et al. arXiv:1111.4477
+B_fit       = True
+
+#sampling in L/l and angle
+len_L       = 163
+len_l       = 163
+len_ang     = 163
+
+len_bi      = len_L*len_l*len_ang
+
+#ell range (for L and l)
+L_min       = 1.
+L_max       = 10000.
+
+l_min       = 1.
+l_max       = 10000.
+
+k_min       = 1e-4
+k_max       = 100.
+
+z_min       = 1e-4
+
+post_born   = False
+
+spectra_configs=['_nlPS']
+
+
+ell_type    ="linlog_halfang"
+
+Delta_theta = 1e-4
+
+nl          = True
+if nl==False:
+    spectrum_config='_linPs'
+else:
+    spectrum_config='_lnPs'
     
-    #fitting formula (use B_delta fitting formula from Gil-Marin et al. arXiv:1111.4477
-    B_fit       = True
-    
-    #sampling in L/l and angle
-    len_L       = 163
-    len_l       = 163
-    len_ang     = 163
-    
-    len_bi      = len_L*len_l*len_ang
-    
-    #ell range (for L and l)
-    L_min       = 1.
-    L_max       = 10000.
-    
-    l_min       = 1.
-    l_max       = 10000.
-    
-    k_min       = 1e-4
-    k_max       = 100.
-    
-    z_min       = 1e-4
-    
-    post_born   = False
-    
-    spectra_configs=['_nlPS']
-    
-    
-    ell_type    ="linlog_halfang"
-    
-    Delta_theta = 1e-2
-    
-    nl          = True
-    if nl==False:
-        spectrum_config='_linPs'
-    else:
-        spectrum_config='_lnPs'
+path = "/afs/mpa/temp/vboehm/spectra/"
+
+filename=path+"ell_%s_Lmin%d_Lmax%d_lmax%d_lenL%d_lenl%d_lenang%d_%.0e.pkl"%(ell_type,L_min,L_max,l_max,len_L,len_l,len_ang,Delta_theta)
+filename_ang=path+"ang_%s_Lmin%d_Lmax%d_lmax%d_lenL%d_lenl%d_lenang%d_%.0e.pkl"%(ell_type,L_min,L_max,l_max,len_L,len_l,len_ang,Delta_theta)
         
-    path = "/afs/mpa/temp/vboehm/spectra/"
+ell=pickle.load(open(filename))
+angles=pickle.load(open(filename_ang))
+angmu=angles[3]
+del angles
+
+config = 'kkg_%s'%ell_type
+
+if LSST:
+    config+='bin_%s_%s'%(red_bin,dn_filename)
+else:
+    config+='no_binning'
+
+config+=spectrum_config
+if B_fit:
+    config+="_Bfit"
+    config +="_"+params[0]['name']
     
-    filename=path+"ell_%s_Lmin%d_Lmax%d_lmax%d_lenL%d_lenl%d_lenang%d_%.0e.pkl"%(ell_type,L_min,L_max,l_max,len_L,len_l,len_ang,Delta_theta)
-    filename_ang=path+"ang_%s_Lmin%d_Lmax%d_lmax%d_lenL%d_lenl%d_lenang%d_%.0e.pkl"%(ell_type,L_min,L_max,l_max,len_L,len_l,len_ang,Delta_theta)
-            
-    ell=pickle.load(open(filename))
-    angles=pickle.load(open(filename_ang))
-    angmu=angles[3]
-    del angles
+path = "/afs/mpa/temp/vboehm/spectra/cross_bias_spectra/"
+loadfile = path+"bispec_phi_%s_Lmin%d-Lmax%d-lmax%d-lenBi%d"%(config,L_min,L_max,l_max,len_bi)
+
+if cross_bias:
+    loadfile+='_4bias'
     
-    config = 'kkg_%s'%ell_type
+print 'loading bispectrum ', loadfile
+
+bi_phi=np.load(loadfile+'.npy')
+
+x, Ls,ls,splines = bispec_interp(bi_phi, ell, angmu, len_l, len_ang, len_L, config)
+if cross_bias:
+    config+='_4bias'
     
-    if LSST:
-        config+='bin_%s_%s'%(red_bin,dn_filename)
-    else:
-        config+='no_binning'
-    
-    config+=spectrum_config
-    if B_fit:
-        config+="_Bfit"
-        config +="_"+params[0]['name']
-        
-    path = "/afs/mpa/temp/vboehm/spectra/cross_bias_spectra/"
-    loadfile = path+"bispec_phi_%s_Lmin%d-Lmax%d-lmax%d-lenBi%d"%(config,L_min,L_max,l_max,len_bi)
-    
-    if cross_bias:
-        loadfile+='_4bias'
-    
-    bi_phi=np.load(loadfile+'.npy')
-    
-    x, Ls,ls,splines = bispec_interp(bi_phi, ell, angmu, len_l, len_ang, len_L, config)
-    if cross_bias:
-        config+='_4bias'
-        
-    dumpfile=path+'bispec_interp_%s_mu.pkl'%config
-    
-    pickle.dump([x,Ls,ls,splines],open(dumpfile,'w'))
-    print "dumped to %s"%dumpfile
+dumpfile=path+'bispec_interp_%s_mu.pkl'%config
+
+pickle.dump([x,Ls,ls,splines],open(dumpfile,'w'))
+print "dumped to %s"%dumpfile

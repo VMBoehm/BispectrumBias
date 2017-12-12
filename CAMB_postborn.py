@@ -19,6 +19,7 @@ sys.path.insert(-1,os.path.realpath(os.path.join(os.getcwd(),'..')))
 import camb
 from camb import model
 from copy import deepcopy
+from Constants import LIGHT_SPEED
 
 
 class PostBorn_Bispec():
@@ -303,7 +304,8 @@ if __name__ == "__main__":
     Om_b=params['omega_b']/params['h']**2
     Om_cdm=params['omega_cdm']/params['h']**2
     Omega_m0=Om_b+Om_cdm
-    gamma=16./(3.*Omega_m0*H0**2)
+    print H0, Omega_m0
+    gamma=16./(3.*Omega_m0*H0**2)*LIGHT_SPEED**2
     sym = True
 
     z       = np.exp(np.linspace(np.log(1e-4),np.log(1000),100))    

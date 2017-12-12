@@ -28,9 +28,17 @@ try:
     Ls,R_integrals = pickle.load(open(R_filename+'.pkl','r'))
 except:
     print R_filename+'.pkl', ' does not exist'
+
+for zbin,LSST in zip(['0','1','2','None'],[True,True,True,False]):
+    if LSST:
+        zbin='bin_%s'%zbin
+        tag='_dndz_LSST_i27_SN5_3y'
+    else:
+        zbin='no_binning'
+        tag=''
+    beta_path = '/home/traveller/Documents/Projekte/LensingBispectrum/CMB-nonlinear/cross_integrals/I0I1I2kkg_linlog_halfang%s%s_lnPs_Bfit_Planck2015_TTlowPlensing.pkl'%(zbin,tag)
     
-for zbin in ['0']:
-    beta_path = '/home/traveller/Documents/Projekte/LensingBispectrum/CMB-nonlinear/cross_integrals/I0I1I2kkg_linlog_halfangbin_%s_dndz_LSST_i27_SN5_3y_lnPs_Bfit_Planck2015_TTlowPlensing.pkl'%zbin
+    print beta_path
     
     A_L_file='/home/traveller/Documents/Projekte/LensingBispectrum/CosmoCodes/N0files/Planck2015TempLensCombined_N0_mixedlmax_1010_nodiv.pkl'
     
