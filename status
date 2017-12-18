@@ -40,8 +40,11 @@ Cross Bias
 -> spikes change place depending on sampling method
 
   
+
 - test Type A code for different configs (bin 0)
   - l sampling 256 (TypeAdom), queued
+  -> seems to match TypeC calculation, bispec_phi deleted, interp method stored in commit f915f9ba04309946efb12188a520a0e38cfa1d51
+  (to check for ell configuration)
  --> wait until it finishes before submitting more
   - ang sampling 
   - lcut dependence

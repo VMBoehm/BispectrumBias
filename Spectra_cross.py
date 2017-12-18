@@ -483,7 +483,7 @@ if __name__ == "__main__":
     
     integrals   = True
     
-    tag         = 'extr0'
+    tag         = 'extr1'
     
     assert(kkg+kgg<=1)
     
@@ -504,9 +504,9 @@ if __name__ == "__main__":
     bin_num     = 200
     
     #sampling in L/l and angle
-    len_L       = 100
-    len_l       = 100
-    len_ang     = 400
+    len_L       = 200
+    len_l       = 200
+    len_ang     = 100
 
     #ell range (for L and l)
     L_min       = 1.
@@ -530,7 +530,7 @@ if __name__ == "__main__":
         ell_type="folded"
         len_side= 250
     
-    Delta_theta = 0.
+    Delta_theta = 1e-4
     
     nl          = True
     
