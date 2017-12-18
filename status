@@ -36,9 +36,8 @@ Cross Bias
 -> delta_theta 1e-4 or 0 does not make a difference
 -> change in I2 computation does not make a difference
 -> lin insteag of log smapling with delta theta 1e-2 suddenly seems to make a difference ... testing
--> 150 150 200 looks smooth, comparing to 140 140 220...
-- no discontinuities in 140 140, 220 anymore!, same result as 150 150 200
--> use this now for interp bispec
+-> 150 150 200 looks smooth, comparing to 140 140 220... (only looks smooth in postBorn only)
+-> spikes change place depending on sampling method
 
   
 - test Type A code for different configs (bin 0)

@@ -36,7 +36,7 @@ for zbin,LSST in zip(['0','1','2','None'],[True,True,True,False]):
     else:
         zbin='no_binning'
         tag=''
-    beta_path ='/home/traveller/Documents/Projekte/LensingBispectrum/CMB-nonlinear/cross_integrals/I0I1I2kkg_linlog_halfangbin_0_dndz_LSST_i27_SN5_3y_lnPs_Bfit_Planck2015_TTlowPlensing_postBorn.pkl'#I0I1I2kkg_linlog_halfang%s%s_lnPs_Bfit_Planck2015_TTlowPlensing.pkl'%(zbin,tag)
+    beta_path ='/home/traveller/Documents/Projekte/LensingBispectrum/CMB-nonlinear/cross_integrals/I0I1I2kkg_linlog_halfangbin_0_dndz_LSST_i27_SN5_3y_lnPs_Bfit_Planck2015_TTlowPlensingsampl1.pkl'#I0I1I2kkg_linlog_halfang%s%s_lnPs_Bfit_Planck2015_TTlowPlensing.pkl'%(zbin,tag)
     
     print beta_path
     
@@ -48,7 +48,7 @@ for zbin,LSST in zip(['0','1','2','None'],[True,True,True,False]):
         print A_L_file, ' does not exist'
     
 
-    bla, blub, Ls1, Iperp, IPara = pickle.load(open(beta_path,'r'))
+    bla, blub, Ls1, Iperp, IPara, b, a = pickle.load(open(beta_path,'r'))
     Iperp*=2.
     Iperp*=2.
 
@@ -80,7 +80,7 @@ for zbin,LSST in zip(['0','1','2','None'],[True,True,True,False]):
     
     
     result={}
-    for field in ['tt','eb']:
+    for field in ['tt']:
         N0_    = np.interp(ll,N0['ls'],N0['ls']**4*abs(N0[field]))/ll**4
         Rpara  = np.interp(ll,Ls,Ls**(-2)*R_integrals[field]['para'])*ll**2
         Rperp  = np.interp(ll,Ls,Ls**(-2)*R_integrals[field]['perp'])*ll**2
@@ -90,32 +90,35 @@ for zbin,LSST in zip(['0','1','2','None'],[True,True,True,False]):
         if field=='eb':
             result['eb']*=0.5
         
-#        plt.figure()
-#        plt.plot(ll,Iperp,label='beta perp')
-#        plt.loglog(ll,-Ipara,label='beta para')
-#        plt.loglog(ll,Ipara,label='beta para')
-#        plt.loglog(Ls1,-IPara,label='beta para',ls='',marker='o')
-#        plt.loglog(Ls1,IPara,label='beta para',ls='',marker='o')
-#        plt.loglog(Ls1[92],-IPara[92],label='beta para',ls='',marker='o')
-#        plt.legend(loc='best',frameon=False)
-#        plt.xlim(100,3000)
-#        plt.show()
-#        print Ls1[92]
+        plt.figure()
+        plt.plot(ll,ll**2*Iperp,label='beta perp')
+        plt.loglog(ll,-ll**2*Ipara,label='beta para')
+        plt.loglog(ll,-ll**2*Ipara,label='beta para')
+        plt.loglog(Ls1,-Ls1**2*IPara,label='beta para',ls='',marker='o')
+        plt.loglog(Ls1,-Ls1**2*IPara,label='beta para',ls='',marker='o')
+        plt.loglog(Ls1[81],-Ls1[81]**2*IPara[81],label='beta para',ls='',marker='o')
+        plt.axvline(x=330)
+        plt.legend(loc='best',frameon=False)
+        plt.xlim(100,3000)
+        plt.show()
+        print Ls1[81]
 #        
-#        plt.figure()
-#        plt.plot(ll,Rperp,label='R perp')
-#        plt.loglog(ll,Rpara,label='R para')
-#        plt.plot(ll,-Rperp,label='R perp')
-#        plt.loglog(ll,-Rpara,label='R para')
-#        plt.legend(loc='best',frameon=False)
-#        plt.xlim(100,3000)
-#        plt.show()
-#        
-#        plt.figure()
-#        plt.loglog(ll,N0_,label='N0')
-#        plt.legend(loc='best',frameon=False)
-#        plt.xlim(100,3000)
-#        plt.show()
+        plt.figure()
+        plt.plot(ll,ll**4*Rperp,label='R perp')
+        plt.loglog(ll,ll**4*Rpara,label='R para')
+        plt.plot(ll,-ll**4*Rperp,label='R perp')
+        plt.loglog(ll,-ll**4*Rpara,label='R para')
+        plt.axvline(x=329)
+        plt.legend(loc='best',frameon=False)
+        plt.xlim(100,3000)
+        plt.show()
+        
+        plt.figure()
+        plt.loglog(ll,ll**4*N0_,label='N0')
+        plt.legend(loc='best',frameon=False)
+        plt.axvline(x=330)
+        plt.xlim(100,3000)
+        plt.show()
         
     
     filename= 'cross_signal_noise_0_Planck2015_TTlowPlensing_nl_dndz_LSST_i27_SN5_3y.pkl'
@@ -123,12 +126,12 @@ for zbin,LSST in zip(['0','1','2','None'],[True,True,True,False]):
     l_,cl_xx,noise_gp = pickle.load(open(filename,'r'))
     
     cl_xx=np.interp(ll,l_,cl_xx)
-    noise_gp['eb']=np.interp(ll,l_,noise_gp['eb'])
+    #noise_gp['eb']=np.interp(ll,l_,noise_gp['eb'])
     noise_gp['tt']=np.interp(ll,l_,noise_gp['tt'])
     
     plt.figure()
     plt.semilogx(ll,result['tt']/cl_xx,label='tt')
-    plt.plot(ll,result['eb']/cl_xx,label='eb')
+    #plt.plot(ll,result['eb']/cl_xx,label='eb')
     plt.ylabel('Bias Term 2/Signal')
     plt.legend(loc='best',frameon=False)
     plt.ylim(-0.05,0.05)
@@ -137,7 +140,7 @@ for zbin,LSST in zip(['0','1','2','None'],[True,True,True,False]):
     
     plt.figure()
     plt.semilogx(ll,result['tt']/noise_gp['tt'],label='tt')
-    plt.plot(ll,result['eb']/noise_gp['eb'],label='eb')
+    #plt.plot(ll,result['eb']/noise_gp['eb'],label='eb')
     plt.legend(loc='best',frameon=False)
     plt.xlabel('L')
     plt.ylabel('Bias Term 2/Noise')
@@ -147,7 +150,8 @@ for zbin,LSST in zip(['0','1','2','None'],[True,True,True,False]):
     
     plt.figure()
     plt.semilogx(ll,ll**4*result['tt'],label='tt')
-    plt.plot(ll,ll**4*result['eb'],label='eb')
+    #plt.plot(ll,ll**4*result['eb'],label='eb')
+    plt.axvline(x=330)
     plt.legend(loc='best',frameon=False)
     plt.xlabel('L')
     plt.ylabel('Bias Term 2')

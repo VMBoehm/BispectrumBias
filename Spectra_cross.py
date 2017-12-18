@@ -483,7 +483,7 @@ if __name__ == "__main__":
     
     integrals   = True
     
-    tag         = ''
+    tag         = 'extr0'
     
     assert(kkg+kgg<=1)
     
@@ -504,9 +504,9 @@ if __name__ == "__main__":
     bin_num     = 200
     
     #sampling in L/l and angle
-    len_L       = 140
-    len_l       = 140
-    len_ang     = 220
+    len_L       = 100
+    len_l       = 100
+    len_ang     = 400
 
     #ell range (for L and l)
     L_min       = 1.
@@ -515,8 +515,8 @@ if __name__ == "__main__":
     l_min       = 1.
     l_max       = 10000.
     
-    k_min       = 1e-4
-    k_max       = 100.
+    k_min       = 5e-5
+    k_max       = 1000.
     
     fit_z_max   = 1.5
     
@@ -530,7 +530,7 @@ if __name__ == "__main__":
         ell_type="folded"
         len_side= 250
     
-    Delta_theta = 1e-4
+    Delta_theta = 0.
     
     nl          = True
     
@@ -546,7 +546,7 @@ if __name__ == "__main__":
     
     "---end settings---"
 
-    for red_bin in ['0','1','2','None']:
+    for red_bin in ['0']:#,'1','2','None']:
         
         if LSST: 
             dn_filename = 'dndz_LSST_i27_SN5_3y'
@@ -570,10 +570,14 @@ if __name__ == "__main__":
         if kkg or kgg:
             if LSST:
                 gz, dgn = pickle.load(open(dn_filename+'_extrapolated.pkl','r'))
-                dndz    = interp1d(gz, dgn, kind='linear')
-                z_g     = np.linspace(max(bounds[red_bin][0],z_min),bounds[red_bin][1],bin_num)
-                dndz    = dndz(z_g)
-                dndz    = interp1d(z_g, dndz, kind='linear',bounds_error=False,fill_value=0.)
+                
+                if red_bin!='None':
+                    dndz    = interp1d(gz, dgn, kind='linear')
+                    z_g     = np.linspace(max(bounds[red_bin][0],z_min),bounds[red_bin][1],bin_num)
+                    dndz    = dndz(z_g)
+                    dndz    = interp1d(z_g, dndz, kind='linear',bounds_error=False,fill_value=0.)
+                else:
+                    dndz    = interp1d(gz, dgn, kind='linear',bounds_error=False,fill_value=0.)
                 bias    = z+1.
             else:
                 z0      = 1./3.
@@ -610,12 +614,12 @@ if __name__ == "__main__":
             print "ell file not found"
             if ell_type=="linlog_halfang":
                 #L = |-L|, equally spaced in lin at low L and in log at high L 
-                La        = np.arange(L_min,50)
-                Lb        = np.exp(np.linspace(np.log(50),np.log(L_max),len_L-49))
+                La        = np.arange(L_min,20)
+                Lb        = np.exp(np.linspace(np.log(20),np.log(L_max),len_L-19))
                 L         = np.append(La,Lb)
                 #l 
-                la        = np.arange(l_min,50)
-                lb        = np.exp(np.linspace(np.log(50),np.log(l_max),len_l-49))
+                la        = np.arange(l_min,20)
+                lb        = np.exp(np.linspace(np.log(20),np.log(l_max),len_l-19))
                 l         = np.append(la,lb)     
                 
             elif ell_type=='special_halfang':
@@ -751,15 +755,15 @@ if __name__ == "__main__":
             
             Bi_cum=[]
             
-            for R in rad:
-                Bi_cum+=[skew(bs.bi_phi, bs.ell, angmu ,len_L, len_l, len_ang, R=R,fullsky=False)]
+#            for R in rad:
+#                Bi_cum+=[skew(bs.bi_phi, bs.ell, angmu ,len_L, len_l, len_ang, R=R,fullsky=False)]
          
             L    = np.unique(ell[0::3])
             
             if sym:
                 config+='_sym'
         
-            pickle.dump([params,Limber,L,Int0,Int2,rad,np.asarray(Bi_cum)],open('./cross_integrals/I0I1I2%s.pkl'%(config),'w'))
+            pickle.dump([params,Limber,L,Int0,Int2],open('./cross_integrals/I0I1I2%s.pkl'%(config),'w'))
         
         if post_born:
             print 'computing post Born corrections...'
