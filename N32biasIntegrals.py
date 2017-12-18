@@ -99,10 +99,8 @@ def I2(bispec, ell, ang13, len_L,len_l,len_ang, fullsky=False, l_max=None):
         l_ = l[i*bin_size:(i+1)*bin_size]
         ang= ang13[i*bin_size:(i+1)*bin_size] #angle between vec L and vec l 
         spec=bispec[i*bin_size:(i+1)*bin_size]
-        phi_integral1=[]
-        phi_integral2=[]
-        
-        
+        phi_integral=[]
+                
         for j in np.arange(0,len_l):
             l_const = l_[j*len_ang:(j+1)*len_ang]
             ang_int = ang[j*len_ang:(j+1)*len_ang]
@@ -114,26 +112,23 @@ def I2(bispec, ell, ang13, len_L,len_l,len_ang, fullsky=False, l_max=None):
             if fullsky:
                 l_const=np.sqrt(np.array(l_const)*(np.array(l_const)+1.))
             
-            integrand1=spec_int*l_const**3.*np.cos(ang_int)**2.
-            integrand2=-spec_int*l_const**2.*L_const*np.cos(ang_int)
+            #ldl l cos(lcos-L) B
+            integrand=spec_int*l_const**2.*np.cos(ang_int)*(l_const*np.cos(ang_int)-L_const)
             
-            phi_integral1+=[simps(integrand1, ang_int)]
-            phi_integral2+=[simps(integrand2, ang_int)]
+            phi_integral+=[simps(integrand, ang_int)]
+            #phi_integral2+=[simps(integrand2, ang_int)]
 
-        phi_integral1=np.array(phi_integral1)    
-        phi_integral2=np.array(phi_integral2)
+        phi_integral=np.array(phi_integral)    
+        #phi_integral2=np.array(phi_integral2)
         
         if l_max==None:
-            int_l1=simps(phi_integral1,np.unique(l_))
-            int_l2=simps(phi_integral2,np.unique(l_))
+            int_l=simps(phi_integral,np.unique(l_))
         else:
             index=np.arange(len(np.unique(l_)))
             ind= index[np.where(np.unique(l_)<l_max)]
-            int_l1=(simps(phi_integral1[ind],np.unique(l_)[ind]))
-            int_l2=(simps(phi_integral2[ind],np.unique(l_)[ind]))
-
+            int_l=(simps(phi_integral[ind],np.unique(l_)[ind]))
         
-        result = np.append(result,int_l1+int_l2)
+        result = np.append(result,int_l)
 
     return result/(2.*np.pi)**2
     

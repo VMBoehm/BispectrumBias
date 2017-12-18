@@ -47,7 +47,7 @@ class PostBorn_Bispec():
         if lmax==None:
             lmax=20000
         if acc==None:
-            acc=4 #(change back to 1 unless you need high accuracy - much faster)
+            acc=1 #(change back to 1 unless you need high accuracy - much faster)
         self.nz = 200*acc
 
         chistar = self.results.conformal_time(0)- model.tau_maxvis.value #chi_cmb
@@ -239,7 +239,7 @@ class PostBorn_Bispec():
         if not cross:
             gamma=1.
         lsamp = np.hstack((np.arange(2, 20, 2), np.arange(25, 200, 10//self.acc), np.arange(220, 1200, 30//self.acc),
-                           np.arange(1300, min(self.lmax//2,2600), 150//self.acc),np.arange(3000, self.lmax//2+1, 1000//self.acc)))
+                           np.arange(1200, min(self.lmax//2,2600), 150//self.acc),np.arange(2600, self.lmax//2+1, 1000//self.acc)))
         
         litems =np.zeros((lsamp.size,3))
         fig, axes = plt.subplots(1,4,figsize=(12,3.6), sharey=True, sharex=True)

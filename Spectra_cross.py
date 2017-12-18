@@ -30,7 +30,7 @@ import Cosmology as C
 from N32biasIntegrals import I0, I2#, bi_cum
 from BkkgSkewness import beta_RR as skew
 import CAMB_postborn as postborn
-
+from Constants import LIGHT_SPEED
 
 
 
@@ -117,7 +117,7 @@ class Bispectra():
         if self.B_fit:
             print "using Gil-Marin et al. fitting formula"
         
-        self.path   = path#+'cross_bias_spectra/'
+        self.path   = path+'cross_bias_spectra/'
         
         self.b      = b
         
@@ -470,26 +470,27 @@ class Bispectra():
 if __name__ == "__main__":  
     
     "---begin settings---"
-    kkg     = True
-    kgg     = False
-    LSST    = False
-    cross_bias = False
+    kkg         = True
+    kgg         = False
+    cross_bias  = True
     
-    sym     = True
+    LSST        = True
+    
+    sym         = False
 
-    equilat = True
-    folded  = False
+    equilat     = False
+    folded      = False
     
-    integrals = False
+    integrals   = True
     
-    tag     = 'kernel_test'
+    tag         = ''
     
     assert(kkg+kgg<=1)
     
     #Limber approximation, if true set class_params['l_switch_limber']=100, else 1
     Limber      = True    
     #post Born (use post Born terms from Pratten & Lewis arXiv:1605.05662
-    post_born   = False
+    post_born   = True
     #fitting formula (use B_delta fitting formula from Gil-Marin et al. arXiv:1111.4477
     B_fit       = True
     
@@ -503,9 +504,9 @@ if __name__ == "__main__":
     bin_num     = 200
     
     #sampling in L/l and angle
-    len_L       = 163
-    len_l       = 163
-    len_ang     = 163
+    len_L       = 140
+    len_l       = 140
+    len_ang     = 220
 
     #ell range (for L and l)
     L_min       = 1.
@@ -529,7 +530,6 @@ if __name__ == "__main__":
         ell_type="folded"
         len_side= 250
     
-    #regularizing theta bounds
     Delta_theta = 1e-4
     
     nl          = True
@@ -546,12 +546,9 @@ if __name__ == "__main__":
     
     "---end settings---"
 
-    for red_bin in ['None']:#0','1','2','None']:
+    for red_bin in ['0','1','2','None']:
         
-        if red_bin=='None':
-            LSST = False
-        else:
-            LSST = True  
+        if LSST: 
             dn_filename = 'dndz_LSST_i27_SN5_3y'
      
         #initialize cosmology
@@ -613,13 +610,21 @@ if __name__ == "__main__":
             print "ell file not found"
             if ell_type=="linlog_halfang":
                 #L = |-L|, equally spaced in lin at low L and in log at high L 
-                La        = np.linspace(L_min,50,48,endpoint=False)
-                Lb        = np.exp(np.linspace(np.log(50),np.log(L_max),len_L-48))
+                La        = np.arange(L_min,50)
+                Lb        = np.exp(np.linspace(np.log(50),np.log(L_max),len_L-49))
                 L         = np.append(La,Lb)
                 #l 
-                la        = np.linspace(l_min,50,48,endpoint=False)
-                lb        = np.exp(np.linspace(np.log(50),np.log(l_max),len_l-48))
-                l         = np.append(la,lb)                
+                la        = np.arange(l_min,50)
+                lb        = np.exp(np.linspace(np.log(50),np.log(l_max),len_l-49))
+                l         = np.append(la,lb)     
+                
+            elif ell_type=='special_halfang':
+                acc       = 2
+                L         = np.hstack((np.arange(1, 20, 2), np.arange(25, 200, 10//acc), np.arange(220, 1200, 30//acc),np.arange(1200, min(10000,2600), 150//acc),np.arange(2600, 10000+1, 1000//acc)))
+                l         = L
+                len_L     = len(L)
+                len_l     = len(l)
+
             elif ell_type=="lin_halfang":
                 #L = |-L|, equally spaced in lin
                 L         = np.linspace(L_min,L_max,len_L)
@@ -754,7 +759,7 @@ if __name__ == "__main__":
             if sym:
                 config+='_sym'
         
-            pickle.dump([params,Limber,L,Int0,Int2,rad,np.asarray(Bi_cum)],open('I0I1I2%s.pkl'%(config),'w'))
+            pickle.dump([params,Limber,L,Int0,Int2,rad,np.asarray(Bi_cum)],open('./cross_integrals/I0I1I2%s.pkl'%(config),'w'))
         
         if post_born:
             print 'computing post Born corrections...'
@@ -767,13 +772,16 @@ if __name__ == "__main__":
             ell     = np.asarray(ell)
             if kkg:
                 try:
-                    bi_kkg_sum = np.load(bs.filename+"_post_born_sum.npy")
-                    bi_kkg     = np.load(bs.filename+"_post_born.npy")
+                    bi_kkg_sum  = np.load(bs.filename+"_post_born_sum.npy")
+                    bi_kkg      = np.load(bs.filename+"_post_born.npy")
                 except:
-                    bi_kkg = PBB.bi_born_cross(ell[0::3],ell[1::3],ell[2::3],16./(3.*data.Omega_m0*data.H_0**2),sym=bs.sym)
-                    bi_kkg_sum = bi_kkg+bs.bi_phi
+                    prefac      = 16./(3.*data.Omega_m0*data.H_0**2)*LIGHT_SPEED**2
+                    #L is associated wit galaxy leg in bias, in CAMBPostBorn it's L3
+                    bi_kkg      = PBB.bi_born_cross(ell[1::3],ell[2::3],ell[0::3],prefac,sym=bs.sym)
+                    bi_kkg_sum  = bi_kkg+bs.bi_phi
                     np.save(bs.filename+"_post_born.npy",bi_kkg)
                     np.save(bs.filename+"_post_born_sum.npy",bi_kkg_sum)
+                    
                 bi_phi = bi_kkg_sum
             else:
                 bi_post  = (PBB.bi_born(ell[0::3],ell[1::3],ell[0::3])*8./(ell[0::3]*ell[1::3]*ell[2::3])**2)
@@ -784,21 +792,17 @@ if __name__ == "__main__":
     
             if integrals:
                 Int0 = I0(bi_phi, bs.ell, angmu ,len_L, len_l, len_ang, fullsky=False)
-                
                     
                 Int2 = I2(bi_phi, bs.ell, angmu ,len_L, len_l, len_ang, fullsky=False)
              
-                L=np.unique(ell[0::3])
+                L    = np.unique(ell[0::3])
             
-                pickle.dump([params,Limber,L,Int0,Int2,Bi_cum],open('I0I1I2%s.pkl'%(config),'w'))
-                
+                pickle.dump([params,Limber,L,Int0,Int2],open('./cross_integrals/I0I1I2%s.pkl'%(config),'w'))                
                 Int0 = I0(bi_kkg, bs.ell, angmu ,len_L, len_l, len_ang, fullsky=False)
                     
                 Int2 = I2(bi_kkg, bs.ell, angmu ,len_L, len_l, len_ang, fullsky=False)
-             
-                L=np.unique(ell[0::3])
             
-                pickle.dump([params,Limber,L,Int0,Int2,Bi_cum],open('I0I1I2%s_only.pkl'%(config),'w'))
+                pickle.dump([params,Limber,L,Int0,Int2],open('./cross_integrals/I0I1I2%s_only.pkl'%(config),'w'))
             
         del bs
         try:
