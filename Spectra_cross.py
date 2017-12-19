@@ -483,7 +483,7 @@ if __name__ == "__main__":
     
     integrals   = True
     
-    tag         = 'extr2'
+    tag         = 'smoothed_bins'
     
     assert(kkg+kgg<=1)
     
@@ -498,15 +498,15 @@ if __name__ == "__main__":
     rad         = np.linspace(10,500)
 
     #binbounds
-    bounds      = {'0':[0.0,0.5],'1':[0.5,1.],'2':[1.,2.]}
+    #bounds      = {'0':[0.0,0.5],'1':[0.5,1.],'2':[1.,2.]}
 
     #number of redshift bins 
     bin_num     = 200
     
     #sampling in L/l and angle
-    len_L       = 200
-    len_l       = 200
-    len_ang     = 400
+    len_L       = 150
+    len_l       = 150
+    len_ang     = 200
 
     #ell range (for L and l)
     L_min       = 1.
@@ -546,7 +546,7 @@ if __name__ == "__main__":
     
     "---end settings---"
 
-    for red_bin in ['0']:#,'1','2','None']:
+    for red_bin in ['0','1','2','3','4','None']:
         
         if LSST: 
             dn_filename = 'dndz_LSST_i27_SN5_3y'
@@ -569,15 +569,15 @@ if __name__ == "__main__":
         
         if kkg or kgg:
             if LSST:
-                gz, dgn = pickle.load(open(dn_filename+'_extrapolated.pkl','r'))
-                
+                zs, bins = pickle.load(open(dn_filename+'_extrapolated.pkl','r'))
                 if red_bin!='None':
-                    dndz    = interp1d(gz, dgn, kind='linear')
-                    z_g     = np.linspace(max(bounds[red_bin][0],z_min),bounds[red_bin][1],bin_num)
-                    dndz    = dndz(z_g)
-                    dndz    = interp1d(z_g, dndz, kind='linear',bounds_error=False,fill_value=0.)
+                    mbin    = bins[int(red_bin)]
+                    dndz    = interp1d(zs, mbin[1], kind='linear',bounds_error=False,fill_value=0.)
+                    norm    = mbin[2]
                 else:
+                    gz, dgn = pickle.load(open(dn_filename+'tot_extrapolated.pkl','r'))
                     dndz    = interp1d(gz, dgn, kind='linear',bounds_error=False,fill_value=0.)
+                    norm    = simps(dndz(z),z)
                 bias    = z+1.
             else:
                 z0      = 1./3.
@@ -585,7 +585,7 @@ if __name__ == "__main__":
                 dndz    = interp1d(z,dndz,kind='slinear',fill_value=0.,bounds_error=False)
                 bias    = z+1.
                 
-            norm    = simps(dndz(z),z)
+            
         
             print 'norm ', norm
             

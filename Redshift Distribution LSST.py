@@ -16,7 +16,7 @@ import datetime as dt
 import scipy.stats as stats
 from scipy.interpolate import interp1d
 import scipy.signal as signal
-
+matplotlib.rcParams.update({'font.size': 16})
 
 # In[174]:
 
@@ -55,16 +55,14 @@ norm
 
 # In[178]:
 
-pickle.dump([z,dn],open(filename+'_extrapolated.pkl','w'))
+pickle.dump([z,dn],open(filename+'tot_extrapolated.pkl','w'))
 
-
-# In[188]:
 
 bin0=[0,0.5,0.03]
 bin1=[0.5,1,0.03]
 bin2=[1.5,0.5,0.04]
 bin3=[2.,1.5,0.05]
-bin4=[3.5,4,0.05]
+bin4=[3.5,0.5,0.05]
 
 def gauss(x,errscale):
     var =(errscale*(1+x))**2
@@ -90,6 +88,8 @@ z_=np.linspace(0,6,200)
 fig = pl.figure(figsize = (6,4))
 pl.plot(z,dn,color='k',lw=2)
 ax = fig.add_subplot(111)
+z_ = np.linspace(0,6,100)
+res=[]
 for mbin in [bin0,bin1,bin2,bin3,bin4]:
     z_      = np.linspace(mbin[0],mbin[0]+mbin[1],100)
     dndz    = interp_dn(z_)
@@ -99,15 +99,20 @@ for mbin in [bin0,bin1,bin2,bin3,bin4]:
     pmf1 = dndz(big_grid)*delta
     pmf2 = gauss(big_grid,errscale)*delta
     conv_pmf = signal.fftconvolve(pmf1,pmf2,'same')/delta
-    norm/simps(conv_pmf,big_grid)
-    z_      = np.linspace(0,6,100)
-    ax.fill_between(z_,0,interp1d(big_grid,conv_pmf,kind='linear',bounds_error=False,fill_value=0.)(z_),color=c[ii],alpha=a,lw=0)
-    #ax.plot(big_grid,conv_pmf,color=c[ii],alpha=1)
+    print norm/simps(conv_pmf,big_grid)
+    val     = interp1d(big_grid,conv_pmf,kind='linear',bounds_error=False,fill_value=0.)
+    ax.fill_between(z_,0,val(z_),color=c[ii],alpha=a,lw=0)
     a-=0.08
     ii+=1
-#ax.fill_between(z,dn)
-ax.set_xlim(0,5)
+    res+=[mbin,conv_pmf,norm]
+ax.set_xlim(0,4.2)
+ax.set_ylim(-1,60)
+ax.set_xlabel('$z$',fontsize=20)
+ax.set_ylabel(r'$\mathrm{d}N/\mathrm{d}z\ [\mathrm{arcmin}^{-2}]$',fontsize=20)
+pl.savefig('RedshiftBins.pdf',bbox_inches='tight')
 
+
+pickle.dump([big_grid,res],open(filename+'_extrapolated.pkl','w'))
 
 # In[172]:
 
