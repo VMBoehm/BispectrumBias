@@ -104,7 +104,7 @@ for mbin in [bin0,bin1,bin2,bin3,bin4]:
     ax.fill_between(z_,0,val(z_),color=c[ii],alpha=a,lw=0)
     a-=0.08
     ii+=1
-    res+=[mbin,conv_pmf,norm]
+    res+=[[mbin]+[conv_pmf]+[norm]]
 ax.set_xlim(0,4.2)
 ax.set_ylim(-1,60)
 ax.set_xlabel('$z$',fontsize=20)

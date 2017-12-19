@@ -151,7 +151,7 @@ class Bispectra():
             
             self.compute_Bispectrum_Phi()            
             
-            #np.save(self.filename+'.npy',self.bi_phi)
+            np.save(self.filename+'.npy',self.bi_phi)
                 
         try:
             self.closmo_lin.struct_cleanup()
@@ -483,7 +483,7 @@ if __name__ == "__main__":
     
     integrals   = True
     
-    tag         = 'smoothed_bins'
+    tag         = 'smoothed_bins2'
     
     assert(kkg+kgg<=1)
     
@@ -504,9 +504,9 @@ if __name__ == "__main__":
     bin_num     = 200
     
     #sampling in L/l and angle
-    len_L       = 150
-    len_l       = 150
-    len_ang     = 200
+    len_L       = 160
+    len_l       = 160
+    len_ang     = 190
 
     #ell range (for L and l)
     L_min       = 1.
@@ -569,8 +569,8 @@ if __name__ == "__main__":
         
         if kkg or kgg:
             if LSST:
-                zs, bins = pickle.load(open(dn_filename+'_extrapolated.pkl','r'))
                 if red_bin!='None':
+                    zs, bins= pickle.load(open(dn_filename+'_extrapolated.pkl','r'))
                     mbin    = bins[int(red_bin)]
                     dndz    = interp1d(zs, mbin[1], kind='linear',bounds_error=False,fill_value=0.)
                     norm    = mbin[2]

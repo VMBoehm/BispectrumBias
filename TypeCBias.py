@@ -36,7 +36,7 @@ for zbin,LSST in zip(['0','1','2','None'],[True,True,True,False]):
     else:
         zbin='no_binning'
         tag=''
-    beta_path ='/home/traveller/Documents/Projekte/LensingBispectrum/CMB-nonlinear/cross_integrals/I0I1I2kkg_linlog_halfangbin_0_dndz_LSST_i27_SN5_3y_lnPs_Bfit_Planck2015_TTlowPlensingextr2_postBorn.pkl'#I0I1I2kkg_linlog_halfang%s%s_lnPs_Bfit_Planck2015_TTlowPlensing.pkl'%(zbin,tag)
+    beta_path ='/home/traveller/Documents/Projekte/LensingBispectrum/CMB-nonlinear/cross_integrals/I0I1I2kkg_linlog_halfangbin_0_dndz_LSST_i27_SN5_3y_lnPs_Bfit_Planck2015_TTlowPlensingsmoothed_bins_postBorn.pkl'#I0I1I2kkg_linlog_halfang%s%s_lnPs_Bfit_Planck2015_TTlowPlensing.pkl'%(zbin,tag)
     
     print beta_path
     
