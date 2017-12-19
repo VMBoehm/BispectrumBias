@@ -91,9 +91,9 @@ ax = fig.add_subplot(111)
 z_ = np.linspace(0,6,100)
 res=[]
 for mbin in [bin0,bin1,bin2,bin3,bin4]:
-    z_      = np.linspace(mbin[0],mbin[0]+mbin[1],100)
-    dndz    = interp_dn(z_)
-    dndz    = interp1d(z_, dndz, kind='linear',bounds_error=False,fill_value=0.)
+    zs      = np.linspace(mbin[0],mbin[0]+mbin[1],100)
+    dndz    = interp_dn(zs)
+    dndz    = interp1d(zs, dndz, kind='linear',bounds_error=False,fill_value=0.)
     norm    = simps(dndz(big_grid),big_grid)
     errscale= mbin[2]
     pmf1 = dndz(big_grid)*delta
