@@ -36,7 +36,7 @@ for zbin,LSST in zip(['0','1','2','None'],[True,True,True,False]):
     else:
         zbin='no_binning'
         tag=''
-    beta_path ='/home/traveller/Documents/Projekte/LensingBispectrum/CMB-nonlinear/cross_integrals/I0I1I2kkg_linlog_halfangbin_0_dndz_LSST_i27_SN5_3y_lnPs_Bfit_Planck2015_TTlowPlensingsampl1.pkl'#I0I1I2kkg_linlog_halfang%s%s_lnPs_Bfit_Planck2015_TTlowPlensing.pkl'%(zbin,tag)
+    beta_path ='/home/traveller/Documents/Projekte/LensingBispectrum/CMB-nonlinear/cross_integrals/I0I1I2kkg_linlog_halfangbin_0_dndz_LSST_i27_SN5_3y_lnPs_Bfit_Planck2015_TTlowPlensingextr1_postBorn.pkl'#I0I1I2kkg_linlog_halfang%s%s_lnPs_Bfit_Planck2015_TTlowPlensing.pkl'%(zbin,tag)
     
     print beta_path
     
@@ -48,13 +48,13 @@ for zbin,LSST in zip(['0','1','2','None'],[True,True,True,False]):
         print A_L_file, ' does not exist'
     
 
-    bla, blub, Ls1, Iperp, IPara, b, a = pickle.load(open(beta_path,'r'))
+    bla, blub, Ls1, Iperp, IPara = pickle.load(open(beta_path,'r'))
     Iperp*=2.
     Iperp*=2.
 
         
     
-    ll = np.arange(2,3000,dtype=float)
+    ll = Ls1#np.arange(2,3000,dtype=float)
     
     Iperp = np.interp(ll,Ls1,Iperp)
     #~ 5% error du to smoothing
@@ -151,12 +151,13 @@ for zbin,LSST in zip(['0','1','2','None'],[True,True,True,False]):
     plt.figure()
     plt.semilogx(ll,ll**4*result['tt'],label='tt')
     #plt.plot(ll,ll**4*result['eb'],label='eb')
-    plt.axvline(x=330)
+    #plt.axvline(x=330)
     plt.legend(loc='best',frameon=False)
     plt.xlabel('L')
     plt.ylabel('Bias Term 2')
     plt.xlim(100,3000)
     plt.ylim(-0.001,0.0015)
+    plt.savefig('BiasTerm2.png')
     plt.show()
 
 for ii in [20,30]:

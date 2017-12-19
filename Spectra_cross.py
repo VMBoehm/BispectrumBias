@@ -147,11 +147,11 @@ class Bispectra():
             except:
                 print "%s not found \n Computing Bispectrum of Newtonian Potential..."%(self.filename2+'.npy')
                 self.compute_Bispectrum_delta()
-                np.save(self.filename2+'.npy',self.bi_delta)
+                #np.save(self.filename2+'.npy',self.bi_delta)
             
             self.compute_Bispectrum_Phi()            
             
-            np.save(self.filename+'.npy',self.bi_phi)
+            #np.save(self.filename+'.npy',self.bi_phi)
                 
         try:
             self.closmo_lin.struct_cleanup()
@@ -483,7 +483,7 @@ if __name__ == "__main__":
     
     integrals   = True
     
-    tag         = 'extr1'
+    tag         = 'extr2'
     
     assert(kkg+kgg<=1)
     
@@ -506,7 +506,7 @@ if __name__ == "__main__":
     #sampling in L/l and angle
     len_L       = 200
     len_l       = 200
-    len_ang     = 100
+    len_ang     = 400
 
     #ell range (for L and l)
     L_min       = 1.
@@ -515,8 +515,8 @@ if __name__ == "__main__":
     l_min       = 1.
     l_max       = 10000.
     
-    k_min       = 5e-5
-    k_max       = 1000.
+    k_min       = 1e-4
+    k_max       = 100.
     
     fit_z_max   = 1.5
     
@@ -711,8 +711,8 @@ if __name__ == "__main__":
             ang31=np.array(ang31)
             angmu=np.array(angmu)  
           
-            pickle.dump([ang12,ang23,ang31,angmu],open(filename_ang, 'w'))
-            pickle.dump(ell,open(filename, 'w'))
+            #pickle.dump([ang12,ang23,ang31,angmu],open(filename_ang, 'w'))
+            #pickle.dump(ell,open(filename, 'w'))
         ell=np.asarray(ell)
         print "ell_type: %s"%ell_type
         
