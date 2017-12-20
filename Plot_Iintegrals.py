@@ -19,18 +19,19 @@ for red_bin in ['1','0','2','None']:
         LSST = True  
         dn_filename = 'dndz_LSST_i27_SN5_3y'
     conf = 'kkg_%s'%ell_type
-    if LSST:
-        conf+='bin_%s_%s'%(red_bin,dn_filename)
-    else:
-        conf+='no_binning'
+
+    conf+='bin_%s_%s'%(red_bin,dn_filename)
+
 
     path='./cross_integrals/'
-    config = '%s_lnPs_Bfit_Planck2015_TTlowPlensing_postBorn_only'%conf
+    config = '%s_lnPs_Bfit_Planck2015_TTlowPlensingsmoothed_bins2'%conf
     params,Limber,L1,Int0,Int2=pickle.load(open(path+'I0I1I2%s.pkl'%(config),'r'))
-    config='%s_lnPs_Bfit_Planck2015_TTlowPlensing'%conf
-    params,Limber,L2,Int01,Int21,R,bi_cum=pickle.load(open(path+'I0I1I2%s.pkl'%(config),'r'))
-    config='%s_lnPs_Bfit_Planck2015_TTlowPlensing_postBorn'%conf
-    params,Limber,L0,Int02,Int22=pickle.load(open(path+'I0I1I2%s.pkl'%(config),'r'))
+    config='%s_lnPs_Bfit_Planck2015_TTlowPlensingsmoothed_bins'%conf
+    params,Limber,L2,Int01,Int21=pickle.load(open(path+'I0I1I2%s.pkl'%(config),'r'))
+    
+    
+    #config='%s_lnPs_Bfit_Planck2015_TTlowPlensing'%conf
+    #params,Limber,L0,Int02,Int22,R,bicum=pickle.load(open(path+'I0I1I2%s.pkl'%(config),'r'))
 
 
     pl.figure()
@@ -38,8 +39,8 @@ for red_bin in ['1','0','2','None']:
     pl.plot(L1,L1**4*Int2*2,ls='--',color='r',label=r'$L^4 \beta^{\mathrm{cross}}_\parallel$ PB')
     pl.plot(L2,L2**4*Int01*2,ls='-',color='g',label=r'$L^4 \beta^{\mathrm{cross}}_\perp$ NL')
     pl.plot(L2,L2**4*Int21*2,ls='--',color='g',label=r'$L^4 \beta^{\mathrm{cross}}_\parallel $ NL')
-    pl.plot(L0,L0**4*Int02*2,ls='-',color='orange',label=r'$L^4 \beta^{\mathrm{cross}}_\perp$ NL+PB')
-    pl.plot(L0,L0**4*Int22*2,ls='--',color='orange',label=r'$L^4 \beta^{\mathrm{cross}}_\parallel$ NL+PB')
+    #pl.plot(L0,L0**4*Int02*2,ls='-',color='orange',label=r'$L^4 \beta^{\mathrm{cross}}_\perp$ NL+PB')
+    #pl.plot(L0,L0**4*Int22*2,ls='--',color='orange',label=r'$L^4 \beta^{\mathrm{cross}}_\parallel$ NL+PB')
     
     
     pl.legend(loc='best',ncol=2,frameon=False)

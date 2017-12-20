@@ -483,14 +483,14 @@ if __name__ == "__main__":
     
     integrals   = True
     
-    tag         = 'smoothed_bins2'
+    tag         = 'smoothed_bins5'
     
     assert(kkg+kgg<=1)
     
     #Limber approximation, if true set class_params['l_switch_limber']=100, else 1
     Limber      = True    
     #post Born (use post Born terms from Pratten & Lewis arXiv:1605.05662
-    post_born   = True
+    post_born   = False
     #fitting formula (use B_delta fitting formula from Gil-Marin et al. arXiv:1111.4477
     B_fit       = True
     
@@ -504,16 +504,16 @@ if __name__ == "__main__":
     bin_num     = 200
     
     #sampling in L/l and angle
-    len_L       = 160
-    len_l       = 160
-    len_ang     = 190
+    len_L       = 100
+    len_l       = 200
+    len_ang     = 200
 
     #ell range (for L and l)
     L_min       = 1.
-    L_max       = 10000.
+    L_max       = 3000.
     
-    l_min       = 1.
-    l_max       = 10000.
+    l_min       = 0.5
+    l_max       = 8000.
     
     k_min       = 1e-4
     k_max       = 100.
@@ -546,7 +546,7 @@ if __name__ == "__main__":
     
     "---end settings---"
 
-    for red_bin in ['0','1','2','3','4','None']:
+    for red_bin in ['0']:
         
         if LSST: 
             dn_filename = 'dndz_LSST_i27_SN5_3y'
@@ -578,12 +578,13 @@ if __name__ == "__main__":
                     gz, dgn = pickle.load(open(dn_filename+'tot_extrapolated.pkl','r'))
                     dndz    = interp1d(gz, dgn, kind='linear',bounds_error=False,fill_value=0.)
                     norm    = simps(dndz(z),z)
+                    z       = np.linspace(min(mbin[0][0]-0.3,z_min),mbin[0][1]+0.3,bin_num)
                 bias    = z+1.
             else:
                 z0      = 1./3.
                 dndz    = (z/z0)**2*np.exp(-z/z0)
                 dndz    = interp1d(z,dndz,kind='slinear',fill_value=0.,bounds_error=False)
-                bias    = z+1.
+                bias    = 1.
                 
             
         
@@ -618,10 +619,15 @@ if __name__ == "__main__":
                 Lb        = np.exp(np.linspace(np.log(20),np.log(L_max),len_L-19))
                 L         = np.append(La,Lb)
                 #l 
-                la        = np.arange(l_min,20)
-                lb        = np.exp(np.linspace(np.log(20),np.log(l_max),len_l-19))
-                l         = np.append(la,lb)     
-                
+#                la        = np.arange(l_min,20)
+#                lb        = np.exp(np.linspace(np.log(20),np.log(l_max),len_l-19))
+#                l         = np.append(la,lb)     
+#            elif ell_type=="log_halfang":
+                la        = np.exp(np.linspace(np.log(l_min),np.log(80),10,endpoint=False))
+                lb        = np.exp(np.linspace(np.log(80),np.log(600),140,endpoint=False))
+                lc        = np.exp(np.linspace(np.log(600),np.log(l_max),len_l-20-110))
+                l         = np.append(la,lb)
+                l         = np.append(l,lc)
             elif ell_type=='special_halfang':
                 acc       = 2
                 L         = np.hstack((np.arange(1, 20, 2), np.arange(25, 200, 10//acc), np.arange(220, 1200, 30//acc),np.arange(1200, min(10000,2600), 150//acc),np.arange(2600, 10000+1, 1000//acc)))

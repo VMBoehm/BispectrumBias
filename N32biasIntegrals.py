@@ -55,7 +55,6 @@ def I0(bispec, ell, ang13, len_L, len_l, len_ang, fullsky=False, l_max=None):
             integrand=spec_int*l_const**3*np.sin(ang_int)**2
             phi_integral+=[simps(integrand, ang_int)]
         
-        
         phi_integral=np.array(phi_integral)
         if l_max==None:
             int_l=(simps(phi_integral,np.unique(l_)))
@@ -63,6 +62,7 @@ def I0(bispec, ell, ang13, len_L, len_l, len_ang, fullsky=False, l_max=None):
             index=np.arange(len(np.unique(l_)),dtype=int)
             ind= index[np.where(np.unique(l_)<l_max)]
             int_l=(simps(phi_integral[ind],np.unique(l_)[ind]))
+
         
         result = np.append(result,int_l)
 
@@ -99,36 +99,45 @@ def I2(bispec, ell, ang13, len_L,len_l,len_ang, fullsky=False, l_max=None):
         l_ = l[i*bin_size:(i+1)*bin_size]
         ang= ang13[i*bin_size:(i+1)*bin_size] #angle between vec L and vec l 
         spec=bispec[i*bin_size:(i+1)*bin_size]
-        phi_integral=[]
+        phi_integral1=[]
+        phi_integral2=[]
                 
         for j in np.arange(0,len_l):
             l_const = l_[j*len_ang:(j+1)*len_ang]
             ang_int = ang[j*len_ang:(j+1)*len_ang]
             spec_int= spec[j*len_ang:(j+1)*len_ang]
             L_const = L_[j*len_ang:(j+1)*len_ang]
-            if fullsky:
-                L_const = np.sqrt(np.array(L_const)*(np.array(L_const)+1.))
             l_const=np.array(l_const)
-            if fullsky:
-                l_const=np.sqrt(np.array(l_const)*(np.array(l_const)+1.))
-            
-            #ldl l cos(lcos-L) B
-            integrand=spec_int*l_const**2.*np.cos(ang_int)*(l_const*np.cos(ang_int)-L_const)
-            
-            phi_integral+=[simps(integrand, ang_int)]
-            #phi_integral2+=[simps(integrand2, ang_int)]
 
-        phi_integral=np.array(phi_integral)    
-        #phi_integral2=np.array(phi_integral2)
+            #ldl l cos(lcos-L) B
+            integrand =spec_int*np.cos(ang_int)**2
+            integrand2=spec_int*np.cos(ang_int)*L_const
+            phi_integral1+=[simps(integrand, ang_int)]
+            phi_integral2+=[simps(integrand2, ang_int)]
         
+        ll = np.unique(l_)
+        phi_integral1=np.array(phi_integral1)*ll**3
+        phi_integral2=np.array(phi_integral2)*ll**2
+        
+        if i in [5,10,20,30,40,50,60,70,80,90]:
+            plt.figure()
+            plt.plot(ll,phi_integral1,ls='',marker='o',label=L_const[0])
+            plt.plot(ll,phi_integral2,ls='',marker='o')
+            plt.plot(ll,phi_integral2+phi_integral1,ls='',marker='o')
+            plt.legend(loc='best')
+            plt.xlim(L_const[0]-200,L_const[0]+200)
+            plt.savefig('phi_integrals%d.png'%i)
+            
+            
         if l_max==None:
-            int_l=simps(phi_integral,np.unique(l_))
+            int_l=simps(phi_integral1,ll)
+            int_l2=simps(phi_integral2,ll)
         else:
-            index=np.arange(len(np.unique(l_)))
-            ind= index[np.where(np.unique(l_)<l_max)]
-            int_l=(simps(phi_integral[ind],np.unique(l_)[ind]))
+            index=np.arange(len(ll))
+            ind= index[np.where(ll<l_max)]
+            int_l=(simps(phi_integral1[ind],ll[ind]))
         
-        result = np.append(result,int_l)
+        result = np.append(result,int_l-int_l2)
 
     return result/(2.*np.pi)**2
     

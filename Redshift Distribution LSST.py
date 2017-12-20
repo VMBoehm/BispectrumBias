@@ -3,7 +3,7 @@
 
 # In[173]:
 
-get_ipython().magic(u'matplotlib inline')
+import matplotlib
 import csv
 import pickle
 import numpy as np

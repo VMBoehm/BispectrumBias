@@ -25,6 +25,9 @@ Cross Bias
  
   - cross_integral folder contains beta integrals for bias
   - cross_bias_spectra contains bispectra for bias computation
+  
+smoothed bins version 1: 140,140,220, 1e-4, 300 in z sampling
+smoothed bins version 2: 160, 160, 190, 1e-4, 200 in z sampling (smoothed bins as in Redshift... py on git)
 
 
 

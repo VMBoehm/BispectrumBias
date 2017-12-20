@@ -29,15 +29,13 @@ try:
 except:
     print R_filename+'.pkl', ' does not exist'
 
-for zbin,LSST in zip(['0','1','2','None'],[True,True,True,False]):
-    if LSST:
-        zbin='bin_%s'%zbin
-        tag='_dndz_LSST_i27_SN5_3y'
-    else:
-        zbin='no_binning'
-        tag=''
-    beta_path ='/home/traveller/Documents/Projekte/LensingBispectrum/CMB-nonlinear/cross_integrals/I0I1I2kkg_linlog_halfangbin_0_dndz_LSST_i27_SN5_3y_lnPs_Bfit_Planck2015_TTlowPlensingsmoothed_bins_postBorn.pkl'#I0I1I2kkg_linlog_halfang%s%s_lnPs_Bfit_Planck2015_TTlowPlensing.pkl'%(zbin,tag)
-    
+for zbin in ['0']:#,'1','2','3','4','None']:
+
+    zbin='bin_%s'%zbin
+    tag='_dndz_LSST_i27_SN5_3y'
+
+    beta_path ='/home/traveller/Documents/Projekte/LensingBispectrum/CMB-nonlinear/cross_integrals/I0I1I2kkg_linlog_halfang%s%s_lnPs_Bfit_Planck2015_TTlowPlensingsmoothed_bins3.pkl'%(zbin,tag)#I0I1I2kkg_linlog_halfang%s%s_lnPs_Bfit_Planck2015_TTlowPlensing.pkl'
+    beta_path2 ='/home/traveller/Documents/Projekte/LensingBispectrum/CMB-nonlinear/cross_integrals/I0I1I2kkg_linlog_halfang%s%s_lnPs_Bfit_Planck2015_TTlowPlensingsmoothed_bins4.pkl'%(zbin,tag)
     print beta_path
     
     A_L_file='/home/traveller/Documents/Projekte/LensingBispectrum/CosmoCodes/N0files/Planck2015TempLensCombined_N0_mixedlmax_1010_nodiv.pkl'
@@ -51,17 +49,22 @@ for zbin,LSST in zip(['0','1','2','None'],[True,True,True,False]):
     bla, blub, Ls1, Iperp, IPara = pickle.load(open(beta_path,'r'))
     Iperp*=2.
     Iperp*=2.
+    bla, blub, Ls12, Iperp2, IPara2 = pickle.load(open(beta_path2,'r'))
+    Iperp2*=2.
+    Iperp2*=2.
 
         
     
     ll = Ls1#np.arange(2,3000,dtype=float)
     
     Iperp = np.interp(ll,Ls1,Iperp)
+    Iperp2 = np.interp(ll,Ls12,Iperp2)
     #~ 5% error du to smoothing
     if zbin=='0':
         #Ipara = splrep(Ls1,Ls1**4*IPara,k=1)#,k=5,s=2e-29)
         #Ipara = splev(ll,Ipara)/ll**4
         Ipara = np.interp(ll,Ls1,IPara)
+        Ipara2 = np.interp(ll,Ls12,IPara2)
 #        plt.figure()
 #        plt.semilogx(ll, 100*(Ipara-IPara)/IPara)
 #        plt.ylim(-20,20)
@@ -71,6 +74,7 @@ for zbin,LSST in zip(['0','1','2','None'],[True,True,True,False]):
         #Ipara = splrep(Ls1,Ls1**4*IPara,k=1)
         #Ipara = splev(ll,Ipara)/ll**4
         Ipara = np.interp(ll,Ls1,IPara)
+        Ipara2 = np.interp(ll,Ls12,IPara2)
 #        plt.figure()
 #        plt.semilogx(ll, 100*(Ipara-IPara)/IPara)
 #        plt.ylim(-20,20)
@@ -80,12 +84,14 @@ for zbin,LSST in zip(['0','1','2','None'],[True,True,True,False]):
     
     
     result={}
+    result2={}
     for field in ['tt']:
         N0_    = np.interp(ll,N0['ls'],N0['ls']**4*abs(N0[field]))/ll**4
         Rpara  = np.interp(ll,Ls,Ls**(-2)*R_integrals[field]['para'])*ll**2
         Rperp  = np.interp(ll,Ls,Ls**(-2)*R_integrals[field]['perp'])*ll**2
         
         result[field]=-N0_*(Rperp*Iperp+Rpara*Ipara)
+        result2[field]=-N0_*(Rperp*Iperp2+Rpara*Ipara2)
         
         if field=='eb':
             result['eb']*=0.5
@@ -131,6 +137,7 @@ for zbin,LSST in zip(['0','1','2','None'],[True,True,True,False]):
     
     plt.figure()
     plt.semilogx(ll,result['tt']/cl_xx,label='tt')
+    plt.semilogx(ll,result2['tt']/cl_xx,label='2 tt')
     #plt.plot(ll,result['eb']/cl_xx,label='eb')
     plt.ylabel('Bias Term 2/Signal')
     plt.legend(loc='best',frameon=False)
@@ -139,7 +146,9 @@ for zbin,LSST in zip(['0','1','2','None'],[True,True,True,False]):
     plt.show()
     
     plt.figure()
-    plt.semilogx(ll,result['tt']/noise_gp['tt'],label='tt')
+    plt.semilogx(ll,result['tt']/noise_gp['tt'],label='tt',ls='',marker='o')
+    plt.semilogx(ll[92],result['tt'][92]/noise_gp['tt'][92],label='tt',ls='',marker='o')
+    #plt.semilogx(ll,result2['tt']/noise_gp['tt'],label='2 tt')
     #plt.plot(ll,result['eb']/noise_gp['eb'],label='eb')
     plt.legend(loc='best',frameon=False)
     plt.xlabel('L')
@@ -150,6 +159,7 @@ for zbin,LSST in zip(['0','1','2','None'],[True,True,True,False]):
     
     plt.figure()
     plt.semilogx(ll,ll**4*result['tt'],label='tt')
+    plt.semilogx(ll,ll**4*result2['tt'],label='2 tt')
     #plt.plot(ll,ll**4*result['eb'],label='eb')
     #plt.axvline(x=330)
     plt.legend(loc='best',frameon=False)
