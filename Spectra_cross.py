@@ -504,15 +504,15 @@ if __name__ == "__main__":
     bin_num     = 200
     
     #sampling in L/l and angle
-    len_L       = 100
-    len_l       = 200
-    len_ang     = 200
+    len_L       = 90
+    len_l       = 200 #check with 220 to see wether converged for bin 0 and None
+    len_ang     = 180 #check with 220 to see wether converged for bin 0 and None
 
     #ell range (for L and l)
-    L_min       = 1.
+    L_min       = 100.
     L_max       = 3000.
     
-    l_min       = 0.5
+    l_min       = 1
     l_max       = 8000.
     
     k_min       = 1e-4
@@ -615,19 +615,21 @@ if __name__ == "__main__":
             print "ell file not found"
             if ell_type=="linlog_halfang":
                 #L = |-L|, equally spaced in lin at low L and in log at high L 
-                La        = np.arange(L_min,20)
-                Lb        = np.exp(np.linspace(np.log(20),np.log(L_max),len_L-19))
-                L         = np.append(La,Lb)
+                L         = np.exp(np.linspace(np.log(L_min),np.log(L_max),len_L))
                 #l 
 #                la        = np.arange(l_min,20)
 #                lb        = np.exp(np.linspace(np.log(20),np.log(l_max),len_l-19))
 #                l         = np.append(la,lb)     
 #            elif ell_type=="log_halfang":
-                la        = np.exp(np.linspace(np.log(l_min),np.log(80),10,endpoint=False))
+                la        = np.linspace(l_min,80,10,endpoint=False)
                 lb        = np.exp(np.linspace(np.log(80),np.log(600),140,endpoint=False))
-                lc        = np.exp(np.linspace(np.log(600),np.log(l_max),len_l-20-110))
-                l         = np.append(la,lb)
-                l         = np.append(l,lc)
+                # insufficient sampling at high l
+                lc        = np.exp(np.linspace(np.log(600),np.log(L_max+150),100,endpoint=False))
+                ld        = np.exp(np.linspace(np.log(L_max+300),np.log(l_max),40))
+                l1        = np.append(la,lb)
+                l2        = np.append(lc,ld)
+                l         = np.append(l1,l2)
+                len_l     = len(l)
             elif ell_type=='special_halfang':
                 acc       = 2
                 L         = np.hstack((np.arange(1, 20, 2), np.arange(25, 200, 10//acc), np.arange(220, 1200, 30//acc),np.arange(1200, min(10000,2600), 150//acc),np.arange(2600, 10000+1, 1000//acc)))

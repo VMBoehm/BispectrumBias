@@ -101,6 +101,7 @@ def I2(bispec, ell, ang13, len_L,len_l,len_ang, fullsky=False, l_max=None):
         spec=bispec[i*bin_size:(i+1)*bin_size]
         phi_integral1=[]
         phi_integral2=[]
+        phi_integral3=[]
                 
         for j in np.arange(0,len_l):
             l_const = l_[j*len_ang:(j+1)*len_ang]
@@ -114,6 +115,13 @@ def I2(bispec, ell, ang13, len_L,len_l,len_ang, fullsky=False, l_max=None):
             integrand2=spec_int*np.cos(ang_int)*L_const
             phi_integral1+=[simps(integrand, ang_int)]
             phi_integral2+=[simps(integrand2, ang_int)]
+            phi_integral3+=[simps(spec_int, ang_int)]
+            
+            if (j,i) in [(10,10),(10,80),(10,110),(40,80),(40,110)]:
+                plt.figure()
+                plt.plot(ang_int,spec_int,label='l=%f, L=%f'%(l_const[0],L_const[0]))
+                plt.legend(loc='best')
+                plt.savefig('bispec_ang_integrand_%d_%d.png'%(j,i))
         
         ll = np.unique(l_)
         phi_integral1=np.array(phi_integral1)*ll**3
@@ -127,6 +135,12 @@ def I2(bispec, ell, ang13, len_L,len_l,len_ang, fullsky=False, l_max=None):
             plt.legend(loc='best')
             plt.xlim(L_const[0]-200,L_const[0]+200)
             plt.savefig('phi_integrals%d.png'%i)
+            
+            plt.figure()
+            plt.plot(ll,phi_integral3*ll**2,ls='',marker='o',label=L_const[0])
+            plt.legend(loc='best')
+            plt.xlim(L_const[0]-200,L_const[0]+200)
+            plt.savefig('spec_int%d.png'%i)
             
             
         if l_max==None:
