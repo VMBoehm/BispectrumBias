@@ -483,7 +483,7 @@ if __name__ == "__main__":
     
     integrals   = True
     
-    tag         = 'smoothed_bins5'
+    tag         = 'smoothed_bins16b'
     
     assert(kkg+kgg<=1)
     
@@ -504,9 +504,9 @@ if __name__ == "__main__":
     bin_num     = 200
     
     #sampling in L/l and angle
-    len_L       = 90
-    len_l       = 200 #check with 220 to see wether converged for bin 0 and None
-    len_ang     = 180 #check with 220 to see wether converged for bin 0 and None
+    len_L       = 50
+    len_l       = 200 #actual number is 280, check also stability at high ell, also in Type A
+    len_ang     = 200 #make sure this is ok for post Born
 
     #ell range (for L and l)
     L_min       = 100.
@@ -621,11 +621,11 @@ if __name__ == "__main__":
 #                lb        = np.exp(np.linspace(np.log(20),np.log(l_max),len_l-19))
 #                l         = np.append(la,lb)     
 #            elif ell_type=="log_halfang":
-                la        = np.linspace(l_min,80,10,endpoint=False)
-                lb        = np.exp(np.linspace(np.log(80),np.log(600),140,endpoint=False))
+                la        = np.linspace(l_min,80,20,endpoint=False)
+                lb        = np.linspace(80,600,200,endpoint=False)
                 # insufficient sampling at high l
-                lc        = np.exp(np.linspace(np.log(600),np.log(L_max+150),100,endpoint=False))
-                ld        = np.exp(np.linspace(np.log(L_max+300),np.log(l_max),40))
+                lc        = np.linspace(600,L_max+150,400,endpoint=False)
+                ld        = np.exp(np.linspace(np.log(L_max+150),np.log(l_max),40))
                 l1        = np.append(la,lb)
                 l2        = np.append(lc,ld)
                 l         = np.append(l1,l2)

@@ -34,8 +34,8 @@ for zbin in ['0']:#,'1','2','3','4','None']:
     zbin='bin_%s'%zbin
     tag='_dndz_LSST_i27_SN5_3y'
 
-    beta_path ='/home/traveller/Documents/Projekte/LensingBispectrum/CMB-nonlinear/cross_integrals/I0I1I2kkg_linlog_halfang%s%s_lnPs_Bfit_Planck2015_TTlowPlensingsmoothed_bins4.pkl'%(zbin,tag)#I0I1I2kkg_linlog_halfang%s%s_lnPs_Bfit_Planck2015_TTlowPlensing.pkl'
-    beta_path2 ='/home/traveller/Documents/Projekte/LensingBispectrum/CMB-nonlinear/cross_integrals/I0I1I2kkg_linlog_halfang%s%s_lnPs_Bfit_Planck2015_TTlowPlensingsmoothed_bins5.pkl'%(zbin,tag)
+    beta_path ='/home/traveller/Documents/Projekte/LensingBispectrum/CMB-nonlinear/cross_integrals/I0I1I2kkg_linlog_halfang%s%s_lnPs_Bfit_Planck2015_TTlowPlensingsmoothed_bins15.pkl'%(zbin,tag)#I0I1I2kkg_linlog_halfang%s%s_lnPs_Bfit_Planck2015_TTlowPlensing.pkl'
+    beta_path2 ='/home/traveller/Documents/Projekte/LensingBispectrum/CMB-nonlinear/cross_integrals/I0I1I2kkg_linlog_halfang%s%s_lnPs_Bfit_Planck2015_TTlowPlensingsmoothed_bins16.pkl'%(zbin,tag)
     print beta_path
     
     A_L_file='/home/traveller/Documents/Projekte/LensingBispectrum/CosmoCodes/N0files/Planck2015TempLensCombined_N0_mixedlmax_1010_nodiv.pkl'
@@ -98,16 +98,14 @@ for zbin in ['0']:#,'1','2','3','4','None']:
         
         plt.figure()
         plt.plot(ll,ll**2*Iperp,label='beta perp')
-        plt.loglog(ll,-ll**2*Ipara,label='beta para')
-        plt.loglog(ll,-ll**2*Ipara,label='beta para')
-        plt.loglog(Ls1,-Ls1**2*IPara,label='beta para',ls='',marker='o')
-        plt.loglog(Ls1,-Ls1**2*IPara,label='beta para',ls='',marker='o')
-        plt.loglog(Ls1[81],-Ls1[81]**2*IPara[81],label='beta para',ls='',marker='o')
+        plt.loglog(Ls1,-Ls1**2*IPara,label='beta para',ls='-',marker='o')
+        plt.loglog(Ls1,-Ls1**2*IPara2,label='beta para',ls='-',marker='o')
+#        plt.loglog(Ls1[81],-Ls1[81]**2*IPara[81],label='beta para',ls='',marker='o')
         plt.axvline(x=330)
         plt.legend(loc='best',frameon=False)
         plt.xlim(100,3000)
         plt.show()
-        print Ls1[81]
+#        print Ls1[81]
 #        
         plt.figure()
         plt.plot(ll,ll**4*Rperp,label='R perp')
@@ -147,7 +145,7 @@ for zbin in ['0']:#,'1','2','3','4','None']:
     
     plt.figure()
     plt.semilogx(ll,result['tt']/noise_gp['tt'],label='tt',ls='',marker='o')
-    plt.semilogx(ll[92],result['tt'][92]/noise_gp['tt'][92],label='tt',ls='',marker='o')
+    #plt.semilogx(ll[92],result['tt'][92]/noise_gp['tt'][92],label='tt',ls='',marker='o')
     #plt.semilogx(ll,result2['tt']/noise_gp['tt'],label='2 tt')
     #plt.plot(ll,result['eb']/noise_gp['eb'],label='eb')
     plt.legend(loc='best',frameon=False)

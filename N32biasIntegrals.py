@@ -117,7 +117,7 @@ def I2(bispec, ell, ang13, len_L,len_l,len_ang, fullsky=False, l_max=None):
             phi_integral2+=[simps(integrand2, ang_int)]
             phi_integral3+=[simps(spec_int, ang_int)]
             
-            if (j,i) in [(10,10),(10,80),(10,110),(40,80),(40,110)]:
+            if (j,i) in [(10,40),(10,47),(40,40),(40,47)]:
                 plt.figure()
                 plt.plot(ang_int,spec_int,label='l=%f, L=%f'%(l_const[0],L_const[0]))
                 plt.legend(loc='best')
@@ -127,7 +127,7 @@ def I2(bispec, ell, ang13, len_L,len_l,len_ang, fullsky=False, l_max=None):
         phi_integral1=np.array(phi_integral1)*ll**3
         phi_integral2=np.array(phi_integral2)*ll**2
         
-        if i in [5,10,20,30,40,50,60,70,80,90]:
+        if i in [40,45,47]:
             plt.figure()
             plt.plot(ll,phi_integral1,ls='',marker='o',label=L_const[0])
             plt.plot(ll,phi_integral2,ls='',marker='o')
