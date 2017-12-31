@@ -483,7 +483,7 @@ if __name__ == "__main__":
     
     integrals   = True
     
-    tag         = 'smoothed_bins16b'
+    tag         = 'smoothed_bins19'
     
     assert(kkg+kgg<=1)
     
@@ -501,10 +501,10 @@ if __name__ == "__main__":
     #bounds      = {'0':[0.0,0.5],'1':[0.5,1.],'2':[1.,2.]}
 
     #number of redshift bins 
-    bin_num     = 200
+    bin_num     = 100
     
     #sampling in L/l and angle
-    len_L       = 50
+    len_L       = 80
     len_l       = 200 #actual number is 280, check also stability at high ell, also in Type A
     len_ang     = 200 #make sure this is ok for post Born
 
@@ -530,7 +530,7 @@ if __name__ == "__main__":
         ell_type="folded"
         len_side= 250
     
-    Delta_theta = 1e-4
+    Delta_theta = 0.
     
     nl          = True
     
@@ -624,7 +624,7 @@ if __name__ == "__main__":
                 la        = np.linspace(l_min,80,20,endpoint=False)
                 lb        = np.linspace(80,600,200,endpoint=False)
                 # insufficient sampling at high l
-                lc        = np.linspace(600,L_max+150,400,endpoint=False)
+                lc        = np.linspace(600,L_max+150,500,endpoint=False)
                 ld        = np.exp(np.linspace(np.log(L_max+150),np.log(l_max),40))
                 l1        = np.append(la,lb)
                 l2        = np.append(lc,ld)
