@@ -35,7 +35,8 @@ for zbin in ['0']:#,'1','2','3','4','None']:
     tag='_dndz_LSST_i27_SN5_3y'
 
     beta_path ='/home/nessa/Documents/Projects/LensingBispectrum/CMB-nonlinear/cross_integrals/I0I1I2kkg_linlog_halfang%s%s_lnPs_Bfit_Planck2015_TTlowPlensingsmoothed_bins19.pkl'%(zbin,tag)#I0I1I2kkg_linlog_halfang%s%s_lnPs_Bfit_Planck2015_TTlowPlensing.pkl'
-    beta_path2 ='/home/nessa/Documents/Projects/LensingBispectrum/CMB-nonlinear/cross_integrals/I0I1I2kkg_linlog_halfang%s%s_lnPs_Bfit_Planck2015_TTlowPlensingreverse_integration3.pkl'%(zbin,tag)
+    beta_path2 ='/home/nessa/Documents/Projects/LensingBispectrum/CMB-nonlinear/cross_integrals/I0I1I2kkg_linlog_halfangno_binning_lnPs_Planck2015_TTlowPlensingreverse_integration3.pkl'
+    #I0I1I2kkg_linlog_halfang%s%s_lnPs_Bfit_Planck2015_TTlowPlensingreverse_integration3.pkl'%#(zbin,tag)
     print beta_path
 
     A_L_file='/home/nessa/Documents/Projects/LensingBispectrum/CosmoCodes/N0files/Planck2015TempLensCombined_N0_mixedlmax_1010_nodiv.pkl'

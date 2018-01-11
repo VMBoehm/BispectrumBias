@@ -29,6 +29,9 @@ Cross Bias
 smoothed bins version 1: 140,140,220, 1e-4, 300 in z sampling
 smoothed bins version 2: 160, 160, 190, 1e-4, 200 in z sampling (smoothed bins as in Redshift... py on git)
 
+- discussion with Marcel: combine both integrals in one computation method to have cancelation in integral and now in between integrals
+- compare to other method
+
 
 
 - Post Born corrections were small because of wrong transformation between Weyl and gravitational potential...

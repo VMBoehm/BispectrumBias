@@ -27,7 +27,7 @@ pl.ioff()
 from classy import Class
 
 import Cosmology as C
-from N32biasIntegrals import I0, I2
+from N32biasIntegrals import I0, I2, bi_cum
 from BkkgSkewness import beta_RR as skew
 import CAMB_postborn as postborn
 from Constants import LIGHT_SPEED
@@ -474,7 +474,7 @@ if __name__ == "__main__":
     kgg         = False
     cross_bias  = True
 
-    LSST        = True
+    LSST        = False
 
     sym         = False
 
@@ -492,7 +492,7 @@ if __name__ == "__main__":
     #post Born (use post Born terms from Pratten & Lewis arXiv:1605.05662
     post_born   = False
     #fitting formula (use B_delta fitting formula from Gil-Marin et al. arXiv:1111.4477
-    B_fit       = True
+    B_fit       = False
 
     # smoothing scale for integrated bispectrum
     rad         = np.linspace(10,500)
@@ -585,6 +585,7 @@ if __name__ == "__main__":
                 dndz    = (z/z0)**2*np.exp(-z/z0)
                 dndz    = interp1d(z,dndz,kind='slinear',fill_value=0.,bounds_error=False)
                 bias    = 1.
+                norm    = simps(dndz(z),z)
 
 
 
@@ -756,11 +757,11 @@ if __name__ == "__main__":
         bs()
 
         if integrals:
-            Int0 = None#I0(bs.bi_phi, bs.ell, angmu, len_L, len_l, len_ang, fullsky=False)
+            Int0 = I0(bs.bi_phi, bs.ell, angmu, len_L, len_l, len_ang, fullsky=False)
 
             Int2 = I2(bs.bi_phi, bs.ell, angmu ,len_L, len_l, len_ang, fullsky=False)
 
-            Bi_cum=[]
+            Bi_cum=bi_cum(bs.bi_phi, bs.ell, angmu ,len_L, len_l, len_ang, fullsky=False)
 
 #            for R in rad:
 #                Bi_cum+=[skew(bs.bi_phi, bs.ell, angmu ,len_L, len_l, len_ang, R=R,fullsky=False)]
