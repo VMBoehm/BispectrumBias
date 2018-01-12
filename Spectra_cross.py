@@ -474,7 +474,7 @@ if __name__ == "__main__":
     kgg         = False
     cross_bias  = True
 
-    LSST        = False
+    LSST        = True
 
     sym         = False
 
