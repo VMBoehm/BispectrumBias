@@ -35,7 +35,7 @@ for zbin in ['0']:#,'1','2','3','4','None']:
     tag='_dndz_LSST_i27_SN5_3y'
 
     beta_path ='/home/nessa/Documents/Projects/LensingBispectrum/CMB-nonlinear/cross_integrals/I0I1I2kkg_linlog_halfang%s%s_lnPs_Bfit_Planck2015_TTlowPlensingsmoothed_bins19.pkl'%(zbin,tag)#I0I1I2kkg_linlog_halfang%s%s_lnPs_Bfit_Planck2015_TTlowPlensing.pkl'
-    beta_path2 ='/home/nessa/Documents/Projects/LensingBispectrum/CMB-nonlinear/cross_integrals/I0I1I2kkg_linlog_halfangno_binning_lnPs_Planck2015_TTlowPlensingreverse_integration3.pkl'
+    beta_path2 ='/home/nessa/Documents/Projects/LensingBispectrum/CMB-nonlinear/cross_integrals/I0I1I2kkg_linlog_halfangbin_0_dndz_LSST_i27_SN5_3y_lnPs_Planck2015_TTlowPlensingreverse_integration3_res.pkl'
     #I0I1I2kkg_linlog_halfang%s%s_lnPs_Bfit_Planck2015_TTlowPlensingreverse_integration3.pkl'%#(zbin,tag)
     print beta_path
 
@@ -140,7 +140,7 @@ for zbin in ['0']:#,'1','2','3','4','None']:
     #plt.plot(ll,result['eb']/cl_xx,label='eb')
     plt.ylabel('Bias Term 2/Signal')
     plt.legend(loc='best',frameon=False)
-    plt.ylim(-0.05,0.05)
+    plt.ylim(-0.08,0.05)
     plt.xlim(100,3000)
     plt.show()
 
@@ -152,7 +152,7 @@ for zbin in ['0']:#,'1','2','3','4','None']:
     plt.legend(loc='best',frameon=False)
     plt.xlabel('L')
     plt.ylabel('Bias Term 2/Noise')
-    plt.ylim(-0.11,0.05)
+    plt.ylim(-0.15,0.05)
     plt.xlim(100,3000)
     plt.show()
 

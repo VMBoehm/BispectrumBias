@@ -72,7 +72,7 @@ class Bispectra():
         self.l_max    = max(ell[2::3])
 
         self.bin_num    = len(ell)
-        self.len_bi     = self.bin_num/3
+        self.len_bi     = int(self.bin_num/3)
 
         print "L min: ", self.L_min
         print "L max: ", self.L_max
@@ -222,9 +222,9 @@ class Bispectra():
             print "Initializing CLASS..."
             print self.cosmo.class_params
             self.closmo_lin.compute()
-            cl_unl=self.closmo_lin.raw_cl(min(self.L_max,4000))
+            cl_unl=self.closmo_lin.raw_cl(min(int(self.L_max),4000))
             try:
-                cl_len=self.closmo_lin.lensed_cl(min(self.L_max,4000))
+                cl_len=self.closmo_lin.lensed_cl(min(int(self.L_max),4000))
             except:
                 pass
             print self.closmo_lin.get_current_derived_parameters(['sigma8'])
@@ -240,9 +240,9 @@ class Bispectra():
             print self.cosmo.class_params
             self.closmo_nl.compute()
             print self.closmo_nl.get_current_derived_parameters(['sigma8'])
-            cl_unl=self.closmo_nl.raw_cl(min(self.L_max,4000))
+            cl_unl=self.closmo_nl.raw_cl(min(int(self.L_max),4000))
             try:
-                cl_len=self.closmo_nl.lensed_cl(min(self.L_max,4000))
+                cl_len=self.closmo_nl.lensed_cl(min(int(self.L_max),4000))
             except:
                 pass
         else:
@@ -309,7 +309,7 @@ class Bispectra():
             k_i    = self.k[i]
 
             k_spec = (self.pow_ell/self.chi[i])
-            k_spec = k_spec[np.where((k_spec>self.kmin)*(k_spec<self.kmax))]
+            #k_spec = k_spec[np.where((k_spec>self.kmin)*(k_spec<self.kmax))]
             spec=[]
 
             for j in np.arange(0,len(k_spec)):
@@ -339,7 +339,7 @@ class Bispectra():
         *k_spec:     array of ks where for which power spectrum is passed
         *k:          array of k's that form the triangles for which the bispectrum is computed
         """
-        spec   = interp1d(np.log(k_spec),np.log(spectrum),kind="slinear",bounds_error=False, fill_value=0.)
+        spec   = interp1d(np.log(k_spec),np.log(spectrum),kind="slinear",bounds_error=True, fill_value=0.)
 
         k1       = k[::3]
         k2       = k[1::3]
@@ -349,12 +349,12 @@ class Bispectra():
         B+=2.*hf.get_F2_kernel(k2,k3,self.ang23)*np.exp(spec(np.log(k2)))*np.exp(spec(np.log(k3)))
         B+=2.*hf.get_F2_kernel(k1,k3,self.ang31)*np.exp(spec(np.log(k3)))*np.exp(spec(np.log(k1)))
 
-        index   =np.where(np.any([(k1>self.kmax),(k1<self.kmin)],axis=0))
-        B[index]=0.
-        index   =np.where(np.any([(k2>self.kmax),(k2<self.kmin)],axis=0))
-        B[index]=0.
-        index   =np.where(np.any([(k3>self.kmax),(k3<self.kmin)],axis=0))
-        B[index]=0.
+#        index   =np.where(np.any([(k1>self.kmax),(k1<self.kmin)],axis=0))
+#        B[index]=0.
+#        index   =np.where(np.any([(k2>self.kmax),(k2<self.kmin)],axis=0))
+#        B[index]=0.
+#        index   =np.where(np.any([(k3>self.kmax),(k3<self.kmin)],axis=0))
+#        B[index]=0.
 
         return B
 
@@ -365,7 +365,7 @@ class Bispectra():
         *k_spec:      array of ks where for which power spectrum is passed
         *k:          array of k's that form the triangles for which the bispectrum is computed
         """
-        spec  = interp1d(np.log(k_spec),np.log(spectrum),kind="slinear",bounds_error=False, fill_value=0.)
+        spec  = interp1d(np.log(k_spec),np.log(spectrum),kind="slinear",bounds_error=True, fill_value=0.)
 
         k1       = k[::3]
         k2       = k[1::3]
@@ -375,12 +375,12 @@ class Bispectra():
         B+=2.*self.get_F2_kernel_fit(k2,k3,self.ang23,i)*np.exp(spec(np.log(k2)))*np.exp(spec(np.log(k3)))
         B+=2.*self.get_F2_kernel_fit(k1,k3,self.ang31,i)*np.exp(spec(np.log(k3)))*np.exp(spec(np.log(k1)))
 
-        index=np.where(np.any([(k1>self.kmax),(k1<self.kmin)],axis=0))
-        B[index]=0.
-        index=np.where(np.any([(k2>self.kmax),(k2<self.kmin)],axis=0))
-        B[index]=0.
-        index=np.where(np.any([(k3>self.kmax),(k3<self.kmin)],axis=0))
-        B[index]=0.
+#        index=np.where(np.any([(k1>self.kmax),(k1<self.kmin)],axis=0))
+#        B[index]=0.
+#        index=np.where(np.any([(k2>self.kmax),(k2<self.kmin)],axis=0))
+#        B[index]=0.
+#        index=np.where(np.any([(k3>self.kmax),(k3<self.kmin)],axis=0))
+#        B[index]=0.
 
         return B
 
@@ -483,7 +483,7 @@ if __name__ == "__main__":
 
     integrals   = True
 
-    tag         = 'reverse_integration3'
+    tag         = 'reverse_integration3_res'
 
     assert(kkg+kgg<=1)
 
@@ -515,8 +515,8 @@ if __name__ == "__main__":
     l_min       = 1
     l_max       = 8000.
 
-    k_min       = 1e-4
-    k_max       = 100.
+    k_min       = None#1e-4
+    k_max       = None#100.
 
     fit_z_max   = 1.5
 
