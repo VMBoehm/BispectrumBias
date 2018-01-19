@@ -472,9 +472,9 @@ if __name__ == "__main__":
     "---begin settings---"
     kkg         = True
     kgg         = False
-    cross_bias  = True
+    cross_bias  = False
 
-    LSST        = True
+    LSST        = False
 
     sym         = False
 
@@ -534,7 +534,7 @@ if __name__ == "__main__":
 
     nl          = True
 
-    cparams     = C.Planck2015_TTlowPlensing
+    cparams     = C.SimulationCosmology#Planck2015_TTlowPlensing
 
 
     if nl==False:
