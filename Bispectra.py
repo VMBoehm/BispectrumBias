@@ -27,6 +27,7 @@ pl.ioff()
 from classy import Class
 
 import Cosmology as C
+import copy
 from Constants import LIGHT_SPEED
 
 
@@ -37,20 +38,9 @@ class Bispectra():
         - newtonian potential bi_psi (function of chi)
         - lensing potential bi_phi
     """
-    def __init__(self,cosmo,data, ell,z,config,ang12,ang23,ang31, path, z_cmb, b=None, nonlin=False, B_fit=False, kkg=False, kgg=False, dndz=None,norm=None,k_min=None,k_max=None,sym=False, fit_z_max=1.5, cross_bias=False):
-        """
-        initializes/computes all three bispectra
-        * cosmo:    instance of class Cosmology
-        * data:     instance of class CosmoData
-        * ell:      array of ell vector absolute values
-        * z:        array of redshifts
-        * config:   string encoding the configuration of this run
-        * ang12,23,31: array of angles between vectors
-        """
-        print "nl", nonlin
-        print "\n"
+    def __init__(self,cosmo,data, ell,z,config,ang12,ang23,ang31, path, z_cmb, b=None, nonlin=False, B_fit=False, kkg=False, kgg=False, kkk=True, dndz=None,norm=None,k_min=None,k_max=None,sym=False, fit_z_max=1.5):
 
-        self.cosmo      = cosmo
+        self.cosmo      = copy(cosmo)
 
         self.ell        = ell
 
@@ -59,62 +49,65 @@ class Bispectra():
         self.chi        = self.data.chi(z)
         self.chi_cmb    = self.data.chi(z_cmb)
         print "chi_cmb [Mpc]: %f"%self.chi_cmb
+
         self.z          = z
         self.z_cmb      = z_cmb
+
         assert((data.z==self.z).all())
 
-        self.L_min    = min(ell[0::3])
-        self.L_max    = max(ell[0::3])
-        self.l_min    = min(ell[2::3])
-        self.l_max    = max(ell[2::3])
+        self.l1       = ell[0::3]
+        self.l3       = ell[2::3]
+        self.l2       = ell[1::3]
 
-        self.bin_num    = len(ell)
-        self.len_bi     = int(self.bin_num/3)
+        self.L_min    = min(self.l1)
+        self.L_max    = max(self.l1)
+        self.l_min    = min(self.l3)
+        self.l_max    = max(self.l3)
 
-        print "L min: ", self.L_min
-        print "L max: ", self.L_max
-        print "l min: ", self.l_min
-        print "l max: ", self.l_max
+        self.bin_num  = len(ell)
+        self.len_bi   = int(self.bin_num/3)
 
         print "bispectrum size: ", self.len_bi
 
-        self.kmin       = k_min
-        self.kmax       = k_max
+        self.kmin     = k_min
+        self.kmax     = k_max
 
-        self.config     = config
-        print "configuration: ", self.config
-        #has set_up been called?
-        self.set_stage  = False
+        self.config   = config
 
-        self.ang12      = ang12
-        self.ang23      = ang23
-        self.ang31      = ang31
+        self.set_stage= False
+
+        self.ang12    = ang12
+        self.ang23    = ang23
+        self.ang31    = ang31
 
 
         self.kkg        = kkg
         self.kgg        = kgg
+        self.kkk        = kkk
+        assert(kkk+kgg+kgg==1)
+
         self.dndz       = dndz
         self.norm       = norm
-
-        self.cross_bias = cross_bias
 
         if kkg:
             print 'Computing $B_{\phi\phig}$'
 
-        if kgg:
+        elif kgg:
             print 'Computing $B_{\phi g g}$'
+        elif kkk:
+            print 'Computing $B_{\phi \phi \phi}$'
 
         self.nl         = nonlin
         if self.nl:
             print "Using non-linear matter power spectrum"
 
 
-        self.B_fit  = B_fit
+        self.B_fit     = B_fit
         self.fit_z_max = fit_z_max
         if self.B_fit:
             print "using Gil-Marin et al. fitting formula"
 
-        self.path   = path+'cross_bias_spectra/'
+        self.path   = path+'spectra/'
 
         self.b      = b
 
@@ -128,26 +121,17 @@ class Bispectra():
         computes the lensing bispectrum
         """
 
-        self.filename=self.path+"bispec_phi_%s_Lmin%d-Lmax%d-lmax%d-lenBi%d"%(self.config,self.L_min,self.L_max,self.l_max,self.len_bi)
+        self.filename   = self.path+"bispec_phi_%s_Lmin%d-Lmax%d-lmax%d-lenBi%d"%(self.config,self.L_min,self.L_max,self.l_max,self.len_bi)
         if self.sym:
             self.filename+='_sym'
-        if self.cross_bias:
-            self.filename+='_4bias'
         try:
             self.bi_phi=np.load(self.filename+'.npy')
             print "loading file %s"%(self.filename+'.npy')
         except:
             print "%s not found \n Computing Bispectrum of overdensity..."%self.filename
-            self.filename2=self.path+"bispec_delta_%s_Lmin%d-Lmax%d-lmax%d-lenBi%d"%(self.config,self.L_min,self.L_max,self.l_max,self.len_bi)
-            try:
-                self.bi_delta=np.load(self.filename2+'.npy')
-            except:
-                print "%s not found \n Computing Bispectrum of Newtonian Potential..."%(self.filename2+'.npy')
-                self.compute_Bispectrum_delta()
-                #np.save(self.filename2+'.npy',self.bi_delta)
-
+            self.set_up()
+            self.compute_Bispectrum_delta()
             self.compute_Bispectrum_Phi()
-
             np.save(self.filename+'.npy',self.bi_phi)
 
         try:
@@ -169,112 +153,59 @@ class Bispectra():
 
 
         #for Limber matter power spectrum
-        self.pow_ell     = np.linspace(min(self.ell)/10.,max(self.ell)+1.,1000)
-        #number of unique l values
-        self.powspec_len = np.int(len(self.pow_ell))
+        self.pow_ell     = np.linspace(min(self.ell),max(self.ell),500)
 
-        #k=ell/chi, ndarray with ell along rows, chi along columns
-        self.k  = np.outer(1./self.chi,self.ell+0.5)
+        kmax             = max(self.pow_ell)/min(self.chi)
+        kmin             = min(self.pow_ell)/max(self.chi)
 
-
-        kmax    = max(self.pow_ell)/min(self.chi)
-        kmin    = min(self.pow_ell)/max(self.chi)
-        print k_min, min(self.pow_ell)/min(self.chi)
         if self.kmin==None:
             self.kmin=kmin
         if self.kmax==None:
             self.kmax=kmax
-        print "kmin and kmax from ell/chi", self.kmin,self.kmax
+        print "kmin and kmax from ell/chi", kmin, kmax
+        print "kmin and kmax for bispectrum delta", self.kmin, self.kmax
 
+#TODO: check!
         if self.B_fit:
             k4n=np.exp(np.linspace(np.log(self.kmin),np.log(self.kmax),100))
             k4n=np.concatenate((k4n,np.exp(np.linspace(-4,-1,100))))
             k4n=np.sort(k4n)
-            self.data.get_abc(k4n,self.z[np.where(self.z<=self.fit_z_max)],fit_z_max)
+            self.data.get_abc(k4n,self.z[np.where(self.z<=self.fit_z_max)],self.fit_z_max)
 
 
-        print "kmin and kmax for bispectrum calculation", self.kmin,self.kmax
-        if self.cosmo.class_params['output']!='tCl, lCl, mPk':
-            if self.L_max<=3000:
-                self.cosmo.class_params['output']='tCl, pCl, lCl, mPk'
-                print 'Calculating lensed Pol spectra'
-            else:
-                self.cosmo.class_params['output']='tCl, lCl, mPk'
-            #self.cosmo.class_params['lensing']='yes'
-            self.cosmo.class_params['tol_perturb_integration']=1.e-6
+        self.cosmo['output']='tCl, mPk'
 
-        self.cosmo.class_params['l_max_scalars']=min(self.L_max,4000)+2000
-        self.cosmo.class_params['z_max_pk'] = max(z)
-        print max(z), self.z_cmb
-        #Maximum k value in matter power spectrum
-        self.cosmo.class_params['P_k_max_1/Mpc'] = self.kmax
-        self.cosmo.class_params['k_min_tau0'] = self.kmin*13000.
+        self.cosmo['tol_perturb_integration']   = 1.e-6
+
+        self.cosmo['l_max_scalars']             = min(self.L_max,4000)
+        self.cosmo['z_max_pk']                  = max(z)
+
+        self.cosmo['P_k_max_1/Mpc']             = self.kmax
+        self.cosmo['k_min_tau0']                = self.kmin*13000.
 
 
         #Initializing class
         if self.nl==False:
             self.closmo_lin=Class()
-            self.closmo_lin.set(self.cosmo.class_params)
-            self.cosmo.class_params['non linear'] = ""
+            self.closmo_lin.set(self.cosmo)
+            self.cosmo['non linear'] = ""
             print "Initializing CLASS..."
-            print self.cosmo.class_params
+            print self.cosmo
             self.closmo_lin.compute()
-            cl_unl=self.closmo_lin.raw_cl(min(int(self.L_max),4000))
-            try:
-                cl_len=self.closmo_lin.lensed_cl(min(int(self.L_max),4000))
-            except:
-                pass
-            print self.closmo_lin.get_current_derived_parameters(['sigma8'])
         else:
             self.closmo_lin=None
 
         if self.nl:
-            self.cosmo.tag+='_nl'
-            self.cosmo.class_params['non linear'] = "halofit"
+            self.cosmo['non linear'] = "halofit"
             self.closmo_nl=Class()
-            self.closmo_nl.set(self.cosmo.class_params)
+            self.closmo_nl.set(self.cosmo)
             print "Initializing CLASS with halofit..."
-            print self.cosmo.class_params
+            print self.cosmo
             self.closmo_nl.compute()
-            print self.closmo_nl.get_current_derived_parameters(['sigma8'])
-            cl_unl=self.closmo_nl.raw_cl(min(int(self.L_max),4000))
-            try:
-                cl_len=self.closmo_nl.lensed_cl(min(int(self.L_max),4000))
-            except:
-                pass
         else:
             self.closmo_nl=None
 
         self.set_stage=True
-        try:
-            print self.cosmo.class_params['A_s']
-        except:
-            print self.cosmo.class_params['ln10^{10}A_s']
-
-        try:
-            pickle.dump([self.cosmo.class_params,cl_unl,cl_len],open('../class_outputs/class_cls_%s_lensed.pkl'%self.cosmo.tag,'w'))
-        except:
-            pickle.dump([self.cosmo.class_params,cl_unl],open('../class_outputs/class_cls_%s_le.pkl'%self.cosmo.tag,'w'))
-
-        if equilat:
-            pickle.dump([self.chi,self.z,self.k],open(self.path+'z_k_equilat.pkl','w'))
-
-
-#        h   = self.cosmo.class_params['h']
-#        k_  = np.exp(np.linspace(np.log(1e-4*h),np.log(100.*h),100))
-#        pl.figure()
-#        for z_ in [0.,1.,10.]:
-#            plk =[]
-#            for kk in k_:
-#                plk+=[self.closmo_nl.pk(kk,z_)]
-#            pl.loglog(k_/h,np.asarray(plk)*h**3,label='z=%d'%z_)
-#            print min(k_/h), max(k_/h)
-#        pl.xlim(1e-4,1.)
-#        pl.ylim(0.1,100000)
-#        pl.xlabel(r'$k [h/Mpc]$')
-#        pl.ylabel(r'$P(k) [Mpc/h]^3$')
-#        pl.legend(loc='best')
-#        pl.savefig('pow_spec_nl.png')
 
 
 
@@ -286,65 +217,63 @@ class Bispectra():
         computes the bispectrum for each chi bin
         -> only use after self.set_up() has been called!
         """
-        if self.set_stage==False:
-            self.set_up()
 
         bi_delta  = np.ndarray((len(self.z),self.len_bi))
-
-        #more exact Limber, k for power spectrum
-        #ell     = np.sqrt(self.pow_ell*(self.pow_ell+np.ones(len(self.pow_ell))))
 
         if self.nl:
             cosmo_pk = self.closmo_nl.pk
         else:
             cosmo_pk = self.closmo_lin.pk
-        for i in np.arange(0,len(self.z)):
 
-            print i
 
-            z_i    = self.z[i]
-            k_i    = self.k[i]
+        for ii in np.arange(0,len(self.z)):
 
-            k_spec = (self.pow_ell/self.chi[i])
-            #k_spec = k_spec[np.where((k_spec>self.kmin)*(k_spec<self.kmax))]
-            spec=[]
+            print ii
 
-            for j in np.arange(0,len(k_spec)):
-                spec+=[cosmo_pk(k_spec[j],z_i)]
-            spec=np.array(spec)
+            z_i     = self.z[ii]
+
+            spec1   =[]
+            spec2   =[]
+            spec3   =[]
+
+            k1      = self.l1/self.chi[ii]
+            k2      = self.l2/self.chi[ii]
+            k3      = self.l3/self.chi[ii]
+
+            for j in xrange(len(k1)):
+                spec1+=[cosmo_pk(k1[j],z_i)]
+                spec2+=[cosmo_pk(k2[j],z_i)]
+                spec3+=[cosmo_pk(k3[j],z_i)]
+
+            specs = [spec1,spec2,spec3]
 
             if self.B_fit==False:
-                    bi_delta_chi    = self.bispectrum_delta(spec,k_spec,k_i)
+                    bi_delta_chi    = self.bispectrum_delta(specs,k1,k2,k3)
 
-            elif self.B_fit and self.z[i]<=self.fit_z_max:
-                    bi_delta_chi    = self.bispectrum_delta_fit(spec,k_spec,k_i,i)
-            elif self.B_fit and self.z[i]>self.fit_z_max:
-                    bi_delta_chi    = self.bispectrum_delta(spec,k_spec,k_i)
+            elif self.B_fit and self.z[ii]<=self.fit_z_max:
+                    bi_delta_chi    = self.bispectrum_delta_fit(specs,k1,k2,k3,ii)
+            elif self.B_fit and self.z[ii]>self.fit_z_max:
+                    bi_delta_chi    = self.bispectrum_delta(specs,k1,k2,k3,ii)
             else:
                 raise ValueError('Something went wrong with matter bispectrum specifications')
 
-            bi_delta[i] = bi_delta_chi#*self.delta2psi(k_i,len(bi_delta_chi),i)
+            bi_delta[ii] = bi_delta_chi
 
         self.bi_delta=np.transpose(bi_delta) #row is now a function of chi
-        del self.k
 
 
 
-    def bispectrum_delta(self,spectrum,k_spec,k):
+
+    def bispectrum_delta(self,spectra,k1,k2,k3):
         """ returns the bispectrum of the fractional overdensity today (a=1) i.e. B^0, the lowest order in non-lin PT
         *spectrum:   power spectrum for all ks in k_aux
         *k_spec:     array of ks where for which power spectrum is passed
         *k:          array of k's that form the triangles for which the bispectrum is computed
         """
-        spec   = interp1d(np.log(k_spec),np.log(spectrum),kind="slinear",bounds_error=True, fill_value=0.)
 
-        k1       = k[::3]
-        k2       = k[1::3]
-        k3       = k[2::3]
-
-        B=2.*hf.get_F2_kernel(k1,k2,self.ang12)*np.exp(spec(np.log(k1)))*np.exp(spec(np.log(k2)))
-        B+=2.*hf.get_F2_kernel(k2,k3,self.ang23)*np.exp(spec(np.log(k2)))*np.exp(spec(np.log(k3)))
-        B+=2.*hf.get_F2_kernel(k1,k3,self.ang31)*np.exp(spec(np.log(k3)))*np.exp(spec(np.log(k1)))
+        B=2.*hf.get_F2_kernel(k1,k2,self.ang12)*spectra[0]*spectra[1]
+        B+=2.*hf.get_F2_kernel(k2,k3,self.ang23)*spectra[1]*spectra[2]
+        B+=2.*hf.get_F2_kernel(k1,k3,self.ang31)*spectra[2]*spectra[0]
 
 #        index   =np.where(np.any([(k1>self.kmax),(k1<self.kmin)],axis=0))
 #        B[index]=0.
@@ -356,21 +285,16 @@ class Bispectra():
         return B
 
 
-    def bispectrum_delta_fit(self,spectrum,k_spec,k,i):
+    def bispectrum_delta_fit(self,spectra,k1,k2,k3,k,i):
         """ returns the bispectrum of the fractional overdensity today (a=1) i.e. B^0, the lowest order in non-lin PT
         *spectrum:   power spectrum for all ks in k_aux
         *k_spec:      array of ks where for which power spectrum is passed
         *k:          array of k's that form the triangles for which the bispectrum is computed
         """
-        spec  = interp1d(np.log(k_spec),np.log(spectrum),kind="slinear",bounds_error=True, fill_value=0.)
 
-        k1       = k[::3]
-        k2       = k[1::3]
-        k3       = k[2::3]
-
-        B= 2.*self.get_F2_kernel_fit(k1,k2,self.ang12,i)*np.exp(spec(np.log(k1)))*np.exp(spec(np.log(k2)))
-        B+=2.*self.get_F2_kernel_fit(k2,k3,self.ang23,i)*np.exp(spec(np.log(k2)))*np.exp(spec(np.log(k3)))
-        B+=2.*self.get_F2_kernel_fit(k1,k3,self.ang31,i)*np.exp(spec(np.log(k3)))*np.exp(spec(np.log(k1)))
+        B= 2.*self.get_F2_kernel_fit(k1,k2,self.ang12,i)*spectra[0]*spectra[1]
+        B+=2.*self.get_F2_kernel_fit(k2,k3,self.ang23,i)*spectra[1]*spectra[2]
+        B+=2.*self.get_F2_kernel_fit(k1,k3,self.ang31,i)*spectra[0]*spectra[2]
 
 #        index=np.where(np.any([(k1>self.kmax),(k1<self.kmin)],axis=0))
 #        B[index]=0.
@@ -411,53 +335,52 @@ class Bispectra():
 
         index   = np.arange(self.len_bi)
 
-
         W_lens  = ((self.chi_cmb-self.chi)/(self.chi_cmb*self.chi))*(self.z+1.)
-        dchidz  = self.data.dchidz(self.z)
-        dzdchi  = 1./dchidz
+
         if self.kkg:
+            dchidz  = self.data.dchidz(self.z)
+            dzdchi  = 1./dchidz
             W_gal   = self.b*self.dndz(self.z)/self.norm*dzdchi
             kernel  = W_gal*W_lens**2
         elif self.kgg:
+            dchidz  = self.data.dchidz(self.z)
+            dzdchi  = 1./dchidz
             W_gal   = self.b*self.dndz(self.z)/self.norm*dzdchi
             kernel  = W_gal**2*W_lens/self.chi**2
         else:
             kernel  = W_lens**3*self.chi**2
 
-        pl.figure()
-        pl.loglog(self.z,W_gal*W_lens**2,label='ppg')
-        pl.loglog(self.z,W_lens**3*self.chi**2*self.data.prefacs,label='ppp*fac')
-        pl.legend()
-        pl.gca().set_ylim(bottom=1e-15)
-        pl.savefig('Kernel_Comparison.png')
 
         bi_phi=[]
-        for j in index:
-            integrand   = self.bi_delta[j]*kernel
+        for jj in index:
+            integrand   = self.bi_delta[jj]*kernel
             bi_phi+=[simps(integrand,self.chi)]
         self.bi_phi=np.array(bi_phi)
 
 
         if self.kkg:
             if self.sym:
-                fac = self.data.prefacs**2*(1./((self.ell[1::3]+0.5)*(self.ell[2::3]+0.5))**2\
-                +(1./((self.ell[1::3]+0.5)*(self.ell[0::3]+0.5)))**2\
-                +(1./((self.ell[2::3]+0.5)*(self.ell[0::3]+0.5)))**2)
+                fac = self.data.prefacs**2*(1./(self.l1*self.l2)**2\
+                +1./(self.l1*self.l3)**2+1./(self.l2*self.l3)**2)
             else:
                 #for bias code, L=associated with galaxy leg
-                if self.cross_bias:
-                    fac = self.data.prefacs**2*(1./((self.ell[1::3]+0.5)*(self.ell[2::3]+0.5))**2)
-                #for S/N code, L3 =Ll=associated with galaxy leg
-                else:
-                    fac = self.data.prefacs**2*(1./((self.ell[0::3]+0.5)*(self.ell[2::3]+0.5))**2)
+                fac = self.data.prefacs**2*(1./(self.l2*self.l3)**2)
+#                #for S/N code, L3 =Ll=associated with galaxy leg
+#                else:
+#                    fac = self.data.prefacs**2*(1./((self.ell[0::3]+0.5)*(self.ell[2::3]+0.5))**2)
         elif self.kgg:
             if self.sym:
-                fac =self.data.prefacs*(1./(self.ell[0::3]+0.5)**2+1./(self.ell[1::3]+0.5)**2+1./(self.ell[2::3]+0.5)**2)
+                fac =self.data.prefacs*(1./self.l1**2+1./self.l2**2+1./self.l3**2)
             else:
-                fac =self.data.prefacs/(self.ell[0::3]+0.5)**2
+                fac =self.data.prefacs/(self.l1)**2
         else:
-            fac =(self.data.prefacs)**3/((self.ell[1::3]+0.5)*(self.ell[2::3]+0.5)*(self.ell[0::3]+0.5))**2
+            if self.sym:
+                print 'Note: no symmetrization for auto spectrum!'
+            fac =(self.data.prefacs**3)/(self.l1*self.l2*self.l3)**2
+
         self.bi_phi*=fac
+
+
         return True
 
 
