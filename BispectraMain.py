@@ -18,15 +18,11 @@ from scipy.interpolate import interp1d, splev
 import pickle
 from copy import deepcopy
 
-
-import matplotlib
-matplotlib.use('Agg')
 import matplotlib.pyplot as pl
 
 from classy import Class
 import Cosmology as C
 from N32biasIntegrals import I0, I2
-import CAMB_postborn as postborn
 from Constants import LIGHT_SPEED
 
 from Bispectra import Bispectra
@@ -46,10 +42,10 @@ if __name__ == "__main__":
     kkk         = True
 
     #triangle configuration
-    ell_type    ='full'#'equilat','folded'
+    ell_type    ='equilat'#'equilat','folded'
 
     #compute beta integrals?
-    integrals   = True
+    integrals   = False
 
     #use LSST like redshift bins
     LSST        = False
@@ -58,7 +54,7 @@ if __name__ == "__main__":
     sym         = False
 
     #Limber approximation, if true set class_params['l_switch_limber']=100, else 1
-    Limber      = True
+    #Limber      = False
 
     #post Born (use post Born terms from Pratten & Lewis arXiv:1605.05662)
     post_born   = False
@@ -68,7 +64,7 @@ if __name__ == "__main__":
     fit_z_max   = 1.5
 
     #number of redshift bins
-    bin_num     = 100
+    bin_num     = 130
     z_min       = 1e-4
 
     #sampling in L/l and angle
@@ -77,7 +73,7 @@ if __name__ == "__main__":
     len_ang     = 200
 
     #ell range (for L and l)
-    L_min       = 100.
+    L_min       = 10.
     L_max       = 3000.
 
     l_min       = 1
@@ -89,9 +85,9 @@ if __name__ == "__main__":
 
     Delta_theta = 1e-4
 
-    nl          = True
+    nl          = False
 
-    cparams     = C.SimulationCosmology#Planck2015_TTlowPlensing
+    cparams     = C.Planck2015_TTlowPlensing#SimulationCosmology
 
     #path, where to store results
     path        = "/home/nessa/Documents/Projects/LensingBispectrum/CMB-nonlinear/outputs/"
@@ -104,17 +100,19 @@ if __name__ == "__main__":
 
     if ell_type=='equilat':
         len_side= 250
-    if ell_type=='folded':
-        len_side= 250
-
 
     "---end settings---"
 
     assert(kgg+kkk+kkg==1)
-    assert(ell_type in ['folded','all','equilat'])
+    assert(ell_type in ['folded','full','equilat'])
 
 
     params  = deepcopy(cparams[1])
+#    if Limber:
+#        params['l_switch_limber']=1
+#    else:
+#        params['l_switch_limber']=100
+#    print 'here'
     closmo  = Class()
     closmo.set(params)
     closmo.compute()
@@ -125,11 +123,10 @@ if __name__ == "__main__":
 
     print "z_cmb: %f"%z_cmb
 
-    z       = np.exp(np.linspace(np.log(z_min),np.log(z_cmb),bin_num))
-
-    # avoid numerical inaccuracies
-    if z[-1]!=z_cmb:
-        z[-1]=z_cmb
+    z_a     = np.exp(np.linspace(np.log(z_min),np.log(100.),120,endpoint=False))
+    z_b     = np.linspace(100.,z_cmb-0.001,10)
+    z       = np.append(z_a,z_b)
+    assert(len(z)==bin_num)
 
     if kkg or kgg:
 
@@ -172,34 +169,25 @@ if __name__ == "__main__":
         #cosmo dependent functions
     data    = C.CosmoData(params,z)
 
-
-    filename=path+"ell_ang_%s_Lmin%d_Lmax%d_lmin%d_lmax%d_lenL%d_lenl%d_lenang%d_%.0e.pkl"%(ell_type,L_min,L_max,l_max,len_L,len_l,len_ang,Delta_theta)
+    filename=path+"ell_ang_%s_Lmin%d_Lmax%d_lmin%d_lmax%d_lenL%d_lenl%d_lenang%d_%.0e.pkl"%(ell_type,L_min,L_max,l_min,l_max,len_L,len_l,len_ang,Delta_theta)
 
     if ell_type=="full":
         #L = |-L|, equally spaced in lin at low L and in log at high L
-        L         = np.exp(np.linspace(np.log(L_min),np.log(L_max),len_L))
-        la        = np.linspace(l_min,20,20,endpoint=False)
-        lb        = np.linspace(20,L_max,len_l-40,endpoint=False)
-        lc        = np.exp(np.linspace(np.log(L_max),np.log(l_max),20))
-        l1        = np.append(la,lb)
-        l         = np.append(l1,lc)
+        L       = np.exp(np.linspace(np.log(L_min),np.log(L_max),len_L))
+        la      = np.linspace(l_min,20,20,endpoint=False)
+        lb      = np.linspace(20,L_max,len_l-40,endpoint=False)
+        lc      = np.exp(np.linspace(np.log(L_max),np.log(l_max),20))
+        l1      = np.append(la,lb)
+        l       = np.append(l1,lc)
         assert(len(l)==len_l)
 
     elif ell_type=='equilat':
         assert(len_side>150)
-        La        = np.arange(L_min,150)
-        Lb        = np.ceil(np.exp(np.linspace(np.log(150),np.log(L_max),len_side-len(La),)))
-        L         = np.append(La,Lb)
-    elif ell_type=='folded':
-        assert(len_side>150)
-        La        = np.arange(L_min,150)
-        Lb        = np.ceil(np.exp(np.linspace(np.log(150),np.log(L_max),len_side-len(La))))
+        L       = np.exp(np.linspace(np.log(L_min),np.log(L_max),len_side))
+        l       = None
 
-        L         = np.append(La,Lb)
-        l         = np.append(La,Lb)*0.5
-
-
-    theta   = np.linspace(Delta_theta,np.pi-Delta_theta, len_ang)
+    if ell_type=='full':
+        theta   = np.linspace(Delta_theta,2*np.pi-Delta_theta, len_ang)
     if ell_type=='equilat':
         theta   = np.asarray([np.pi/3.]*len_side)
     if ell_type=='folded':
@@ -228,16 +216,6 @@ if __name__ == "__main__":
                 ang12+=[(l3*l3-l1*l1-l2*l2)/(2.*l1*l2)]
                 ang23+=[(l1*l1-l3*l3-l2*l2)/(2.*l3*l2)]
                 angmu+=[theta[i]]
-    elif ell_type=='folded':
-        for i in range(len_side):
-                l1= L[i]
-                l3= l[i]
-                l2= sqrt(l1*l1+l3*l3-2.*l1*l3*cosmu[i])
-                ell+=[l1]+[l2]+[l3]
-                ang31+=[-cosmu[i]]
-                ang12+=[(l3*l3-l1*l1-l2*l2)/(2.*l1*l2)]
-                ang23+=[(l1*l1-l3*l3-l2*l2)/(2.*l3*l2)]
-                angmu+=[theta[i]]
     elif ell_type=='full':
         for i in range(len_L):
             for k in range(len_l):
@@ -257,7 +235,6 @@ if __name__ == "__main__":
     ang31=np.array(ang31)
     angmu=np.array(angmu)
     ell=np.asarray(ell)
-
 
     if kkg:
         config = 'kkg_%s'%ell_type
@@ -285,21 +262,22 @@ if __name__ == "__main__":
 
     print "config: %s"%config
 
-
     bs   = Bispectra(params,data,ell,z,config,ang12,ang23,ang31,path,z_cmb, bias, nl,B_fit,kkg, kgg, kkk,dndz, norm,k_min,k_max,sym,fit_z_max)
 
     bs()
 
-#TODO: check everything beneath
+
 
     if integrals:
-        Int0 = I0(bs.bi_phi, bs.ell, angmu, len_L, len_l, len_ang)
+        Int0 = I0(bs.bi_phi, L, l, theta, len_l, len_L,len_ang)
 
-        Int2 = I2(bs.bi_phi, bs.ell, angmu ,len_L, len_l, len_ang)
+        Int2 = I2(bs.bi_phi, L, l, theta, len_l, len_L,len_ang)
 
-        pickle.dump([params,Limber,L,Int0,Int2],open('./cross_integrals/I0I1I2%s.pkl'%(config),'w'))
+        pickle.dump([params,Limber,L,Int0,Int2],open(path+'integrals/I0I1I2%s.pkl'%(config),'w'))
 
+#TODO: check everything beneath
     if post_born:
+        import CAMB_postborn as postborn
         print 'computing post Born corrections...'
         assert(kkg or kkk)
 

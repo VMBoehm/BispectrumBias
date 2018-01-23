@@ -14,21 +14,10 @@ import numpy as np
 
 import HelperFunctions as hf
 from scipy.integrate import simps
-from scipy.interpolate import interp1d, splev
-import pickle
-from copy import deepcopy
-
-
-import matplotlib
-matplotlib.use('Agg')
+from scipy.interpolate import splev
 import matplotlib.pyplot as pl
-pl.ioff()
-
 from classy import Class
-
-import Cosmology as C
 import copy
-from Constants import LIGHT_SPEED
 
 
 
@@ -40,7 +29,7 @@ class Bispectra():
     """
     def __init__(self,cosmo,data, ell,z,config,ang12,ang23,ang31, path, z_cmb, b=None, nonlin=False, B_fit=False, kkg=False, kgg=False, kkk=True, dndz=None,norm=None,k_min=None,k_max=None,sym=False, fit_z_max=1.5):
 
-        self.cosmo      = copy(cosmo)
+        self.cosmo      = copy.deepcopy(cosmo)
 
         self.ell        = ell
 
@@ -173,15 +162,21 @@ class Bispectra():
             self.data.get_abc(k4n,self.z[np.where(self.z<=self.fit_z_max)],self.fit_z_max)
 
 
-        self.cosmo['output']='tCl, mPk'
+        self.cosmo['output']='mPk'
 
         self.cosmo['tol_perturb_integration']   = 1.e-6
 
-        self.cosmo['l_max_scalars']             = min(self.L_max,4000)
-        self.cosmo['z_max_pk']                  = max(z)
+        #self.cosmo['l_max_scalars']             = min(self.L_max,4000)
+        self.cosmo['z_max_pk']                  = max(self.z)
 
         self.cosmo['P_k_max_1/Mpc']             = self.kmax
         self.cosmo['k_min_tau0']                = self.kmin*13000.
+
+
+        #self.cosmo['k_max_tau0_over_l_max']=3.
+        self.cosmo['k_step_sub']=0.015
+        self.cosmo['k_step_super']=0.0001
+        self.cosmo['k_step_super_reduction']=0.1
 
 
         #Initializing class
@@ -218,7 +213,7 @@ class Bispectra():
         -> only use after self.set_up() has been called!
         """
 
-        bi_delta  = np.ndarray((len(self.z),self.len_bi))
+        bi_delta  = np.zeros((len(self.z),self.len_bi))
 
         if self.nl:
             cosmo_pk = self.closmo_nl.pk
@@ -228,7 +223,6 @@ class Bispectra():
 
         for ii in np.arange(0,len(self.z)):
 
-            print ii
 
             z_i     = self.z[ii]
 
@@ -245,7 +239,14 @@ class Bispectra():
                 spec2+=[cosmo_pk(k2[j],z_i)]
                 spec3+=[cosmo_pk(k3[j],z_i)]
 
-            specs = [spec1,spec2,spec3]
+            if ii in [0,10,20,50,70,100]:
+                print z_i
+                pl.figure()
+                pl.loglog(k1,spec1,'ro')
+                pl.loglog(k2,spec2)
+                pl.show()
+
+            specs = [np.asarray(spec1),np.asarray(spec2),np.asarray(spec3)]
 
             if self.B_fit==False:
                     bi_delta_chi    = self.bispectrum_delta(specs,k1,k2,k3)
@@ -253,7 +254,7 @@ class Bispectra():
             elif self.B_fit and self.z[ii]<=self.fit_z_max:
                     bi_delta_chi    = self.bispectrum_delta_fit(specs,k1,k2,k3,ii)
             elif self.B_fit and self.z[ii]>self.fit_z_max:
-                    bi_delta_chi    = self.bispectrum_delta(specs,k1,k2,k3,ii)
+                    bi_delta_chi    = self.bispectrum_delta(specs,k1,k2,k3)
             else:
                 raise ValueError('Something went wrong with matter bispectrum specifications')
 
@@ -271,9 +272,10 @@ class Bispectra():
         *k:          array of k's that form the triangles for which the bispectrum is computed
         """
 
-        B=2.*hf.get_F2_kernel(k1,k2,self.ang12)*spectra[0]*spectra[1]
-        B+=2.*hf.get_F2_kernel(k2,k3,self.ang23)*spectra[1]*spectra[2]
-        B+=2.*hf.get_F2_kernel(k1,k3,self.ang31)*spectra[2]*spectra[0]
+
+        B=2.*hf.get_F2_kernel(k1,k2,self.ang12)*spectra[0]*spectra[1]\
+        +2.*hf.get_F2_kernel(k2,k3,self.ang23)*spectra[1]*spectra[2]\
+        +2.*hf.get_F2_kernel(k3,k1,self.ang31)*spectra[2]*spectra[0]
 
 #        index   =np.where(np.any([(k1>self.kmax),(k1<self.kmin)],axis=0))
 #        B[index]=0.
@@ -354,9 +356,8 @@ class Bispectra():
         bi_phi=[]
         for jj in index:
             integrand   = self.bi_delta[jj]*kernel
-            bi_phi+=[simps(integrand,self.chi)]
+            bi_phi      +=[simps(integrand,self.chi)]
         self.bi_phi=np.array(bi_phi)
-
 
         if self.kkg:
             if self.sym:
@@ -377,7 +378,6 @@ class Bispectra():
             if self.sym:
                 print 'Note: no symmetrization for auto spectrum!'
             fac =(self.data.prefacs**3)/(self.l1*self.l2*self.l3)**2
-
         self.bi_phi*=fac
 
 
