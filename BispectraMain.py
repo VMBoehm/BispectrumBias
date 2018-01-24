@@ -34,7 +34,7 @@ if __name__ == "__main__":
 
     "---begin settings---"
 
-    tag         = 'laptop_test1'
+    tag         = 'laptop_test2'
 
     #type of bispectrum
     kkg         = False
@@ -68,9 +68,9 @@ if __name__ == "__main__":
     z_min       = 1e-4
 
     #sampling in L/l and angle
-    len_L       = 140
+    len_L       = 100
     len_l       = len_L+20
-    len_ang     = 160
+    len_ang     = 100
 
     #ell range (for L and l)
     L_min       = 1.
