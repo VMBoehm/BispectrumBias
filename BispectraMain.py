@@ -68,15 +68,15 @@ if __name__ == "__main__":
     z_min       = 1e-4
 
     #sampling in L/l and angle
-    len_L       = 80
-    len_l       = 160
+    len_L       = 140
+    len_l       = len_L+20
     len_ang     = 160
 
     #ell range (for L and l)
-    L_min       = 10.
+    L_min       = 1.
     L_max       = 3000.
 
-    l_min       = 1
+    l_min       = L_min
     l_max       = 8000.
 
     k_min       = None#1e-4
@@ -174,11 +174,11 @@ if __name__ == "__main__":
     if ell_type=="full":
         #L = |-L|, equally spaced in lin at low L and in log at high L
         L       = np.exp(np.linspace(np.log(L_min),np.log(L_max),len_L))
-        la      = np.linspace(l_min,20,20,endpoint=False)
-        lb      = np.linspace(20,L_max,len_l-40,endpoint=False)
-        lc      = np.exp(np.linspace(np.log(L_max),np.log(l_max),20))
-        l1      = np.append(la,lb)
-        l       = np.append(l1,lc)
+        la      = L
+        lb      = np.exp(np.linspace(np.log(L_max),np.log(l_max),21))[1:]#np.linspace(20,L_max,len_l-40,endpoint=False)
+        #lc      = np.exp(np.linspace(np.log(L_max),np.log(l_max),20))
+        #l1      = np.append(la,lb)
+        l       = np.append(la,lb)
         assert(len(l)==len_l)
 
     elif ell_type=='equilat':

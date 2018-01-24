@@ -227,7 +227,7 @@ class Bispectra():
 
             z_i     = self.z[ii]
             print ii/len(self.z)*100.
-            print (time.time()-beg)/60., ' min'
+            print (time.time()-beg)/60., 'min'
 
             spec1   =[]
             spec2   =[]
