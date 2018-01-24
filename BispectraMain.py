@@ -42,10 +42,10 @@ if __name__ == "__main__":
     kkk         = True
 
     #triangle configuration
-    ell_type    ='equilat'#'equilat','folded'
+    ell_type    ='full'#'equilat','folded'
 
     #compute beta integrals?
-    integrals   = False
+    integrals   = True
 
     #use LSST like redshift bins
     LSST        = False
@@ -69,8 +69,8 @@ if __name__ == "__main__":
 
     #sampling in L/l and angle
     len_L       = 80
-    len_l       = 200
-    len_ang     = 200
+    len_l       = 160
+    len_ang     = 160
 
     #ell range (for L and l)
     L_min       = 10.
@@ -273,7 +273,8 @@ if __name__ == "__main__":
 
         Int2 = I2(bs.bi_phi, L, l, theta, len_l, len_L,len_ang)
 
-        pickle.dump([params,Limber,L,Int0,Int2],open(path+'integrals/I0I1I2%s.pkl'%(config),'w'))
+        pickle.dump([params,L,Int0,Int2],open(path+'integrals/I0I1I2%s.pkl'%(config),'w'))
+        print path+'integrals/I0I1I2%s.pkl'%(config)
 
 #TODO: check everything beneath
     if post_born:
@@ -315,12 +316,12 @@ if __name__ == "__main__":
 
             L    = np.unique(ell[0::3])
 
-            pickle.dump([params,Limber,L,Int0,Int2],open('./cross_integrals/I0I1I2%s.pkl'%(config),'w'))
+            pickle.dump([params,L,Int0,Int2],open('./cross_integrals/I0I1I2%s.pkl'%(config),'w'))
             Int0 = I0(bi_kkg, bs.ell, angmu ,len_L, len_l, len_ang)
 
             Int2 = I2(bi_kkg, bs.ell, angmu ,len_L, len_l, len_ang)
 
-            pickle.dump([params,Limber,L,Int0,Int2],open('./cross_integrals/I0I1I2%s_only.pkl'%(config),'w'))
+            pickle.dump([params,L,Int0,Int2],open('./cross_integrals/I0I1I2%s_only.pkl'%(config),'w'))
 
         del bs
         try:

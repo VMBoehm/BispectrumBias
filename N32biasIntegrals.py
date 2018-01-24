@@ -27,12 +27,12 @@ def I0(bispec, L, l, theta, len_l, len_L,len_ang):
             spec_int  = spec[j*len_ang:(j+1)*len_ang]
 
 
-            integrand=spec_int*l**3*np.sin(theta)**2
+            integrand=spec_int*np.sin(theta)**2
 
             l_integral+=[simps(integrand, theta)]
 
 
-        int_ang=simps(l_integral,l)
+        int_ang=simps(l_integral*l**3,l)
         result = np.append(result,int_ang)
 
     return result/(2.*np.pi)**2
@@ -44,7 +44,7 @@ def I2(bispec, L, l, theta, len_l, len_L,len_ang):
     result = np.array([])
 
     bin_size = len_ang*len_l
-
+    plt.figure()
     for i in np.arange(0,len_L):
 
         i=np.int(i)
@@ -55,14 +55,17 @@ def I2(bispec, L, l, theta, len_l, len_L,len_ang):
 
         for j in np.arange(0,len_l):
             spec_int  = spec[j*len_ang:(j+1)*len_ang]
+            l_=l[j]
+            integrand = spec_int*np.cos(theta)*(l_*np.cos(theta)-L_)
+            if i in [54,55] and j in [30,31,54,55]:
 
+                plt.plot(theta,integrand,label='%d,%d'%(L[i],l[j]))
+                plt.legend(loc='best',ncol=3)
 
-            integrand = spec_int*l**2*np.cos(theta)*(l*np.cos(theta)-L_)
-
-            l_integral+=[simps(integrand, theta)]
+            l_integral+=[simps(integrand*l**2, theta)]
 
 
         int_ang=simps(l_integral,l)
         result = np.append(result,int_ang)
-
+    plt.savefig('check_I2_integrands.pdf',bbox_inches='tight')
     return result/(2.*np.pi)**2

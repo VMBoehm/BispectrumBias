@@ -18,6 +18,7 @@ from scipy.interpolate import splev
 import matplotlib.pyplot as pl
 from classy import Class
 import copy
+import time
 
 
 
@@ -220,11 +221,13 @@ class Bispectra():
         else:
             cosmo_pk = self.closmo_lin.pk
 
-
+        beg = time.time()
         for ii in np.arange(0,len(self.z)):
 
 
             z_i     = self.z[ii]
+            print ii/len(self.z)*100.
+            print (time.time()-beg)/60., ' min'
 
             spec1   =[]
             spec2   =[]
@@ -239,11 +242,11 @@ class Bispectra():
                 spec2+=[cosmo_pk(k2[j],z_i)]
                 spec3+=[cosmo_pk(k3[j],z_i)]
 
-            if ii in [0,10,20,50,70,100]:
+            if ii in [0,50,100]:
                 print z_i
                 pl.figure()
                 pl.loglog(k1,spec1,'ro')
-                pl.loglog(k2,spec2)
+                pl.loglog(k3,spec3)
                 pl.show()
 
             specs = [np.asarray(spec1),np.asarray(spec2),np.asarray(spec3)]
