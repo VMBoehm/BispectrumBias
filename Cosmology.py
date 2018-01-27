@@ -179,9 +179,71 @@ SimulationCosmology=[{'name':"Jias_Simulation"},{
 'omega_b':0.023846,
 'h':0.720,
 'n_s':0.960,
-'A_s':1.971*1e-9,
+'A_s':1.9715*1e-9,
 'Omega_k':0.0,
-'k_pivot' : 0.002}]
+'tau_reio' : 0.087,
+'k_pivot' : 0.002,
+'N_eff': 3.046,
+'YHe' : 0.24,
+'N_ncdm' : 0,
+'halofit_k_per_decade' : 3000.,
+'accurate_lensing':1
+#'num_mu_minus_lmax' : 1000.,
+#'delta_l_max' : 1000.,
+#"recfast_Nz0":100000,
+#"tol_thermo_integration":1.e-5,
+#"recfast_x_He0_trigger_delta" : 0.01,
+#"recfast_x_H0_trigger_delta" : 0.01,
+#"evolver":0,
+#"k_min_tau0":0.002,
+#"k_max_tau0_over_l_max":10.,
+#"k_step_sub":0.015,
+#"k_step_super":0.0001,
+#"k_step_super_reduction":0.1,
+#"start_small_k_at_tau_c_over_tau_h" : 0.0004,
+#"start_large_k_at_tau_h_over_tau_k" : 0.05,
+#"tight_coupling_trigger_tau_c_over_tau_h":0.005,
+#"tight_coupling_trigger_tau_c_over_tau_k":0.008,
+#"start_sources_at_tau_c_over_tau_h" : 0.006,
+#"l_max_g":50,
+#"l_max_pol_g":25,
+#"l_max_ur":50,
+#"tol_perturb_integration":1e-6,
+#"perturb_sampling_stepsize":0.01,
+#"radiation_streaming_approximation" : 2,
+#"radiation_streaming_trigger_tau_over_tau_k" : 240.,
+#"radiation_streaming_trigger_tau_c_over_tau" : 100.,
+#"ur_fluid_approximation" : 2,
+#"ur_fluid_trigger_tau_over_tau_k" : 50.,
+#"ncdm_fluid_approximation" : 3,
+#"ncdm_fluid_trigger_tau_over_tau_k" : 51.,
+#"l_logstep":1.026,
+#"l_linstep":25,
+#"hyper_sampling_flat" : 12.,
+#"hyper_sampling_curved_low_nu" : 10.,
+#"hyper_sampling_curved_high_nu" : 10.,
+#"hyper_nu_sampling_step" : 10.,
+#"hyper_phi_min_abs" : 1.e-10,
+#"hyper_x_tol" : 1.e-4,
+#"hyper_flat_approximation_nu" : 1.e6,
+#"q_linstep":0.20,
+#"q_logstep_spline": 20.,
+#"q_logstep_trapzd" : 0.5,
+#"q_numstep_transition" : 250,
+#"transfer_neglect_delta_k_S_t0" : 100.,
+#"transfer_neglect_delta_k_S_t1" : 100.,
+#"transfer_neglect_delta_k_S_t2" : 100.,
+#"transfer_neglect_delta_k_S_e" : 100.,
+#"transfer_neglect_delta_k_V_t1" : 100.,
+#"transfer_neglect_delta_k_V_t2" : 100.,
+#"transfer_neglect_delta_k_V_e" : 100.,
+#"transfer_neglect_delta_k_V_b" : 100.,
+#"transfer_neglect_delta_k_T_t2" : 100.,
+#"transfer_neglect_delta_k_T_e" : 100.,
+#"transfer_neglect_delta_k_T_b" : 100.,
+#"neglect_CMB_sources_below_visibility" : 1.e-30,
+#"transfer_neglect_late_source" : 3000.
+}]
 
 """ Gil-Marin et al Simulations """
 BispectrumSimulations=[{'name':"Gil-Marin_et_al"},{
@@ -270,7 +332,6 @@ class CosmoData():
 		closmo.struct_cleanup()
 		closmo.empty()
 
-
 		## Check if chi interpolation works and if matter power spectrum makes sense
 		if test:
 			#should be the same, if interpolation works correctly
@@ -356,8 +417,7 @@ class CosmoData():
 
 		return result
 
-	def get_Cls(self,tag,nl=False,lmax=8000):
-
+	def get_Cls(self,tag,nl=False):
 
 		params =copy.deepcopy(self.class_params)
 		params['output']='tCl lCl mPk'
@@ -367,6 +427,12 @@ class CosmoData():
 			tag+="_nl"
 		else:
 			params['non linear']=" "
+		params['tol_perturb_integration']=1e-6
+		params['perturb_sampling_stepsize']=0.01
+		params['k_min_tau0']=0.002
+		params['k_max_tau0_over_l_max']=10.
+		params['l_max_scalars']=8000
+		params['halofit_k_per_decade']=3000
 
 
 		closmo 					 = Class()
@@ -375,12 +441,14 @@ class CosmoData():
 		print "Calculalating Cls... with settings",self.class_params
 
 		closmo.compute()
+		print 'sigma8: ',closmo.sigma8()
 
-		cl_len=closmo.lensed_cl(lmax)
 
-		cl_unl=closmo.raw_cl(lmax)
+		cl_len=closmo.lensed_cl(5000)
 
-		pickle.dump([params,cl_unl,cl_len],open('/afs/mpa/home/vboehm/CosmoCodes/18_06_15/class_outputs/class_cls_%s.pkl'%tag,'w'))
+		cl_unl=closmo.raw_cl(5000)
+
+		pickle.dump([params,cl_unl,cl_len],open('/home/nessa/Documents/Projects/LensingBispectrum/Simulations/NewRuns/CMBLensSims/inputParams/'+'class_cls_%s.pkl'%tag,'w'))
 
 		return True
 
@@ -393,21 +461,24 @@ class CosmoData():
 		params['output']='tCl mPk'
 
 
-		params['tol_perturb_integration']=1.e-6
+		params['tol_perturb_integration']=1e-6
 
-		params['P_k_max_1/Mpc']= max(k_array)
+		params['P_k_max_1/Mpc']= 50.#max(k_array)
 		params['z_max_pk']     = z_max
 
-		params['k_min_tau0']=0.002
-		params['k_max_tau0_over_l_max']=3.
+		params['k_min_tau0']=min(k_array)*13000.
+
+
 		params['k_step_sub']=0.015
 		params['k_step_super']=0.0001
 		params['k_step_super_reduction']=0.1
-		params['perturb_sampling_stepsize']=0.01
+		params['k_per_decade_for_pk']=20
+		params['non linear']=""
+#		params['k_output_values']=50.
 
-		params['non linear'] = ""
-
-		closmo 					      = Class()
+		print (min(k_array),max(k_array))
+		print params
+		closmo = Class()
 		closmo.set(params)
 		closmo.compute()
 
@@ -430,11 +501,11 @@ class CosmoData():
 			self.n   = HF.get_derivative(np.log(k_array),np.log(P),method="si")
 
 		h   = self.class_params['h']
-		k_  = np.exp(np.linspace(np.log(1e-3*h),np.log(10.*h),100))
+		k_  = np.exp(np.linspace(np.log(1e-3*h),np.log(10*h),100))
 		pl.figure()
 		for z_ in [0.,1.,z_max]:
 				plk=[closmo.pk(kk,z_)for kk in k_]
-				pl.loglog(k_/h,np.asarray(plk)*h**3,label='z=%d'%z_)
+				pl.loglog(k_/h,np.asarray(plk)*h**3,label='z=%f'%z_)
 		pl.xlabel(r'$k [h/Mpc]$')
 		pl.xlim(1e-4,1.)
 		pl.ylabel(r'$P(k) [Mpc/h]^3$')

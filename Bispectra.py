@@ -141,12 +141,8 @@ class Bispectra():
         initializes all indice-related arrays and instance of class
         """
 
-
-        #for Limber matter power spectrum
-        self.pow_ell     = np.linspace(min(self.ell),max(self.ell),500)
-
-        kmax             = max(self.pow_ell)/min(self.chi)
-        kmin             = min(self.pow_ell)/max(self.chi)
+        kmax             = max(self.ell)/min(self.chi)
+        kmin             = min(self.ell)/max(self.chi)
 
         if self.kmin==None:
             self.kmin=kmin
@@ -234,20 +230,17 @@ class Bispectra():
             spec3   =[]
 
             k1      = self.l1/self.chi[ii]
+            k1      = k1[np.where(np.any([(k1>self.kmax),(k1<self.kmin)],axis=0))]
             k2      = self.l2/self.chi[ii]
+            k2      = k2[np.where(np.any([(k2>self.kmax),(k2<self.kmin)],axis=0))]
             k3      = self.l3/self.chi[ii]
+            k3      = k3[np.where(np.any([(k3>self.kmax),(k3<self.kmin)],axis=0))]
 
             for j in xrange(len(k1)):
                 spec1+=[cosmo_pk(k1[j],z_i)]
                 spec2+=[cosmo_pk(k2[j],z_i)]
                 spec3+=[cosmo_pk(k3[j],z_i)]
 
-            if ii in [0,50,100]:
-                print z_i
-                pl.figure()
-                pl.loglog(k1,spec1,'ro')
-                pl.loglog(k3,spec3)
-                pl.show()
 
             specs = [np.asarray(spec1),np.asarray(spec2),np.asarray(spec3)]
 
@@ -290,7 +283,7 @@ class Bispectra():
         return B
 
 
-    def bispectrum_delta_fit(self,spectra,k1,k2,k3,k,i):
+    def bispectrum_delta_fit(self,spectra,k1,k2,k3,i):
         """ returns the bispectrum of the fractional overdensity today (a=1) i.e. B^0, the lowest order in non-lin PT
         *spectrum:   power spectrum for all ks in k_aux
         *k_spec:      array of ks where for which power spectrum is passed

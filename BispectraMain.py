@@ -22,7 +22,7 @@ import matplotlib.pyplot as pl
 
 from classy import Class
 import Cosmology as C
-from N32biasIntegrals import I0, I2
+from N32biasIntegrals import I0, I2, skew
 from Constants import LIGHT_SPEED
 
 from Bispectra import Bispectra
@@ -47,6 +47,9 @@ if __name__ == "__main__":
     #compute beta integrals?
     integrals   = True
 
+    skewness    = True
+    FWHMs       = [0.5,1.,2.,3.,4.,5.,8.,10.]
+
     #use LSST like redshift bins
     LSST        = False
 
@@ -60,12 +63,12 @@ if __name__ == "__main__":
     post_born   = False
 
     #fitting formula (use B_delta fitting formula from Gil-Marin et al. arXiv:1111.4477
-    B_fit       = False
+    B_fit       = True
     fit_z_max   = 1.5
 
     #number of redshift bins
     bin_num     = 130
-    z_min       = 1e-4
+    z_min       = 1e-3
 
     #sampling in L/l and angle
     len_L       = 100
@@ -79,15 +82,15 @@ if __name__ == "__main__":
     l_min       = L_min
     l_max       = 8000.
 
-    k_min       = None#1e-4
-    k_max       = None#100.
+    k_min       = 1e-3
+    k_max       = 50.
 
 
     Delta_theta = 1e-4
 
     nl          = False
 
-    cparams     = C.Planck2015_TTlowPlensing#SimulationCosmology
+    cparams     = C.SimulationCosmology#C.Planck2015_TTlowPlensing#
 
     #path, where to store results
     path        = "/home/nessa/Documents/Projects/LensingBispectrum/CMB-nonlinear/outputs/"
@@ -108,11 +111,6 @@ if __name__ == "__main__":
 
 
     params  = deepcopy(cparams[1])
-#    if Limber:
-#        params['l_switch_limber']=1
-#    else:
-#        params['l_switch_limber']=100
-#    print 'here'
     closmo  = Class()
     closmo.set(params)
     closmo.compute()
@@ -175,9 +173,7 @@ if __name__ == "__main__":
         #L = |-L|, equally spaced in lin at low L and in log at high L
         L       = np.exp(np.linspace(np.log(L_min),np.log(L_max),len_L))
         la      = L
-        lb      = np.exp(np.linspace(np.log(L_max),np.log(l_max),21))[1:]#np.linspace(20,L_max,len_l-40,endpoint=False)
-        #lc      = np.exp(np.linspace(np.log(L_max),np.log(l_max),20))
-        #l1      = np.append(la,lb)
+        lb      = np.exp(np.linspace(np.log(L_max),np.log(l_max),21))[1:]
         l       = np.append(la,lb)
         assert(len(l)==len_l)
 
@@ -208,14 +204,14 @@ if __name__ == "__main__":
 
     if ell_type=='equilat':
         for i in range(len_side):
-                l1= L[i]
-                l3= L[i]
-                l2= sqrt(l1*l1+l3*l3-2.*l1*l3*cosmu[i])
-                ell+=[l1]+[l2]+[l3]
-                ang31+=[-cosmu[i]]
-                ang12+=[(l3*l3-l1*l1-l2*l2)/(2.*l1*l2)]
-                ang23+=[(l1*l1-l3*l3-l2*l2)/(2.*l3*l2)]
-                angmu+=[theta[i]]
+            l1= L[i]
+            l3= L[i]
+            l2= sqrt(l1*l1+l3*l3-2.*l1*l3*cosmu[i])
+            ell+=[l1]+[l2]+[l3]
+            ang31+=[-cosmu[i]]
+            ang12+=[(l3*l3-l1*l1-l2*l2)/(2.*l1*l2)]
+            ang23+=[(l1*l1-l3*l3-l2*l2)/(2.*l3*l2)]
+            angmu+=[theta[i]]
     elif ell_type=='full':
         for i in range(len_L):
             for k in range(len_l):
@@ -275,6 +271,13 @@ if __name__ == "__main__":
 
         pickle.dump([params,L,Int0,Int2],open(path+'integrals/I0I1I2%s.pkl'%(config),'w'))
         print path+'integrals/I0I1I2%s.pkl'%(config)
+    if skewness:
+        res=[]
+        for FWHM in FWHMs:
+            res+=[skew(bs.bi_phi, FWHM, L, l, ell[1::3], theta, len_l, len_L,len_ang,kappa=True)]
+        print res
+        pickle.dump([FWHMs,skew],open(path+'skewness_%s.pkl'%(config),'w'))
+
 
 #TODO: check everything beneath
     if post_born:
@@ -328,13 +331,13 @@ if __name__ == "__main__":
             del bi_phi
         except:
             pass
-
-
-
-
-
-
-
-
-
-
+##
+##
+##
+##
+##
+##
+##
+##
+##
+##
