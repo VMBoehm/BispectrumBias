@@ -34,7 +34,7 @@ if __name__ == "__main__":
 
     "---begin settings---"
 
-    tag         = 'laptop_test2'
+    tag         = 'sim_comp_k-range1'
 
     #type of bispectrum
     kkg         = False
@@ -60,7 +60,7 @@ if __name__ == "__main__":
     #Limber      = False
 
     #post Born (use post Born terms from Pratten & Lewis arXiv:1605.05662)
-    post_born   = False
+    post_born   = True
 
     #fitting formula (use B_delta fitting formula from Gil-Marin et al. arXiv:1111.4477
     B_fit       = True
@@ -82,15 +82,15 @@ if __name__ == "__main__":
     l_min       = L_min
     l_max       = 8000.
 
-    k_min       = 1e-3
-    k_max       = 50.
-
 
     Delta_theta = 1e-4
 
-    nl          = False
-
+    nl          = True
     cparams     = C.SimulationCosmology#C.Planck2015_TTlowPlensing#
+
+    k_min       = 0.0105*cparams[1]['h']
+    k_max       = 42.9*cparams[1]['h']
+    #k-range1: 0.0105*cparams[1]['h']-2.9*cparams[1]['h']
 
     #path, where to store results
     path        = "/home/nessa/Documents/Projects/LensingBispectrum/CMB-nonlinear/outputs/"
@@ -313,31 +313,31 @@ if __name__ == "__main__":
             bi_phi = bi_post+bs.bi_phi
 
         if integrals:
-            Int0 = I0(bi_phi, bs.ell, angmu ,len_L, len_l, len_ang)
+            Int0 = I0(bi_phi, L, l, theta, len_l, len_L,len_ang)
 
-            Int2 = I2(bi_phi, bs.ell, angmu ,len_L, len_l, len_ang)
+            Int2 = I2(bi_phi, L, l, theta, len_l, len_L,len_ang)
 
-            L    = np.unique(ell[0::3])
-
-            pickle.dump([params,L,Int0,Int2],open('./cross_integrals/I0I1I2%s.pkl'%(config),'w'))
-            Int0 = I0(bi_kkg, bs.ell, angmu ,len_L, len_l, len_ang)
-
-            Int2 = I2(bi_kkg, bs.ell, angmu ,len_L, len_l, len_ang)
-
-            pickle.dump([params,L,Int0,Int2],open('./cross_integrals/I0I1I2%s_only.pkl'%(config),'w'))
+            pickle.dump([params,L,Int0,Int2],open(path+'integrals/I0I1I2%s.pkl'%(config),'w'))
+            print path+'integrals/I0I1I2%s.pkl'%(config)
+        if skewness:
+            res=[]
+            for FWHM in FWHMs:
+                res+=[skew(bi_phi, FWHM, L, l, ell[1::3], theta, len_l, len_L,len_ang,kappa=True)]
+            print res
+            pickle.dump([FWHMs,skew],open(path+'skewness_%s.pkl'%(config),'w'))
 
         del bs
         try:
             del bi_phi
         except:
             pass
-##
-##
-##
-##
-##
-##
-##
-##
-##
-##
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
