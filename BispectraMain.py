@@ -34,7 +34,7 @@ if __name__ == "__main__":
 
     "---begin settings---"
 
-    tag         = 'sim_comp_k-range1'
+    tag         = 'sim_comp_k-range2'
 
     #type of bispectrum
     kkg         = False
@@ -60,10 +60,10 @@ if __name__ == "__main__":
     #Limber      = False
 
     #post Born (use post Born terms from Pratten & Lewis arXiv:1605.05662)
-    post_born   = True
+    post_born   = False
 
     #fitting formula (use B_delta fitting formula from Gil-Marin et al. arXiv:1111.4477
-    B_fit       = True
+    B_fit       = False
     fit_z_max   = 1.5
 
     #number of redshift bins
@@ -76,7 +76,7 @@ if __name__ == "__main__":
     len_ang     = 100
 
     #ell range (for L and l)
-    L_min       = 1.
+    L_min       = 1. #set to 2
     L_max       = 3000.
 
     l_min       = L_min
@@ -85,12 +85,13 @@ if __name__ == "__main__":
 
     Delta_theta = 1e-4
 
-    nl          = True
+    nl          = False
     cparams     = C.SimulationCosmology#C.Planck2015_TTlowPlensing#
 
-    k_min       = 0.0105*cparams[1]['h']
-    k_max       = 42.9*cparams[1]['h']
-    #k-range1: 0.0105*cparams[1]['h']-2.9*cparams[1]['h']
+    k_min       = 1e-3#0.0105*cparams[1]['h']
+    k_max       = 100.#49*cparams[1]['h']
+    #k-range1: 0.0105*cparams[1]['h']-42.9*cparams[1]['h']
+    #k-range2: 0.0105*cparams[1]['h']-49*cparams[1]['h']
 
     #path, where to store results
     path        = "/home/nessa/Documents/Projects/LensingBispectrum/CMB-nonlinear/outputs/"
@@ -198,7 +199,9 @@ if __name__ == "__main__":
     ang12=[]
     ang23=[]
     angmu=[]
-    ell  =[]
+    ell1  =[]
+    ell2  =[]
+    ell3  =[]
     sqrt=np.sqrt
             #all combinations of the two sides and the angles
 
@@ -207,7 +210,9 @@ if __name__ == "__main__":
             l1= L[i]
             l3= L[i]
             l2= sqrt(l1*l1+l3*l3-2.*l1*l3*cosmu[i])
-            ell+=[l1]+[l2]+[l3]
+            ell1+=[l1]
+            ell2+=[l2]
+            ell3+=[l3]
             ang31+=[-cosmu[i]]
             ang12+=[(l3*l3-l1*l1-l2*l2)/(2.*l1*l2)]
             ang23+=[(l1*l1-l3*l3-l2*l2)/(2.*l3*l2)]
@@ -219,7 +224,9 @@ if __name__ == "__main__":
                     l1= L[i]
                     l3= l[k]
                     l2= sqrt(l1*l1+l3*l3-2.*l1*l3*cosmu[j])
-                    ell+=[l1]+[l2]+[l3]
+                    ell1+=[l1]
+                    ell2+=[l2]
+                    ell3+=[l3]
                     ang31+=[-cosmu[j]]
                     ang12+=[(l3*l3-l1*l1-l2*l2)/(2.*l1*l2)]
                     ang23+=[(l1*l1-l3*l3-l2*l2)/(2.*l3*l2)]
@@ -230,7 +237,9 @@ if __name__ == "__main__":
     ang23=np.array(ang23)
     ang31=np.array(ang31)
     angmu=np.array(angmu)
-    ell=np.asarray(ell)
+    ell1=np.asarray(ell1)
+    ell2=np.asarray(ell2)
+    ell3=np.asarray(ell3)
 
     if kkg:
         config = 'kkg_%s'%ell_type
@@ -258,7 +267,7 @@ if __name__ == "__main__":
 
     print "config: %s"%config
 
-    bs   = Bispectra(params,data,ell,z,config,ang12,ang23,ang31,path,z_cmb, bias, nl,B_fit,kkg, kgg, kkk,dndz, norm,k_min,k_max,sym,fit_z_max)
+    bs   = Bispectra(params,data,ell1,ell2,ell3,len_L*len_l*len_ang,z,config,ang12,ang23,ang31,path,z_cmb, bias, nl,B_fit,kkg, kgg, kkk,dndz, norm,k_min,k_max,sym,fit_z_max)
 
     bs()
 
@@ -274,24 +283,24 @@ if __name__ == "__main__":
     if skewness:
         res=[]
         for FWHM in FWHMs:
-            res+=[skew(bs.bi_phi, FWHM, L, l, ell[1::3], theta, len_l, len_L,len_ang,kappa=True)]
+            res+=[skew(bs.bi_phi, FWHM, L, l, ell2, theta, len_l, len_L,len_ang,kappa=True)]
         print res
         pickle.dump([FWHMs,skew],open(path+'skewness_%s.pkl'%(config),'w'))
 
 
 #TODO: check everything beneath
     if post_born:
-        import CAMB_postborn as postborn
+        import CAMB_postborn_old as postborn
         print 'computing post Born corrections...'
-        assert(kkg or kkk)
+        assert(kkk or kkg)
 
         config +='_postBorn'
 
-        if bs.set_stage==False:
-            bs.set_up()
+#        if bs.set_stage==False:
+#            bs.set_up()
         k_min   = bs.kmin
         k_max   = bs.kmax
-        PBB     = postborn.PostBorn_Bispec(params,k_min,k_max,kkg,dndz,norm)
+        PBB     = postborn.PostBorn_Bispec(params,k_min,k_max,lmax=max(ell2))#,kkg,dndz,norm)
 
         if kkg:
             try:
@@ -300,14 +309,15 @@ if __name__ == "__main__":
             except:
                 prefac      = 16./(3.*data.Omega_m0*data.H_0**2)*LIGHT_SPEED**2
                 #L is associated wit galaxy leg in bias, in CAMBPostBorn it's L3
-                bi_kkg      = PBB.bi_born_cross(ell[1::3],ell[2::3],ell[0::3],prefac,sym=bs.sym)
+                bi_kkg      = PBB.bi_born_cross(ell1,ell2,ell3,prefac,sym=bs.sym)
                 bi_kkg_sum  = bi_kkg+bs.bi_phi
                 np.save(bs.filename+"_post_born.npy",bi_kkg)
                 np.save(bs.filename+"_post_born_sum.npy",bi_kkg_sum)
 
             bi_phi = bi_kkg_sum
         else:
-            bi_post  = (PBB.bi_born(ell[0::3],ell[1::3],ell[0::3])*8./(ell[0::3]*ell[1::3]*ell[2::3])**2)
+            bi_post  = PBB.bi_born(ell1,ell2,ell3)*8./(ell1*ell2*ell3)**2
+            PBB.plot(ll=np.unique(ell1))
             np.save(bs.filename+"_post_born.npy",bi_post)
             np.save(bs.filename+"_post_born_sum.npy",bi_post+bs.bi_phi)
             bi_phi = bi_post+bs.bi_phi
@@ -322,7 +332,7 @@ if __name__ == "__main__":
         if skewness:
             res=[]
             for FWHM in FWHMs:
-                res+=[skew(bi_phi, FWHM, L, l, ell[1::3], theta, len_l, len_L,len_ang,kappa=True)]
+                res+=[skew(bi_phi, FWHM, L, l, ell2, theta, len_l, len_L,len_ang,kappa=True)]
             print res
             pickle.dump([FWHMs,skew],open(path+'skewness_%s.pkl'%(config),'w'))
 
@@ -331,13 +341,4 @@ if __name__ == "__main__":
             del bi_phi
         except:
             pass
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
+

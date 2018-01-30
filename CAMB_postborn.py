@@ -23,14 +23,14 @@ from Constants import LIGHT_SPEED
 
 
 class PostBorn_Bispec():
-    
+
     def __init__(self,CLASSparams,k_min=1e-4,k_max=100,cross=False, dndz=None, norm=None, lmax=None, acc=None, NL=True):
         pars = camb.CAMBparams()
         try:
             A_s=CLASSparams['A_s']
         except:
             A_s=np.exp(CLASSparams['ln10^{10}A_s'])*1e-10
-            
+
         pars.set_cosmology(H0=CLASSparams['h']*100, ombh2=CLASSparams['omega_b'], omch2=CLASSparams['omega_cdm'],omk=CLASSparams['Omega_k'],num_massive_neutrinos=0, mnu=0.0, nnu=3.046)
         pars.InitPower.set_params(As=A_s,ns=CLASSparams['n_s'],  pivot_scalar=CLASSparams['k_pivot'])
         self.results= camb.get_background(pars)
@@ -40,14 +40,14 @@ class PostBorn_Bispec():
 #Get matter power spectrum interpolation objects for fiducial model
         self.kmax = k_max
         self.kmin = k_min
-        
+
         self.norm = norm
-        
+
 
         if lmax==None:
             lmax=20000
         if acc==None:
-            acc=1 #(change back to 1 unless you need high accuracy - much faster)
+            acc=4 #(change back to 1 unless you need high accuracy - much faster)
         self.nz = 200*acc
 
         chistar = self.results.conformal_time(0)- model.tau_maxvis.value #chi_cmb
@@ -56,20 +56,20 @@ class PostBorn_Bispec():
         print "Postborn z_max: ", zmax
 
         k_per_logint= None
-        self.PK     = camb.get_matter_power_interpolator(pars, nonlinear=NL, 
+        self.PK     = camb.get_matter_power_interpolator(pars, nonlinear=NL,
         hubble_units=False, k_hunit=False, kmax=self.kmax,k_per_logint=k_per_logint,
         var1=model.Transfer_Weyl,var2=model.Transfer_Weyl, zmax=zmax)
-    
+
         ls          = np.hstack((np.arange(2, 400, 1),np.arange(400, 2600, 10//acc),np.arange(2650, lmax, 50//acc),np.arange(lmax,lmax+1))).astype(np.float64)
         self.ls     = ls
-        
+
         self.acc    = acc
         self.lmax   = lmax
 
         #Get cross-CL kappa for M_* matrix
         nchimax     = 100*acc
         chimaxs     = np.linspace(0 ,chistar, nchimax)
-        
+
         cls = np.zeros((nchimax,ls.size))
         cls2= np.zeros((nchimax,ls.size))
         for i, chimax in enumerate(chimaxs[1:]):
@@ -77,15 +77,15 @@ class PostBorn_Bispec():
                 cl2 = self.cl_cross(chimax)
                 cl  = self.cl_kappa(chimax,chistar)
             else:
-                cl = self.cl_kappa(chimax,chistar)    
+                cl = self.cl_kappa(chimax,chistar)
             cls[i+1,:] = cl
             if self.cross:
                 cls2[i+1,:] = cl2
         cls[0,:]=0
         if self.cross:
             cls2[0,:]=0
-            
-        cl_chi_chistar = RectBivariateSpline(chimaxs,ls,cls)     
+
+        cl_chi_chistar = RectBivariateSpline(chimaxs,ls,cls)
         if self.cross:
             cl_chi_chistar2 = RectBivariateSpline(chimaxs,ls,cls2)
 
@@ -101,7 +101,7 @@ class PostBorn_Bispec():
         cchi    = cl_chi_chistar(chis,ls, grid=True)
         if self.cross:
             cchi    = cl_chi_chistar2(chis,ls, grid=True)
-            
+
         Mstar = np.zeros((ls.size,ls.size))
         for i, l in enumerate(ls):
             k=(l+0.5)/chis
@@ -115,7 +115,7 @@ class PostBorn_Bispec():
                 Mstar[i,:] = cl*l**4
 
         self.Mstarsp = RectBivariateSpline(ls,ls,Mstar)
-    
+
         if self.cross:
             win     = (1/chis-1/chistar)/chis**2
             # bias and scale factor cancel out
@@ -125,7 +125,7 @@ class PostBorn_Bispec():
             cl      = np.zeros(ls.shape)
             w       = np.ones(chis.shape)
             cchi    = cl_chi_chistar(chis,ls, grid=True)
-    
+
             Mstar = np.zeros((ls.size,ls.size))
             for i, l in enumerate(ls):
                 k=(l+0.5)/chis
@@ -133,15 +133,15 @@ class PostBorn_Bispec():
                 w[k>=self.kmax]=0
                 w[k<=self.kmin]=0
                 cl = np.dot(dchis*w*self.PK.P(zs, k, grid=False)/k**4*win*wing,cchi)
-                
+
                 Mstar[i,:] = cl
 
-        
+
             self.Mstarsp2 = RectBivariateSpline(ls,ls,Mstar)
 
     def cl_kappa(self, chi_source, chi_source2=None):
         chi_source = np.float64(chi_source)
-        if chi_source2 is None: 
+        if chi_source2 is None:
             chi_source2 = chi_source
         else:
             chi_source2 = np.float64(chi_source2)
@@ -162,9 +162,9 @@ class PostBorn_Bispec():
         if self.cross==False:
             cl*= self.ls**4
         return cl
-        
+
     def cl_cross(self, chi_source):
-        
+
         chi_source = np.float64(chi_source)
         chis    = np.linspace(0,chi_source,self.nz, dtype=np.float64)
         zs      = self.results.redshift_at_comoving_radial_distance(chis)
@@ -177,8 +177,8 @@ class PostBorn_Bispec():
         # bias and scale factor cancel out
         wing    = self.dndz(zs)*Hz/chis**2#H is in Mpc^-1 -> do not need to divide by c
         wing/=self.norm
-        
-        
+
+
         cl=np.zeros(self.ls.shape)
         w = np.ones(chis.shape)
         for i, l in enumerate(self.ls):
@@ -193,20 +193,20 @@ class PostBorn_Bispec():
 
     def bi_born(self,l1,l2,l3,gamma=1.,sym=True):
         assert(sym==True)
-        
+
         cos12 = (l3**2-l1**2-l2**2)/2/l1/l2
         cos23 = (l1**2-l2**2-l3**2)/2/l2/l3
         cos31 = (l2**2-l3**2-l1**2)/2/l3/l1
         return  - 2*cos12*((l1/l2+cos12)*self.Mstarsp(l1,l2,grid=False) + (l2/l1+cos12)*self.Mstarsp(l2,l1, grid=False) )\
                 - 2*cos23*((l2/l3+cos23)*self.Mstarsp(l2,l3,grid=False) + (l3/l2+cos23)*self.Mstarsp(l3,l2, grid=False) )\
-                - 2*cos31*((l3/l1+cos31)*self.Mstarsp(l3,l1,grid=False) + (l1/l3+cos31)*self.Mstarsp(l1,l3 ,grid=False) ) 
-    
+                - 2*cos31*((l3/l1+cos31)*self.Mstarsp(l3,l1,grid=False) + (l1/l3+cos31)*self.Mstarsp(l1,l3 ,grid=False) )
+
     def bi_born_cross(self,L1,L2,L3,gamma,sym=False):
-      
+
         L1L2 = (L3**2-L1**2-L2**2)/2.
         L2L3 = (L1**2-L2**2-L3**2)/2.
         L3L1 = (L2**2-L3**2-L1**2)/2.
-        
+
         if sym==False:
             #L3 associated with g
             return  gamma*\
@@ -220,27 +220,27 @@ class PostBorn_Bispec():
             (L2/L1)**2*L2L3*(L3L1*self.Mstarsp(L3,L2,grid=False)+L1L2*self.Mstarsp2(L2,L3,grid=False)))+\
             ((L1/L2)**2*L3L1*(L2L3*self.Mstarsp(L3,L1,grid=False)+L1L2*self.Mstarsp2(L1,L3,grid=False))+\
             (L1/L3)**2*L1L2*(L2L3*self.Mstarsp(L2,L1,grid=False)+L3L1*self.Mstarsp2(L1,L2,grid=False))))
-        
+
     def cl_bi_born(self, lset,sym):
-        
+
         if self.cross:
             bi   = self.bi_born_cross
         else:
             bi   = self.bi_born
-            
+
         lset = lset.astype(np.float64)
         cl   = np.zeros(lset.shape[0])
         for i, (l1,l2,l3) in enumerate(lset):
             cl[i] = bi(l1,l2,l3,gamma=1,sym=sym)
         return cl
-        
-    
+
+
     def plot(self,cross,gamma=1, sym=True):
         if not cross:
             gamma=1.
         lsamp = np.hstack((np.arange(2, 20, 2), np.arange(25, 200, 10//self.acc), np.arange(220, 1200, 30//self.acc),
                            np.arange(1200, min(self.lmax//2,2600), 150//self.acc),np.arange(2600, self.lmax//2+1, 1000//self.acc)))
-        
+
         litems =np.zeros((lsamp.size,3))
         fig, axes = plt.subplots(1,4,figsize=(12,3.6), sharey=True, sharex=True)
         l1=100
@@ -251,16 +251,16 @@ class PostBorn_Bispec():
                 if p==0:
                     litems[i,:]=l,l,l
                 else:
-                    litems[i,:]=l,l/2.,l/2.            
-        
+                    litems[i,:]=l,l/2.,l/2.
+
             testborn = self.cl_bi_born(litems,sym)*gamma
-            
+
             #print testborn
             if testborn[0]>0:
                 ax.loglog(lsamp, testborn, color='r',ls='-')
             else:
                 ax.loglog(lsamp, -testborn, color='r',ls='--',label='_nolegend_')
-        
+
             ax.legend(['Post-Born'], frameon =False, loc='lower left')
             if p==1:
                 ax.set_title('$L_1, L_2, L_3 = L, L/2, L/2$')
@@ -268,18 +268,18 @@ class PostBorn_Bispec():
             else:
                 ax.set_title('$L_1,L_2, L_3 = L, L, L$')
                 ax.text(1800,1e-14,'Equilateral')
-        
+
             ax.set_xlabel('$L$')
             ax.set_xlim([l1,1e4])
             ax.set_ylim([1e-20,1e-13])
-            
+
             #convert k to phi
             if not cross:
                 testborn*=8./lsamp**6
                 # folded
                 if p==1:
                     testborn*=2.**4
-                           
+
             if p==1:
                 res+=['folded',lsamp,testborn]
             else:
@@ -294,9 +294,9 @@ class PostBorn_Bispec():
         else:
             plt.savefig('postborn_testplot.png')
             pickle.dump(res,open('postborn_phiphiphi.pkl','w'))
-        
-        
-        
+
+
+
 
 if __name__ == "__main__":
     params=deepcopy(C.SimulationCosmology[1])
@@ -306,14 +306,20 @@ if __name__ == "__main__":
     Omega_m0=Om_b+Om_cdm
     print H0, Omega_m0
     gamma=16./(3.*Omega_m0*H0**2)*LIGHT_SPEED**2
-    sym = True
+    sym=False
+    dndz=None
+    norm=None
+#    sym = True
 
-    z       = np.exp(np.linspace(np.log(1e-4),np.log(1000),100))    
-    z0      = 1./3.
-    dndz    = (z/z0)**2*np.exp(-z/z0)
-    dndz    = interp1d(z,dndz,kind='slinear',fill_value=0.,bounds_error=False)
-    norm    = simps(dndz(z),z)
-    
-    for cross in [True]:
-        PBB=PostBorn_Bispec(C.SimulationCosmology[1],cross=cross,dndz=dndz, norm=norm)
-        PBB.plot(cross,gamma,sym)
+#    z       = np.exp(np.linspace(np.log(1e-4),np.log(1000),100))
+#    z0      = 1./3.
+#    dndz    = (z/z0)**2*np.exp(-z/z0)
+#    dndz    = interp1d(z,dndz,kind='slinear',fill_value=0.,bounds_error=False)
+#    norm    = simps(dndz(z),z)
+
+    PBB=PostBorn_Bispec(C.SimulationCosmology[1],cross=False,dndz=dndz, norm=norm)
+    PBB.plot(cross=False)
+
+    #for cross in [True]:
+#        PBB=PostBorn_Bispec(C.SimulationCosmology[1],cross=cross,dndz=dndz, norm=norm)
+#        PBB.plot(cross,gamma,sym)

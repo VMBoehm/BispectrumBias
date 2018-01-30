@@ -15,7 +15,7 @@ import numpy as np
 import HelperFunctions as hf
 from scipy.integrate import simps
 from scipy.interpolate import splev
-import matplotlib.pyplot as pl
+#import matplotlib.pyplot as pl
 from classy import Class
 import copy
 import time
@@ -28,11 +28,9 @@ class Bispectra():
         - newtonian potential bi_psi (function of chi)
         - lensing potential bi_phi
     """
-    def __init__(self,cosmo,data, ell,z,config,ang12,ang23,ang31, path, z_cmb, b=None, nonlin=False, B_fit=False, kkg=False, kgg=False, kkk=True, dndz=None,norm=None,k_min=None,k_max=None,sym=False, fit_z_max=1.5):
+    def __init__(self,cosmo,data, ell1,ell2,ell3,len_bi,z,config,ang12,ang23,ang31, path, z_cmb, b=None, nonlin=False, B_fit=False, kkg=False, kgg=False, kkk=True, dndz=None,norm=None,k_min=None,k_max=None,sym=False, fit_z_max=1.5):
 
         self.cosmo      = copy.deepcopy(cosmo)
-
-        self.ell        = ell
 
         self.data       = data
         #for comoving angular diameter distance
@@ -45,17 +43,17 @@ class Bispectra():
 
         assert((data.z==self.z).all())
 
-        self.l1       = ell[0::3]
-        self.l3       = ell[2::3]
-        self.l2       = ell[1::3]
+        self.l1       = ell1
+        self.l3       = ell2
+        self.l2       = ell2
 
         self.L_min    = min(self.l1)
         self.L_max    = max(self.l1)
         self.l_min    = min(self.l3)
         self.l_max    = max(self.l3)
 
-        self.bin_num  = len(ell)
-        self.len_bi   = int(self.bin_num/3)
+        self.len_bi   = len_bi
+        assert(len_bi==len(self.l1))
 
         print "bispectrum size: ", self.len_bi
 
@@ -103,6 +101,16 @@ class Bispectra():
 
         self.sym    = sym
 
+        kmax             = max(self.l2)/min(self.chi)
+        kmin             = min(self.l2)/max(self.chi)
+
+        if self.kmin==None:
+            self.kmin=kmin
+        if self.kmax==None:
+            self.kmax=kmax
+        print "kmin and kmax from ell/chi", kmin, kmax
+        print "kmin and kmax for bispectrum delta", self.kmin, self.kmax
+
 
 
     def __call__(self):
@@ -141,22 +149,12 @@ class Bispectra():
         initializes all indice-related arrays and instance of class
         """
 
-        kmax             = max(self.ell)/min(self.chi)
-        kmin             = min(self.ell)/max(self.chi)
-
-        if self.kmin==None:
-            self.kmin=kmin
-        if self.kmax==None:
-            self.kmax=kmax
-        print "kmin and kmax from ell/chi", kmin, kmax
-        print "kmin and kmax for bispectrum delta", self.kmin, self.kmax
-
 #TODO: check!
         if self.B_fit:
             k4n=np.exp(np.linspace(np.log(self.kmin),np.log(self.kmax),100))
             k4n=np.concatenate((k4n,np.exp(np.linspace(-4,-1,100))))
             k4n=np.sort(k4n)
-            self.data.get_abc(k4n,self.z[np.where(self.z<=self.fit_z_max)],self.fit_z_max)
+            self.data.get_abc(k4n,np.clip(self.z,0.,self.fit_z_max),self.fit_z_max)
 
 
         self.cosmo['output']='mPk'
@@ -231,14 +229,11 @@ class Bispectra():
 
             k1      = self.l1/self.chi[ii]
             k1      = np.clip(k1,self.kmin,self.kmax)
-            #k1      = k1[np.where(np.any([(k1>self.kmax),(k1<self.kmin)],axis=0))]
             k2      = self.l2/self.chi[ii]
             k2      = np.clip(k2,self.kmin,self.kmax)
-            #k2      = k2[np.where(np.any([(k2>self.kmax),(k2<self.kmin)],axis=0))]
             k3      = self.l3/self.chi[ii]
+            k3      = np.clip(k3,self.kmin,self.kmax)
 
-            k3      = np.clip(k3,self.kmin,self.kmax)#k3[np.where(np.any([(k3>self.kmax),(k3<self.kmin)],axis=0))]
-#            print max(k3), self.kmax
             for j in xrange(len(k1)):
                 spec1+=[cosmo_pk(k1[j],z_i)]
                 spec2+=[cosmo_pk(k2[j],z_i)]
@@ -276,13 +271,6 @@ class Bispectra():
         +2.*hf.get_F2_kernel(k2,k3,self.ang23)*spectra[1]*spectra[2]\
         +2.*hf.get_F2_kernel(k3,k1,self.ang31)*spectra[2]*spectra[0]
 
-#        index   =np.where(np.any([(k1>self.kmax),(k1<self.kmin)],axis=0))
-#        B[index]=0.
-#        index   =np.where(np.any([(k2>self.kmax),(k2<self.kmin)],axis=0))
-#        B[index]=0.
-#        index   =np.where(np.any([(k3>self.kmax),(k3<self.kmin)],axis=0))
-#        B[index]=0.
-
         return B
 
 
@@ -296,13 +284,6 @@ class Bispectra():
         B= 2.*self.get_F2_kernel_fit(k1,k2,self.ang12,i)*spectra[0]*spectra[1]
         B+=2.*self.get_F2_kernel_fit(k2,k3,self.ang23,i)*spectra[1]*spectra[2]
         B+=2.*self.get_F2_kernel_fit(k1,k3,self.ang31,i)*spectra[0]*spectra[2]
-
-#        index=np.where(np.any([(k1>self.kmax),(k1<self.kmin)],axis=0))
-#        B[index]=0.
-#        index=np.where(np.any([(k2>self.kmax),(k2<self.kmin)],axis=0))
-#        B[index]=0.
-#        index=np.where(np.any([(k3>self.kmax),(k3<self.kmin)],axis=0))
-#        B[index]=0.
 
         return B
 
