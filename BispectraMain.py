@@ -34,7 +34,7 @@ if __name__ == "__main__":
 
     "---begin settings---"
 
-    tag         = 'sim_comp_testzmin'
+    tag         = 'sim_comp_update'
 
     #type of bispectrum
     kkg         = False
@@ -67,7 +67,7 @@ if __name__ == "__main__":
     fit_z_max   = 1.5
 
     #number of redshift bins
-    bin_num     = 130
+    bin_num     = 80
     z_min       = 1e-3
 
     #sampling in L/l and angle
@@ -89,7 +89,7 @@ if __name__ == "__main__":
     cparams     = C.SimulationCosmology#C.Planck2015_TTlowPlensing#
 
     k_min       = 0.0105*cparams[1]['h']
-    k_max       = 49*cparams[1]['h']
+    k_max       = 42.9*cparams[1]['h']
     #k-range1: 0.0105*cparams[1]['h']-2.9*cparams[1]['h']
 
     #path, where to store results
@@ -121,7 +121,7 @@ if __name__ == "__main__":
 
     print "z_cmb: %f"%z_cmb
 
-    z_a     = np.exp(np.linspace(np.log(z_min),np.log(100.),120,endpoint=False))
+    z_a     = np.exp(np.linspace(np.log(z_min),np.log(100.),70,endpoint=False))
     z_b     = np.linspace(100.,z_cmb-0.001,10)
     z       = np.append(z_a,z_b)
     assert(len(z)==bin_num)
@@ -198,7 +198,9 @@ if __name__ == "__main__":
     ang12=[]
     ang23=[]
     angmu=[]
-    ell  =[]
+    ell1 =[]
+    ell2 =[]
+    ell3 =[]
     sqrt=np.sqrt
             #all combinations of the two sides and the angles
 
@@ -207,7 +209,9 @@ if __name__ == "__main__":
             l1= L[i]
             l3= L[i]
             l2= sqrt(l1*l1+l3*l3-2.*l1*l3*cosmu[i])
-            ell+=[l1]+[l2]+[l3]
+            ell1+=[l1]
+            ell2+=[l2]
+            ell3+=[l3]
             ang31+=[-cosmu[i]]
             ang12+=[(l3*l3-l1*l1-l2*l2)/(2.*l1*l2)]
             ang23+=[(l1*l1-l3*l3-l2*l2)/(2.*l3*l2)]
@@ -219,7 +223,9 @@ if __name__ == "__main__":
                     l1= L[i]
                     l3= l[k]
                     l2= sqrt(l1*l1+l3*l3-2.*l1*l3*cosmu[j])
-                    ell+=[l1]+[l2]+[l3]
+                    ell1+=[l1]
+                    ell2+=[l2]
+                    ell3+=[l3]
                     ang31+=[-cosmu[j]]
                     ang12+=[(l3*l3-l1*l1-l2*l2)/(2.*l1*l2)]
                     ang23+=[(l1*l1-l3*l3-l2*l2)/(2.*l3*l2)]
@@ -230,7 +236,6 @@ if __name__ == "__main__":
     ang23=np.array(ang23)
     ang31=np.array(ang31)
     angmu=np.array(angmu)
-    ell=np.asarray(ell)
 
     if kkg:
         config = 'kkg_%s'%ell_type
@@ -258,7 +263,7 @@ if __name__ == "__main__":
 
     print "config: %s"%config
 
-    bs   = Bispectra(params,data,ell,z,config,ang12,ang23,ang31,path,z_cmb, bias, nl,B_fit,kkg, kgg, kkk,dndz, norm,k_min,k_max,sym,fit_z_max)
+    bs   = Bispectra(params,data,ell1,ell2,ell3,z,config,ang12,ang23,ang31,path,z_cmb, bias, nl,B_fit,kkg, kgg, kkk,dndz, norm,k_min,k_max,sym,fit_z_max)
 
     bs()
 
@@ -274,7 +279,7 @@ if __name__ == "__main__":
     if skewness:
         res=[]
         for FWHM in FWHMs:
-            res+=[skew(bs.bi_phi, FWHM, L, l, ell[1::3], theta, len_l, len_L,len_ang,kappa=True)]
+            res+=[skew(bs.bi_phi, FWHM, L, l, ell2, theta, len_l, len_L,len_ang,kappa=True)]
         print res
         pickle.dump([FWHMs,skew],open(path+'skewness_%s.pkl'%(config),'w'))
 
@@ -300,14 +305,14 @@ if __name__ == "__main__":
             except:
                 prefac      = 16./(3.*data.Omega_m0*data.H_0**2)*LIGHT_SPEED**2
                 #L is associated wit galaxy leg in bias, in CAMBPostBorn it's L3
-                bi_kkg      = PBB.bi_born_cross(ell[1::3],ell[2::3],ell[0::3],prefac,sym=bs.sym)
+                bi_kkg      = PBB.bi_born_cross(ell2,ell3,ell1,prefac,sym=bs.sym)
                 bi_kkg_sum  = bi_kkg+bs.bi_phi
                 np.save(bs.filename+"_post_born.npy",bi_kkg)
                 np.save(bs.filename+"_post_born_sum.npy",bi_kkg_sum)
 
             bi_phi = bi_kkg_sum
         else:
-            bi_post  = (PBB.bi_born(ell[0::3],ell[1::3],ell[0::3])*8./(ell[0::3]*ell[1::3]*ell[2::3])**2)
+            bi_post  = (PBB.bi_born(ell1,ell2,ell3)*8./(ell1*ell2*ell3)**2)
             np.save(bs.filename+"_post_born.npy",bi_post)
             np.save(bs.filename+"_post_born_sum.npy",bi_post+bs.bi_phi)
             bi_phi = bi_post+bs.bi_phi
@@ -322,7 +327,7 @@ if __name__ == "__main__":
         if skewness:
             res=[]
             for FWHM in FWHMs:
-                res+=[skew(bi_phi, FWHM, L, l, ell[1::3], theta, len_l, len_L,len_ang,kappa=True)]
+                res+=[skew(bi_phi, FWHM, L, l, ell2, theta, len_l, len_L,len_ang,kappa=True)]
             print res
             pickle.dump([FWHMs,skew],open(path+'skewness_%s.pkl'%(config),'w'))
 

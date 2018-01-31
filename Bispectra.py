@@ -28,11 +28,9 @@ class Bispectra():
         - newtonian potential bi_psi (function of chi)
         - lensing potential bi_phi
     """
-    def __init__(self,cosmo,data, ell,z,config,ang12,ang23,ang31, path, z_cmb, b=None, nonlin=False, B_fit=False, kkg=False, kgg=False, kkk=True, dndz=None,norm=None,k_min=None,k_max=None,sym=False, fit_z_max=1.5):
+    def __init__(self,cosmo,data, ell1,ell2,ell3,z,config,ang12,ang23,ang31, path, z_cmb, b=None, nonlin=False, B_fit=False, kkg=False, kgg=False, kkk=True, dndz=None,norm=None,k_min=None,k_max=None,sym=False, fit_z_max=1.5):
 
         self.cosmo      = copy.deepcopy(cosmo)
-
-        self.ell        = ell
 
         self.data       = data
         #for comoving angular diameter distance
@@ -45,17 +43,17 @@ class Bispectra():
 
         assert((data.z==self.z).all())
 
-        self.l1       = ell[0::3]
-        self.l3       = ell[2::3]
-        self.l2       = ell[1::3]
+        self.l1       = np.asarray(ell1)
+        self.l2       = np.asarray(ell2)
+        self.l3       = np.asarray(ell3)
 
         self.L_min    = min(self.l1)
         self.L_max    = max(self.l1)
         self.l_min    = min(self.l3)
         self.l_max    = max(self.l3)
 
-        self.bin_num  = len(ell)
-        self.len_bi   = int(self.bin_num/3)
+        self.len_bi   = len(self.l1)
+        assert(self.len_bi==len(self.l2))
 
         print "bispectrum size: ", self.len_bi
 
@@ -103,6 +101,16 @@ class Bispectra():
 
         self.sym    = sym
 
+        kmax        = max(self.l2)/min(self.chi)
+        kmin        = min(self.l2)/max(self.chi)
+
+        if self.kmin==None:
+            self.kmin=kmin
+        if self.kmax==None:
+            self.kmax=kmax
+        print "kmin and kmax from ell/chi", kmin, kmax
+        print "kmin and kmax for bispectrum delta", self.kmin, self.kmax
+
 
 
     def __call__(self):
@@ -140,16 +148,6 @@ class Bispectra():
         """
         initializes all indice-related arrays and instance of class
         """
-
-        kmax             = max(self.ell)/min(self.chi)
-        kmin             = min(self.ell)/max(self.chi)
-
-        if self.kmin==None:
-            self.kmin=kmin
-        if self.kmax==None:
-            self.kmax=kmax
-        print "kmin and kmax from ell/chi", kmin, kmax
-        print "kmin and kmax for bispectrum delta", self.kmin, self.kmax
 
 #TODO: check!
         if self.B_fit:
