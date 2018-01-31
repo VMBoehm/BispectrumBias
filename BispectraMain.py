@@ -190,7 +190,7 @@ if __name__ == "__main__":
     if ell_type=='folded':
         theta   = np.asarray([0.]*len_side)
 
-
+    print filename
     pickle.dump([L,l,theta],open(filename, 'w'))
 
     cosmu   = np.cos(theta) #Ldotl/Ll or -l1dotl3/l1/l3 (l1+l2+l3=0) (angle used in beta Integrals)

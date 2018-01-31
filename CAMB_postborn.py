@@ -24,7 +24,7 @@ from Constants import LIGHT_SPEED
 
 class PostBorn_Bispec():
 
-    def __init__(self,CLASSparams,k_min=1e-4,k_max=100,cross=False, dndz=None, norm=None, lmax=None, acc=None, NL=True):
+    def __init__(self,CLASSparams,k_min=1e-4,k_max=100,cross=False, dndz=None, norm=None, lmax=None, acc=4, NL=True):
         pars = camb.CAMBparams()
         try:
             A_s=CLASSparams['A_s']
