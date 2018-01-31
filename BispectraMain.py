@@ -34,7 +34,7 @@ if __name__ == "__main__":
 
     "---begin settings---"
 
-    tag         = 'sim_comp_k-range1'
+    tag         = 'sim_comp_testzmin'
 
     #type of bispectrum
     kkg         = False
@@ -60,7 +60,7 @@ if __name__ == "__main__":
     #Limber      = False
 
     #post Born (use post Born terms from Pratten & Lewis arXiv:1605.05662)
-    post_born   = True
+    post_born   = False
 
     #fitting formula (use B_delta fitting formula from Gil-Marin et al. arXiv:1111.4477
     B_fit       = True
@@ -89,7 +89,7 @@ if __name__ == "__main__":
     cparams     = C.SimulationCosmology#C.Planck2015_TTlowPlensing#
 
     k_min       = 0.0105*cparams[1]['h']
-    k_max       = 42.9*cparams[1]['h']
+    k_max       = 49*cparams[1]['h']
     #k-range1: 0.0105*cparams[1]['h']-2.9*cparams[1]['h']
 
     #path, where to store results

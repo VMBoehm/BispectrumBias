@@ -229,13 +229,13 @@ class Bispectra():
             spec2   =[]
             spec3   =[]
 
-            k1      = self.l1/self.chi[ii]
+            k1      = (self.l1+0.5)/self.chi[ii]
             k1      = np.clip(k1,self.kmin,self.kmax)
             #k1      = k1[np.where(np.any([(k1>self.kmax),(k1<self.kmin)],axis=0))]
-            k2      = self.l2/self.chi[ii]
+            k2      = (self.l2+0.5)/self.chi[ii]
             k2      = np.clip(k2,self.kmin,self.kmax)
             #k2      = k2[np.where(np.any([(k2>self.kmax),(k2<self.kmin)],axis=0))]
-            k3      = self.l3/self.chi[ii]
+            k3      = (self.l3+0.5)/self.chi[ii]
 
             k3      = np.clip(k3,self.kmin,self.kmax)#k3[np.where(np.any([(k3>self.kmax),(k3<self.kmin)],axis=0))]
 #            print max(k3), self.kmax
