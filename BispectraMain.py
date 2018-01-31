@@ -60,7 +60,7 @@ if __name__ == "__main__":
     #Limber      = False
 
     #post Born (use post Born terms from Pratten & Lewis arXiv:1605.05662)
-    post_born   = False
+    post_born   = True
 
     #fitting formula (use B_delta fitting formula from Gil-Marin et al. arXiv:1111.4477
     B_fit       = True
@@ -236,6 +236,9 @@ if __name__ == "__main__":
     ang23=np.array(ang23)
     ang31=np.array(ang31)
     angmu=np.array(angmu)
+    ell1=np.array(ell1)
+    ell2=np.array(ell2)
+    ell3=np.array(ell3)
 
     if kkg:
         config = 'kkg_%s'%ell_type
@@ -286,7 +289,7 @@ if __name__ == "__main__":
 
 #TODO: check everything beneath
     if post_born:
-        import CAMB_postborn as postborn
+        import CAMB_postborn_old as postborn
         print 'computing post Born corrections...'
         assert(kkg or kkk)
 
@@ -296,7 +299,7 @@ if __name__ == "__main__":
             bs.set_up()
         k_min   = bs.kmin
         k_max   = bs.kmax
-        PBB     = postborn.PostBorn_Bispec(params,k_min,k_max,kkg,dndz,norm)
+        PBB     = postborn.PostBorn_Bispec(params,k_min,k_max)#,kkg,dndz,norm)
 
         if kkg:
             try:

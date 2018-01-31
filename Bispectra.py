@@ -43,9 +43,9 @@ class Bispectra():
 
         assert((data.z==self.z).all())
 
-        self.l1       = np.asarray(ell1)
-        self.l2       = np.asarray(ell2)
-        self.l3       = np.asarray(ell3)
+        self.l1       = ell1
+        self.l2       = ell2
+        self.l3       = ell3
 
         self.L_min    = min(self.l1)
         self.L_max    = max(self.l1)
