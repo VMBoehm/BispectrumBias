@@ -34,7 +34,7 @@ if __name__ == "__main__":
 
     "---begin settings---"
 
-    tag         = 'sim_comp_postmerge2'
+    tag         = 'sim_comp_1'
 
     #type of bispectrum
     kkg         = False
@@ -291,7 +291,7 @@ if __name__ == "__main__":
 
 #TODO: check everything beneath
     if post_born:
-        import CAMB_postborn_old as postborn
+        import CAMB_postborn as postborn
         print 'computing post Born corrections...'
         assert(kkk or kkg)
 
