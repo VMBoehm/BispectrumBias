@@ -34,7 +34,7 @@ if __name__ == "__main__":
 
     "---begin settings---"
 
-    tag         = 'sim_comp_update'
+    tag         = 'sim_comp_postmerge2'
 
     #type of bispectrum
     kkg         = False
@@ -60,10 +60,10 @@ if __name__ == "__main__":
     #Limber      = False
 
     #post Born (use post Born terms from Pratten & Lewis arXiv:1605.05662)
-    post_born   = False
+    post_born   = True
 
     #fitting formula (use B_delta fitting formula from Gil-Marin et al. arXiv:1111.4477
-    B_fit       = False
+    B_fit       = True
     fit_z_max   = 1.5
 
     #number of redshift bins
@@ -85,11 +85,11 @@ if __name__ == "__main__":
 
     Delta_theta = 1e-4
 
-    nl          = False
+    nl          = True
     cparams     = C.SimulationCosmology#C.Planck2015_TTlowPlensing#
 
-    k_min       = 1e-3#0.0105*cparams[1]['h']
-    k_max       = 100.#49*cparams[1]['h']
+    k_min       = 0.0105*cparams[1]['h']
+    k_max       = 42.9*cparams[1]['h']
     #k-range1: 0.0105*cparams[1]['h']-42.9*cparams[1]['h']
     #k-range2: 0.0105*cparams[1]['h']-49*cparams[1]['h']
 

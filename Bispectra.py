@@ -156,7 +156,7 @@ class Bispectra():
             k4n=np.exp(np.linspace(np.log(self.kmin),np.log(self.kmax),100))
             k4n=np.concatenate((k4n,np.exp(np.linspace(-4,-1,100))))
             k4n=np.sort(k4n)
-            self.data.get_abc(k4n,np.clip(self.z,0.,self.fit_z_max),self.fit_z_max)
+            self.data.get_abc(k4n,self.z[np.where(self.z<=self.fit_z_max)],self.fit_z_max)
 
 
         self.cosmo['output']='mPk'
@@ -230,10 +230,23 @@ class Bispectra():
             spec3   =[]
 
             k1      = (self.l1+0.5)/self.chi[ii]
-            k1      = np.clip(k1,self.kmin,self.kmax)
             k2      = (self.l2+0.5)/self.chi[ii]
-            k2      = np.clip(k2,self.kmin,self.kmax)
             k3      = (self.l3+0.5)/self.chi[ii]
+
+            print len(k1), len(k2), len(k3)
+
+            index=np.all([k1>=self.kmin,k2>=self.kmin,k3>=self.kmin,k1<=self.kmax,k2<=self.kmax,k3<=self.kmax],axis=0)
+
+            print index
+
+            k1      = k1[index]
+            k2      = k2[index]
+            k3      = k3[index]
+            ang12   = self.ang12[index]
+            ang23   = self.ang23[index]
+            ang31   = self.ang31[index]
+
+            print len(k1), len(k2), len(k3)
 
             for j in xrange(len(k1)):
                 spec1+=[cosmo_pk(k1[j],z_i)]
@@ -244,23 +257,23 @@ class Bispectra():
             specs = [np.asarray(spec1),np.asarray(spec2),np.asarray(spec3)]
 
             if self.B_fit==False:
-                    bi_delta_chi    = self.bispectrum_delta(specs,k1,k2,k3)
+                    bi_delta_chi    = self.bispectrum_delta(specs,k1,k2,k3,ang12, ang23, ang31)
 
             elif self.B_fit and self.z[ii]<=self.fit_z_max:
-                    bi_delta_chi    = self.bispectrum_delta_fit(specs,k1,k2,k3,ii)
+                    bi_delta_chi    = self.bispectrum_delta_fit(specs,k1,k2,k3, ang12, ang23, ang31,ii)
             elif self.B_fit and self.z[ii]>self.fit_z_max:
-                    bi_delta_chi    = self.bispectrum_delta(specs,k1,k2,k3)
+                    bi_delta_chi    = self.bispectrum_delta(specs,k1,k2,k3, ang12, ang23, ang31)
             else:
                 raise ValueError('Something went wrong with matter bispectrum specifications')
 
-            bi_delta[ii] = bi_delta_chi
+            bi_delta[ii][index] = bi_delta_chi
 
         self.bi_delta=np.transpose(bi_delta) #row is now a function of chi
 
 
 
 
-    def bispectrum_delta(self,spectra,k1,k2,k3):
+    def bispectrum_delta(self,spectra,k1,k2,k3, ang12, ang23, ang31):
         """ returns the bispectrum of the fractional overdensity today (a=1) i.e. B^0, the lowest order in non-lin PT
         *spectrum:   power spectrum for all ks in k_aux
         *k_spec:     array of ks where for which power spectrum is passed
@@ -268,23 +281,23 @@ class Bispectra():
         """
 
 
-        B=2.*hf.get_F2_kernel(k1,k2,self.ang12)*spectra[0]*spectra[1]\
-        +2.*hf.get_F2_kernel(k2,k3,self.ang23)*spectra[1]*spectra[2]\
-        +2.*hf.get_F2_kernel(k3,k1,self.ang31)*spectra[2]*spectra[0]
+        B=2.*hf.get_F2_kernel(k1,k2,ang12)*spectra[0]*spectra[1]\
+        +2.*hf.get_F2_kernel(k2,k3,ang23)*spectra[1]*spectra[2]\
+        +2.*hf.get_F2_kernel(k3,k1,ang31)*spectra[2]*spectra[0]
 
         return B
 
 
-    def bispectrum_delta_fit(self,spectra,k1,k2,k3,i):
+    def bispectrum_delta_fit(self,spectra,k1,k2,k3, ang12, ang23, ang31,i):
         """ returns the bispectrum of the fractional overdensity today (a=1) i.e. B^0, the lowest order in non-lin PT
         *spectrum:   power spectrum for all ks in k_aux
         *k_spec:      array of ks where for which power spectrum is passed
         *k:          array of k's that form the triangles for which the bispectrum is computed
         """
 
-        B= 2.*self.get_F2_kernel_fit(k1,k2,self.ang12,i)*spectra[0]*spectra[1]
-        B+=2.*self.get_F2_kernel_fit(k2,k3,self.ang23,i)*spectra[1]*spectra[2]
-        B+=2.*self.get_F2_kernel_fit(k1,k3,self.ang31,i)*spectra[0]*spectra[2]
+        B= 2.*self.get_F2_kernel_fit(k1,k2,ang12,i)*spectra[0]*spectra[1]
+        B+=2.*self.get_F2_kernel_fit(k2,k3,ang23,i)*spectra[1]*spectra[2]
+        B+=2.*self.get_F2_kernel_fit(k1,k3,ang31,i)*spectra[0]*spectra[2]
 
         return B
 
