@@ -463,7 +463,7 @@ class CosmoData():
 
 		params['tol_perturb_integration']=1e-6
 
-		params['P_k_max_1/Mpc']= 50.#max(k_array)
+		params['P_k_max_1/Mpc']= max(k_array)
 		params['z_max_pk']     = z_max
 
 		params['k_min_tau0']=min(k_array)*13000.

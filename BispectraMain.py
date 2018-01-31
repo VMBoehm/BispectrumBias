@@ -34,7 +34,7 @@ if __name__ == "__main__":
 
     "---begin settings---"
 
-    tag         = 'sim_comp_1'
+    tag         = 'sim_comp_3'
 
     #type of bispectrum
     kkg         = False
@@ -83,7 +83,7 @@ if __name__ == "__main__":
     l_max       = 8000.
 
 
-    Delta_theta = 1e-4
+    Delta_theta = 1e-2
 
     nl          = True
     cparams     = C.SimulationCosmology#C.Planck2015_TTlowPlensing#
