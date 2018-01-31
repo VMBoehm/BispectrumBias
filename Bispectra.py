@@ -28,7 +28,8 @@ class Bispectra():
         - newtonian potential bi_psi (function of chi)
         - lensing potential bi_phi
     """
-    def __init__(self,cosmo,data, ell1,ell2,ell3,len_bi,z,config,ang12,ang23,ang31, path, z_cmb, b=None, nonlin=False, B_fit=False, kkg=False, kgg=False, kkk=True, dndz=None,norm=None,k_min=None,k_max=None,sym=False, fit_z_max=1.5):
+    def __init__(self,cosmo,data, ell1,ell2,ell3,z,config,ang12,ang23,ang31, path, z_cmb, b=None, nonlin=False, B_fit=False, kkg=False, kgg=False, kkk=True, dndz=None,norm=None,k_min=None,k_max=None,sym=False, fit_z_max=1.5):
+
 
         self.cosmo      = copy.deepcopy(cosmo)
 
@@ -44,16 +45,16 @@ class Bispectra():
         assert((data.z==self.z).all())
 
         self.l1       = ell1
-        self.l3       = ell2
         self.l2       = ell2
+        self.l3       = ell3
 
         self.L_min    = min(self.l1)
         self.L_max    = max(self.l1)
         self.l_min    = min(self.l3)
         self.l_max    = max(self.l3)
 
-        self.len_bi   = len_bi
-        assert(len_bi==len(self.l1))
+        self.len_bi   = len(self.l1)
+        assert(self.len_bi==len(self.l2))
 
         print "bispectrum size: ", self.len_bi
 
@@ -101,8 +102,9 @@ class Bispectra():
 
         self.sym    = sym
 
-        kmax             = max(self.l2)/min(self.chi)
-        kmin             = min(self.l2)/max(self.chi)
+        kmax        = max(self.l2)/min(self.chi)
+        kmin        = min(self.l2)/max(self.chi)
+
 
         if self.kmin==None:
             self.kmin=kmin
@@ -227,12 +229,11 @@ class Bispectra():
             spec2   =[]
             spec3   =[]
 
-            k1      = self.l1/self.chi[ii]
+            k1      = (self.l1+0.5)/self.chi[ii]
             k1      = np.clip(k1,self.kmin,self.kmax)
-            k2      = self.l2/self.chi[ii]
+            k2      = (self.l2+0.5)/self.chi[ii]
             k2      = np.clip(k2,self.kmin,self.kmax)
-            k3      = self.l3/self.chi[ii]
-            k3      = np.clip(k3,self.kmin,self.kmax)
+            k3      = (self.l3+0.5)/self.chi[ii]
 
             for j in xrange(len(k1)):
                 spec1+=[cosmo_pk(k1[j],z_i)]

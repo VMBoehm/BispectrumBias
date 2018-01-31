@@ -34,7 +34,7 @@ if __name__ == "__main__":
 
     "---begin settings---"
 
-    tag         = 'sim_comp_k-range2'
+    tag         = 'sim_comp_update'
 
     #type of bispectrum
     kkg         = False
@@ -67,7 +67,7 @@ if __name__ == "__main__":
     fit_z_max   = 1.5
 
     #number of redshift bins
-    bin_num     = 130
+    bin_num     = 80
     z_min       = 1e-3
 
     #sampling in L/l and angle
@@ -122,7 +122,7 @@ if __name__ == "__main__":
 
     print "z_cmb: %f"%z_cmb
 
-    z_a     = np.exp(np.linspace(np.log(z_min),np.log(100.),120,endpoint=False))
+    z_a     = np.exp(np.linspace(np.log(z_min),np.log(100.),70,endpoint=False))
     z_b     = np.linspace(100.,z_cmb-0.001,10)
     z       = np.append(z_a,z_b)
     assert(len(z)==bin_num)
@@ -199,9 +199,10 @@ if __name__ == "__main__":
     ang12=[]
     ang23=[]
     angmu=[]
-    ell1  =[]
-    ell2  =[]
-    ell3  =[]
+    ell1 =[]
+    ell2 =[]
+    ell3 =[]
+
     sqrt=np.sqrt
             #all combinations of the two sides and the angles
 
@@ -237,9 +238,9 @@ if __name__ == "__main__":
     ang23=np.array(ang23)
     ang31=np.array(ang31)
     angmu=np.array(angmu)
-    ell1=np.asarray(ell1)
-    ell2=np.asarray(ell2)
-    ell3=np.asarray(ell3)
+    ell1=np.array(ell1)
+    ell2=np.array(ell2)
+    ell3=np.array(ell3)
 
     if kkg:
         config = 'kkg_%s'%ell_type
@@ -267,7 +268,7 @@ if __name__ == "__main__":
 
     print "config: %s"%config
 
-    bs   = Bispectra(params,data,ell1,ell2,ell3,len_L*len_l*len_ang,z,config,ang12,ang23,ang31,path,z_cmb, bias, nl,B_fit,kkg, kgg, kkk,dndz, norm,k_min,k_max,sym,fit_z_max)
+    bs   = Bispectra(params,data,ell1,ell2,ell3,z,config,ang12,ang23,ang31,path,z_cmb, bias, nl,B_fit,kkg, kgg, kkk,dndz, norm,k_min,k_max,sym,fit_z_max)
 
     bs()
 
@@ -300,7 +301,8 @@ if __name__ == "__main__":
 #            bs.set_up()
         k_min   = bs.kmin
         k_max   = bs.kmax
-        PBB     = postborn.PostBorn_Bispec(params,k_min,k_max,lmax=max(ell2))#,kkg,dndz,norm)
+        PBB     = postborn.PostBorn_Bispec(params,k_min,k_max)#,kkg,dndz,norm)
+
 
         if kkg:
             try:
@@ -309,15 +311,14 @@ if __name__ == "__main__":
             except:
                 prefac      = 16./(3.*data.Omega_m0*data.H_0**2)*LIGHT_SPEED**2
                 #L is associated wit galaxy leg in bias, in CAMBPostBorn it's L3
-                bi_kkg      = PBB.bi_born_cross(ell1,ell2,ell3,prefac,sym=bs.sym)
+                bi_kkg      = PBB.bi_born_cross(ell2,ell3,ell1,prefac,sym=bs.sym)
                 bi_kkg_sum  = bi_kkg+bs.bi_phi
                 np.save(bs.filename+"_post_born.npy",bi_kkg)
                 np.save(bs.filename+"_post_born_sum.npy",bi_kkg_sum)
 
             bi_phi = bi_kkg_sum
         else:
-            bi_post  = PBB.bi_born(ell1,ell2,ell3)*8./(ell1*ell2*ell3)**2
-            PBB.plot(ll=np.unique(ell1))
+            bi_post  = (PBB.bi_born(ell1,ell2,ell3)*8./(ell1*ell2*ell3)**2)
             np.save(bs.filename+"_post_born.npy",bi_post)
             np.save(bs.filename+"_post_born_sum.npy",bi_post+bs.bi_phi)
             bi_phi = bi_post+bs.bi_phi
