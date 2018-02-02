@@ -33,8 +33,8 @@ jjs             = [20,30]
 
 N = 1000 #len(mu1s)
 M = 1000 #len(mus)
-K = 2**8#len(ls)=4096=2**12 #max ls= len(ls)+minl
-P = 2**8#len(l1s) #max l1s= len(l1s)+minl1 #dividable 256 to distribute among cores
+K = 2**12#len(ls)=4096=2**12 #max ls= len(ls)+minl
+P = 2**12#len(l1s) #max l1s= len(l1s)+minl1 #dividable 256 to distribute among cores
 ### ----------------  settings ------------------###
 
 cl, nl = {}, {}
@@ -45,6 +45,13 @@ try:
     os.stat(res_path+'lmin%d'%lcutmin)
 except:
     os.mkdir(res_path+'lmin%d'%lcutmin)
+
+res_path+='lmin%d'%lcutmin
+try:
+    os.stat(res_path+'/%s/'%res_tag)
+except:
+    os.mkdir(res_path+'/%s/'%res_tag)
+res_path+='/%s/'%res_tag
 
 ##load power spectra created with class (Parameter is a list of the cosmologocal parameters used)
 Parameter,cl_unl,cl_len=pickle.load(open('/global/homes/v/vboehm/N32theory/ClassCls/class_cls_%s.pkl'%cosmo_tag,'r'))
@@ -97,6 +104,6 @@ for j in jjs:
 		#do integration over l1
 		sumres=simps(integrand,x)
 		#save final result
-		pickle.dump([L,sumres],open(res_path+'lmin%d/A1C1_%d_%d_%d_%s.pkl'%(lcutmin,num,M,P,res_tag),'w'))
+		pickle.dump([L,sumres],open(res_path+'A1C1_%d_%d_%d.pkl'%(lcutmin,num,M,P,res_tag),'w'))
 
 
