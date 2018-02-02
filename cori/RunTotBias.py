@@ -33,8 +33,8 @@ jjs             = [20,30]
 
 N = 1000 #len(mu1s)
 M = 1000 #len(mus)
-K = 2**5#**12#len(ls)=4096=2**12 #max ls= len(ls)+minl
-P = 2**5#**12 #len(l1s) #max l1s= len(l1s)+minl1 #dividable 256 to distribute among cores
+K = 2**8#len(ls)=4096=2**12 #max ls= len(ls)+minl
+P = 2**8#len(l1s) #max l1s= len(l1s)+minl1 #dividable 256 to distribute among cores
 ### ----------------  settings ------------------###
 
 cl, nl = {}, {}
