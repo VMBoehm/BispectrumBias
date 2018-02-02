@@ -1,33 +1,22 @@
 
 from __future__ import division
 cimport cython
-import numpy as np
 cimport numpy as np
 import time
 from scipy.interpolate import splev, splrep
 import warnings
 warnings.filterwarnings('error')
 from Tools import simps
-from Tools cimport my_sum
-import cython
-cimport numpy as np
-from libc.stdlib cimport malloc, free
+#from libc.stdlib cimport malloc, free
 DTYPEF = np.float
 ctypedef np.float_t DTYPEF_t
 
 DTYPEI = np.int
 ctypedef np.int_t DTYPEI_t
 
-import pickle
-
-from mpi4py import MPI
-
-comm = MPI.COMM_WORLD
-rank = comm.Get_rank()
-size = comm.Get_size()
 
 
-@cython.profile(False)
+#@cython.profile(False)
 def get_cl2(cl_unlen, cl_tot, l2, lmin, lmax):
 	"""
 	Cl_TT interpolation taken from Blakes code
@@ -63,7 +52,7 @@ def get_cl2(cl_unlen, cl_tot, l2, lmin, lmax):
 	return cl2_unlen, cl2_tot
 
 
-@cython.profile(False)
+#@cython.profile(False)
 def get_gl1L(cl_unlen,cl_len,cl_tot,mu1s, L, l1s,lmin,lmax):
 
 	Ldotl1 = L * l1s * np.cos(mu1s)
@@ -81,33 +70,30 @@ def get_gl1L(cl_unlen,cl_len,cl_tot,mu1s, L, l1s,lmin,lmax):
 
 	return weight
 
-@cython.boundscheck(False)
-def get_typeA(double[:]  Ls, len_l, cl_fid, field , nl, int lmin, int lmax, double min_mu, double max_mu, int num):
+#@cython.boundscheck(False)
+def get_bias(double L, double[:] l3s, unsigned int len_l, cl_fid, field , nl, int lmin, int lmax, double min_mu, double max_mu, unsigned int num,unsigned int rank,unsigned int size,splines,unsigned int N,unsigned int M,unsigned int K,unsigned int P):
 	"""
-	computes term of type A for fixed L
-	* sample1d: size of bispectrum in one dimension (before interpolation)
-	* cl_fid: list of cls from class
+	* L: double, value of L
+	* l3s: arrray of double, values of l in interpolated bispec
+	* len_l: len(l3s)
+	* cl_fid: list of fiducial cls from class
+	* field: string, for now 'TT'
 	* nl: list of deconvolved noise power spectra
-	* lmin/lmax: range for which cls are given
-	* field: for which field to compute
+	* lmin/lmax: range for which cl_fids are given (for calulation of weights)
+	* lmin/lmax: range for which cl_fids are given
 	* num: L index
+	* rank: rank of process
+	* size: number of processes
+	* splines: bispectrum interpolation splines
+	* N,M,K,P: len(mu1s), len(mus), len(ls), len(l1s) for integration
 	"""
 
-	#indices for l1,mu1,l,l3
+	#indices for l1,mu1,l,l3ple1d
 	cdef unsigned int i,j,k,m
 
-	minl =2
-	minl1=2
-
-	# grid resolution
-	cdef unsigned int N = 1400 #len(mu1s)
-	cdef unsigned int M = 1400 #len(mus)
-
-	cdef unsigned int K = 256*18 #len(ls) #max ls= len(ls)+minl
-	cdef unsigned int P = 256*18 #len(l1s) #max l1s= len(l1s)+minl1 #dividable 256 to distribute among cores
-
-	if rank==0:
-		print "ell-range for integration: ", minl, K, minl1, P
+	#start integration at
+	minl = 2
+	minl1= 2
 
 	delta = int(P/size)
 
@@ -120,9 +106,7 @@ def get_typeA(double[:]  Ls, len_l, cl_fid, field , nl, int lmin, int lmax, doub
 	if rank==0:
 		print "delta ", delta
 		print "l-range: ", minl, K+minl
-
-	print "rank: ", rank
-	print "l1-range: ", l1Min, l1Max
+		print "l1-range: ", minl1, P+minl1
 	#length of loop for this process
 	cdef unsigned int pP = delta
 
@@ -187,20 +171,13 @@ def get_typeA(double[:]  Ls, len_l, cl_fid, field , nl, int lmin, int lmax, doub
 	cdef np.ndarray[DTYPEF_t, ndim=1] cl_  = np.zeros(M,dtype=DTYPEF)
 	cdef np.ndarray[DTYPEF_t, ndim=1] d    = np.zeros(len(ls_g),dtype=DTYPEF)
 	# interpolate cl_tt, tested, use k=1
-	cl_tot     = cl_fid[field] + nl[field]
-	cl_unlen   = cl_fid[field+'_unlen']
-	cl_len     = cl_fid[field]
+	cdef double[:] cl_tot = cl_fid[field] + nl[field]
+	cdef double[:] cl_unlen = cl_fid[field+'_unlen']
+	cdef double[:] cl_len   = cl_fid[field]
 	if rank==0:
 		print "range of interpolation for cls", 2, lmax
-	ells_=np.arange(2,lmax+1)
-	cl_unl_interp=splrep(ells_,cl_unlen[2::],k=1)
-
-	cdef double[:] cl_unlen = cl_unlen
-
-	# get L for this run
-	cdef double L=Ls[num]
-	if rank==0:
-		print num, L
+	ells_=np.arange(1,lmax+1)
+	cl_unl_interp=splrep(ells_,cl_unlen[1::],k=1)
 	# get bispectrum spline for fixed L
 	spline=splines[num]
 
@@ -212,7 +189,7 @@ def get_typeA(double[:]  Ls, len_l, cl_fid, field , nl, int lmin, int lmax, doub
 	cdef double[:,:] weight = gl1L
 
 	### interpolate bispectrum for ls and mus of grid
-	bispec = np.zeros((sample1d,M),dtype=DTYPEF)
+	bispec = np.zeros((len_l,M),dtype=DTYPEF)
 
 	#interpolate in mus
 	for k in range(len_l):
@@ -290,69 +267,3 @@ def get_typeA(double[:]  Ls, len_l, cl_fid, field , nl, int lmin, int lmax, doub
 	return num, L, l1s ,np.asarray(integrand_l1)*((2.*np.pi)**(-4)), M, P
 
 
-### ----------------  settings ------------------###
-cosmo_tag=" "
-field ='TT'
-res_tag=""
-bispec_file='/interp_bispec/bispec_interp_%s.pkl'%res_tag
-
-thetaFWHMarcmin = 1.
-noiseUkArcmin   = 1.
-lcutmin         = 500.
-lcutmax         = 4000.
-TCMB            = 2.725e6
-### ----------------  settings ------------------###
-
-cl, nl = {}, {}
-
-##load power spectra created with class (Parameter is a list of the cosmologocal parameters used)
-Parameter,cl_unl,cl_len=pickle.load(open('/u/vboehm/class_outputs/class_cls_%s.pkl'%tag,'r'))
-
-##load spline interpolation of bispectrum
-
-## bispectrum was interpolated along mu-axis for l=l3 and L kept fixed
-# x: mu for which it was interpolated
-# Ls, l3s: ls and ls for which it was intrepolated
-# spline is a 2D array of splines: splines[i][j] interpolates B(L[i],l[j],mu) in mu
-ang_i, Ls ,ls, splines = pickle.load(open(bispec_file))
-
-ang_min=min(ang_i)
-ang_max=max(ang_i)
-
-cl['TT']=cl_len['tt']
-cl['TT_unlen']=cl_unl['tt']
-cl_phiphi=cl_len['pp']
-
-
-lmax=max(cl_unl['ell'])
-lmin=min(cl_unl['ell'])
-
-assert(lmin==0)
-assert(lmax>=4000)
-ells=np.arange(lmin,lmax+1)
-
-### beam, noise
-thetaFWHM = thetaFWHMarcmin*np.pi/(180.*60.)
-deltaT = noiseUkArcmin/thetaFWHMarcmin
-ll = ells
-nlI = (deltaT*thetaFWHM)**2*np.exp(ll*(ll+1.)*thetaFWHM**2/(8.*np.log(2.)))/TCMB**2
-
-nlI[0:lcutmin]=10.**20
-nlI[lcutmax+1:-1]=10.**20
-nl['TT'] = nlI
-
-def run():
-	for j in [20,30]:
-		print j, Ls[j]
-		num, L, l1, res, M, P= get_typeA(Ls,len(ls),cl,field,nl,lmin,lmax,ang_min,ang_max, j)
-		#send results to process with id 0
-		res_all=comm.gather(res,root=0)
-		l1s=comm.gather(l1,root=0)
-		if rank==0:
-			#combine to one array
-			integrand=np.concatenate(res_all,axis=0)
-			x=np.concatenate(l1s,axis=0)
-			#do integration over l1
-			sumres=simps(integrand,x)
-			#save final result
-			pickle.dump([L,sumres],open("/bias_theory/sim_comp/A1C1_%d_%d_%d_%s.pkl"%(num,M,P,res_tag),'w'))

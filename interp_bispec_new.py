@@ -42,10 +42,10 @@ def bispec_interp(bispec, Ls, ls, mu, plot=True):
 
 
 path        = "/home/nessa/Documents/Projects/LensingBispectrum/CMB-nonlinear/outputs/"
-filename    = path+'ell_ang_full_Lmin1_Lmax3000_lmin1_lmax8000_lenL100_lenl120_lenang100_1e-04.pkl'
+filename    = path+'ells/ell_ang_full_Lmin1_Lmax3000_lmin1_lmax8000_lenL100_lenl120_lenang100_1e-04.pkl'
 L,l,theta   = pickle.load(open(filename, 'r'))
 
-tag         = 'kkk_fullanalytic_red_dis_lnPs_Bfit_Jias_Simulationsim_comp_1_Lmin1-Lmax2999-lmax8000-lenBi1200000'
+tag         = 'kkk_fullanalytic_red_dis_linPs_Jias_Simulationsim_comp_5_Lmin1-Lmax2999-lmax8000-lenBi1200000'
 loadfile    = path+'spectra/'+"bispec_phi_%s"%tag
 
 
@@ -55,7 +55,7 @@ bi_phi=np.load(loadfile+'.npy')
 
 splines = bispec_interp(bi_phi, L, l, theta)
 
-dumpfile=path+'bispec_interp_%s.pkl'%tag
+dumpfile=path+'interp/bispec_interp_%s.pkl'%tag
 
 pickle.dump([theta,L,l,splines],open(dumpfile,'w'))
 print "dumped to %s"%dumpfile

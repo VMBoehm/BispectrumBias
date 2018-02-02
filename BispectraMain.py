@@ -34,7 +34,7 @@ if __name__ == "__main__":
 
     "---begin settings---"
 
-    tag         = 'sim_comp_3'
+    tag         = 'sim_comp_4'
 
     #type of bispectrum
     kkg         = False
@@ -63,7 +63,7 @@ if __name__ == "__main__":
     post_born   = True
 
     #fitting formula (use B_delta fitting formula from Gil-Marin et al. arXiv:1111.4477
-    B_fit       = True
+    B_fit       = False
     fit_z_max   = 1.5
 
     #number of redshift bins
@@ -83,7 +83,7 @@ if __name__ == "__main__":
     l_max       = 8000.
 
 
-    Delta_theta = 1e-2
+    Delta_theta = 1e-4
 
     nl          = True
     cparams     = C.SimulationCosmology#C.Planck2015_TTlowPlensing#
@@ -168,7 +168,7 @@ if __name__ == "__main__":
         #cosmo dependent functions
     data    = C.CosmoData(params,z)
 
-    filename=path+"ell_ang_%s_Lmin%d_Lmax%d_lmin%d_lmax%d_lenL%d_lenl%d_lenang%d_%.0e.pkl"%(ell_type,L_min,L_max,l_min,l_max,len_L,len_l,len_ang,Delta_theta)
+    filename=path+"ells/ell_ang_%s_Lmin%d_Lmax%d_lmin%d_lmax%d_lenL%d_lenl%d_lenang%d_%.0e.pkl"%(ell_type,L_min,L_max,l_min,l_max,len_L,len_l,len_ang,Delta_theta)
 
     if ell_type=="full":
         #L = |-L|, equally spaced in lin at low L and in log at high L
@@ -286,7 +286,7 @@ if __name__ == "__main__":
         for FWHM in FWHMs:
             res+=[skew(bs.bi_phi, FWHM, L, l, ell2, theta, len_l, len_L,len_ang,kappa=True)]
         print res
-        pickle.dump([FWHMs,skew],open(path+'skewness_%s.pkl'%(config),'w'))
+        pickle.dump([FWHMs,res],open(path+'/skewness/skewness_%s.pkl'%(config),'w'))
 
 
 #TODO: check everything beneath
@@ -335,7 +335,7 @@ if __name__ == "__main__":
             for FWHM in FWHMs:
                 res+=[skew(bi_phi, FWHM, L, l, ell2, theta, len_l, len_L,len_ang,kappa=True)]
             print res
-            pickle.dump([FWHMs,skew],open(path+'skewness_%s.pkl'%(config),'w'))
+            pickle.dump([FWHMs,res],open(path+'skewness/skewness_%s.pkl'%(config),'w'))
 
         del bs
         try:

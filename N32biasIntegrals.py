@@ -74,8 +74,14 @@ def filt(l,FWHM):
 
     FWHM_ = FWHM/60.*(np.pi/180.)
     sigma2= FWHM_**2/8./np.log(2.)
+    filt=np.exp(-l**2*sigma2/2.)
+    try:
+        filt[np.where(l>5000)]=0.
+    except:
+        if l>5000:
+            filt=0.
 
-    return np.exp(-l**2*sigma2/2.)
+    return filt
 
 def skew(bispec, FWHM, L, l, Ll, theta, len_l, len_L,len_ang, kappa):
 
@@ -95,7 +101,7 @@ def skew(bispec, FWHM, L, l, Ll, theta, len_l, len_L,len_ang, kappa):
             l3 = Ll_[j*len_ang:(j+1)*len_ang]
             integrand = spec_int*filt(L_,FWHM)*filt(l_,FWHM)*filt(l3,FWHM)
             if kappa:
-                integrand*=1./8.*(L_*l_*l3)**2
+                integrand*=-1./8.*(L_*l_*l3)**2
 
             l_integral+=[simps(integrand, theta)]
 
