@@ -77,8 +77,11 @@ def filt(l,FWHM):
     filt=np.exp(-l**2*sigma2/2.)
     try:
         filt[np.where(l>5000)]=0.
+        filt[np.where(l<30)]=0.
     except:
         if l>5000:
+            filt=0.
+        if l<30:
             filt=0.
 
     return filt

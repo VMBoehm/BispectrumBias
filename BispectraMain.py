@@ -34,7 +34,7 @@ if __name__ == "__main__":
 
     "---begin settings---"
 
-    tag         = 'sim_comp_4'
+    tag         = 'sim_comp_6'
 
     #type of bispectrum
     kkg         = False
@@ -63,7 +63,7 @@ if __name__ == "__main__":
     post_born   = True
 
     #fitting formula (use B_delta fitting formula from Gil-Marin et al. arXiv:1111.4477
-    B_fit       = False
+    B_fit       = True
     fit_z_max   = 1.5
 
     #number of redshift bins
@@ -77,10 +77,10 @@ if __name__ == "__main__":
 
     #ell range (for L and l)
     L_min       = 1. #set to 2
-    L_max       = 3000.
+    L_max       = 5000.
 
     l_min       = L_min
-    l_max       = 8000.
+    l_max       = 6000.
 
 
     Delta_theta = 1e-4
@@ -286,7 +286,7 @@ if __name__ == "__main__":
         for FWHM in FWHMs:
             res+=[skew(bs.bi_phi, FWHM, L, l, ell2, theta, len_l, len_L,len_ang,kappa=True)]
         print res
-        pickle.dump([FWHMs,res],open(path+'/skewness/skewness_%s.pkl'%(config),'w'))
+        pickle.dump([FWHMs,res],open(path+'/skewness/skewness_%s_lmin30.pkl'%(config),'w'))
 
 
 #TODO: check everything beneath
@@ -335,7 +335,7 @@ if __name__ == "__main__":
             for FWHM in FWHMs:
                 res+=[skew(bi_phi, FWHM, L, l, ell2, theta, len_l, len_L,len_ang,kappa=True)]
             print res
-            pickle.dump([FWHMs,res],open(path+'skewness/skewness_%s.pkl'%(config),'w'))
+            pickle.dump([FWHMs,res],open(path+'skewness/skewness_%s_lmin30.pkl'%(config),'w'))
 
         del bs
         try:
