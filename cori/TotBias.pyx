@@ -65,7 +65,7 @@ def get_gl1L(cl_unlen,cl_len,cl_tot,mu1s, L, l1s,lmin,lmax):
 	assert(lmin==0)
 
 
-	l1s=l1s.astype(int)	
+	l1s=l1s.astype(int)
 	cl1_unlen = cl_unlen[l1s]
 	cl1_len = cl_len[l1s]
 	cl1_tot = cl_tot[l1s]
@@ -107,10 +107,11 @@ def get_bias(double L, double[:] l3s, unsigned int len_l, cl_fid, field , nl, in
 	#get part of l1 for this process
 	l1Min = minl1+rank*delta
 	l1Max = minl1+(rank+1)*delta
-	if rank==0:
-		print "delta ", delta
-		print "l-range: ", minl, K+minl
-		print "l1-range: ", minl1, P+minl1
+
+	print "rank ", rank
+	print "delta ", delta
+	print "l-range: ", minl, K+minl
+	print "l1-range: ", minl1, P+minl1
 	#length of loop for this process
 	cdef unsigned int pP = delta
 

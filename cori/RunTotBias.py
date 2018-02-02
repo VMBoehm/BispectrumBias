@@ -26,15 +26,15 @@ bispec_file ='../interp/bispec_interp_%s.pkl'%res_tag
 
 thetaFWHMarcmin = 1.
 noiseUkArcmin   = 1.
-lcutmin         = 500
-lcutmax         = 4000
+lcutmin         = 2.
+lcutmax         = 4000.
 TCMB            = 2.725e6
 jjs             = [20,30]
 
 N = 1000 #len(mu1s)
 M = 1000 #len(mus)
-K = 2**12#len(ls)=4096=2**12 #max ls= len(ls)+minl
-P = 2**12#len(l1s) #max l1s= len(l1s)+minl1 #dividable 256 to distribute among cores
+K = 2**6#len(ls)=4096=2**12 #max ls= len(ls)+minl
+P = 2**6#len(l1s) #max l1s= len(l1s)+minl1 #dividable 256 to distribute among cores
 ### ----------------  settings ------------------###
 
 cl, nl = {}, {}
@@ -44,13 +44,19 @@ res_path='/global/homes/v/vboehm/N32theory/biasResults/'
 try:
     os.stat(res_path+'lmin%d'%lcutmin)
 except:
-    os.mkdir(res_path+'lmin%d'%lcutmin)
+    try:
+    	os.mkdir(res_path+'lmin%d'%lcutmin)
+    except:
+        pass
 
 res_path+='lmin%d'%lcutmin
 try:
     os.stat(res_path+'/%s/'%res_tag)
 except:
-    os.mkdir(res_path+'/%s/'%res_tag)
+    try:
+    	os.mkdir(res_path+'/%s/'%res_tag)
+    except:
+    	pass
 res_path+='/%s/'%res_tag
 
 ##load power spectra created with class (Parameter is a list of the cosmologocal parameters used)
