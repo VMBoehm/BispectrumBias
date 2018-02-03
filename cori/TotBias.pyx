@@ -3,7 +3,6 @@ from __future__ import division
 cimport cython
 cimport numpy as np
 import numpy as np
-import time
 from scipy.interpolate import splev, splrep
 import warnings
 warnings.filterwarnings('error')
@@ -220,7 +219,6 @@ def get_bias(double L, double[:] l3s, unsigned int len_l, cl_fid, field , nl, in
 	#bispectrum for fixed L, l
 	cdef np.ndarray[DTYPEF_t, ndim=1] b = np.zeros(M,dtype=DTYPEF)
 
-	start=time.time()
 	#l1 loop
 	for i in xrange(pP):
 		l1=l1s[i]
@@ -266,8 +264,6 @@ def get_bias(double L, double[:] l3s, unsigned int len_l, cl_fid, field , nl, in
 				integrand_l[k]=simps(integrand_mu,mus)#factor of two because we are only integrating over half of the angle
 			integrand_mu1[j]=simps(integrand_l,ls)
 		integrand_l1[i]=simps(integrand_mu1,mu1s)
-
-	print "time in min: ", (time.time()-start)/60.
 
 	return num, L, l1s ,np.asarray(integrand_l1)*((2.*np.pi)**(-4)), M, P
 

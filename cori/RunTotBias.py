@@ -11,10 +11,14 @@ import pickle
 from TotBias import get_bias
 from mpi4py import MPI
 from scipy.integrate import simps
+import time
 
 comm = MPI.COMM_WORLD
 rank = comm.Get_rank()
 size = comm.Get_size()
+
+if rank ==0:
+    beg=time.time()
 
 
 ### ----------------  settings ------------------###
@@ -26,15 +30,15 @@ bispec_file ='../interp/bispec_interp_%s.pkl'%res_tag
 
 thetaFWHMarcmin = 1.
 noiseUkArcmin   = 1.
-lcutmin         = 2.
-lcutmax         = 4000.
+lcutmin         = 2
+lcutmax         = 4000
 TCMB            = 2.725e6
-jjs             = [20,30]
+jjs             = [50,60]
 
 N = 1000 #len(mu1s)
 M = 1000 #len(mus)
-K = 2**6#len(ls)=4096=2**12 #max ls= len(ls)+minl
-P = 2**6#len(l1s) #max l1s= len(l1s)+minl1 #dividable 256 to distribute among cores
+K = 2**12#len(ls)=4096=2**12 #max ls= len(ls)+minl
+P = 2**12#len(l1s) #max l1s= len(l1s)+minl1 #dividable 256 to distribute among cores
 ### ----------------  settings ------------------###
 
 cl, nl = {}, {}
@@ -110,6 +114,9 @@ for j in jjs:
 		#do integration over l1
 		sumres=simps(integrand,x)
 		#save final result
-		pickle.dump([L,sumres],open(res_path+'A1C1_%d_%d_%d.pkl'%(lcutmin,num,M,P,res_tag),'w'))
+		pickle.dump([L,sumres],open(res_path+'A1C1_%d_%d_%d.pkl'%(num,M,P),'w'))
+
+if rank==0:
+    print time.time()-beg
 
 
