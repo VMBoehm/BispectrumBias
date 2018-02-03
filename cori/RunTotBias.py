@@ -33,7 +33,7 @@ noiseUkArcmin   = 1.
 lcutmin         = 2
 lcutmax         = 4000
 TCMB            = 2.725e6
-jjs             = [50,60]
+jjs             = [85]
 
 N = 1000 #len(mu1s)
 M = 1000 #len(mus)
