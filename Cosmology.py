@@ -36,6 +36,17 @@ Planck2013_TempLensCombined=[{
 'n_s'    : 0.9675,
 'k_pivot' : 0.05}]
 
+Planck2013_Giulio=[{
+'name':"Giulio_PB"},{
+'h': 0.68,
+'omega_b' : 0.02312,
+'omega_cdm': 0.124848,
+'Omega_k' : 0.0,
+'tau_reio' : 0.0949,
+'A_s'    : 2.06*1e-9,
+'n_s'    : 0.96,
+'k_pivot' : 0.05}]
+
 ToshiyaComparison=[{
 'name':"Toshiya"},{
 'h': 0.6751,

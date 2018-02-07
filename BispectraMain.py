@@ -34,7 +34,7 @@ if __name__ == "__main__":
 
     "---begin settings---"
 
-    tag         = 'sim_comp_6'
+    tag         = 'sim_comp'
 
     #type of bispectrum
     kkg         = False
@@ -86,12 +86,16 @@ if __name__ == "__main__":
     Delta_theta = 1e-4
 
     nl          = True
-    cparams     = C.SimulationCosmology#C.Planck2015_TTlowPlensing#
+    cparams     = C.Planck2013_Giulio#C.Planck2015_TTlowPlensing#
 
-    k_min       = 0.0105*cparams[1]['h']
-    k_max       = 42.9*cparams[1]['h']
+    k_min       = 2e-3#0.0105*cparams[1]['h']
+    k_max       = 50.#42.9*cparams[1]['h']
     #k-range1: 0.0105*cparams[1]['h']-42.9*cparams[1]['h']
     #k-range2: 0.0105*cparams[1]['h']-49*cparams[1]['h']
+
+    #for skewness
+    ll_min      = 2
+    ll_max      = 5000
 
     #path, where to store results
     path        = "/home/nessa/Documents/Projects/LensingBispectrum/CMB-nonlinear/outputs/"
@@ -284,9 +288,9 @@ if __name__ == "__main__":
     if skewness:
         res=[]
         for FWHM in FWHMs:
-            res+=[skew(bs.bi_phi, FWHM, L, l, ell2, theta, len_l, len_L,len_ang,kappa=True)]
+            res+=[skew(bs.bi_phi, FWHM, L, l, ell2, theta, len_l, len_L,len_ang, ll_min,ll_max,kappa=True)]
         print res
-        pickle.dump([FWHMs,res],open(path+'/skewness/skewness_%s_lmin30.pkl'%(config),'w'))
+        pickle.dump([FWHMs,res],open(path+'/skewness/skewness_%s_lmin%dlmax%d.pkl'%(config,ll_min,ll_max),'w'))
 
 
 #TODO: check everything beneath
@@ -333,9 +337,9 @@ if __name__ == "__main__":
         if skewness:
             res=[]
             for FWHM in FWHMs:
-                res+=[skew(bi_phi, FWHM, L, l, ell2, theta, len_l, len_L,len_ang,kappa=True)]
+                res+=[skew(bi_phi, FWHM, L, l, ell2, theta, len_l, len_L,len_ang, ll_min,ll_max,kappa=True)]
             print res
-            pickle.dump([FWHMs,res],open(path+'skewness/skewness_%s_lmin30.pkl'%(config),'w'))
+            pickle.dump([FWHMs,res],open(path+'skewness/skewness_%s_lmin%d_lmax%d.pkl'%(config,ll_min,ll_max),'w'))
 
         del bs
         try:

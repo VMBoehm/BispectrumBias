@@ -193,7 +193,7 @@ def get_lensing_noise(ells, cl_len, cl_unlen, nl, fields,lmin,l_max_T,lmax_P):
 
 params      = Cosmo.SimulationCosmology
 tag         = params[0]['name']
-fields      = ['tt']#,'te','ee','eb','bb','tb']
+fields      = ['tt','te','ee','eb','bb','tb']
 path        ='/home/nessa/Documents/Projects/LensingBispectrum/CMB-nonlinear/outputs/N0files/'
 
 thetaFWHMarcmin = 1. #beam FWHM
@@ -211,24 +211,30 @@ else:
     lmax=str(l_max_T)
 
 try:
-    Parameter,cl_unl,cl_len=pickle.load(open('/home/nessa/Documents/Projects/LensingBispectrum/CMB-nonlinear/outputs/ClassCls/class_cls_%s_nl.pkl'%tag,'r'))
-    print 'class_cls_%s_nl.pkl'%tag
+    Parameter,cl_unl,cl_len=pickle.load(open('/home/nessa/Documents/Projects/LensingBispectrum/CMB-nonlinear/outputs/ClassCls/class_cls_%s_nl_4N0.pkl'%tag,'r'))
+    print 'loaded ', 'class_cls_%s_nl_4N0.pkl'%tag
 except:
-    print 'class_cls_%s_nl.pkl not found...'%tag
+    print 'class_cls_%s_nl_4N0.pkl'%tag
     l_max = max(l_max_T, l_max_P)+2000
-    cosmo = Cosmo.Cosmology(Params=params, Limber=False, lmax=l_max, mPk=False)
+
     closmo=Class()
-    cosmo.class_params['output']= 'lCl tCl pCl'
-    cosmo.class_params['non linear'] = "halofit"
-    cosmo.class_params['lensing'] = 'yes'
-    closmo.set(cosmo.class_params)
-    print "Initializing CLASS with", cosmo.class_params
+    class_params=params[1]
+    class_params['output']= 'lCl tCl pCl'
+    class_params['non linear'] = "halofit"
+    class_params['lensing'] = 'yes'
+    class_params['l_max_scalars'] = l_max
+    class_params['tol_perturb_integration']=1.e-6
+    class_params['perturb_sampling_stepsize']=0.01
+    class_params['l_switch_limber'] = 40.
+    class_params['accurate_lensing']=1
+    closmo.set(class_params)
+    print "Initializing CLASS with", class_params
     closmo.compute()
     print "sigma8:", closmo.sigma8()
     cl_unl=closmo.raw_cl(l_max)
     cl_len=closmo.lensed_cl(l_max)
-    pickle.dump([cosmo.class_params,cl_unl,cl_len],open('/home/traveller/Documents/Projekte/LensingBispectrum/class_outputs/class_cls_%s_nl.pkl'%tag,'w'))
-    print 'Dumped class cls under %s'%('/home/traveller/Documents/Projekte/LensingBispectrum/class_outputs/class_cls_%s_nl.pkl'%tag)
+    pickle.dump([class_params,cl_unl,cl_len],open('/home/nessa/Documents/Projects/LensingBispectrum/CMB-nonlinear/outputs/ClassCls/class_cls_%s_nl_4N0.pkl'%tag,'w'))
+    print 'Dumped class cls under %s'%('/home/nessa/Documents/Projects/LensingBispectrum/CMB-nonlinear/outputs/ClassCls/class_cls_%s_nl_4N0.pkl'%tag)
 
 
 cl, nl = {}, {}
@@ -241,7 +247,7 @@ thetaFWHM = thetaFWHMarcmin*np.pi/(180.*60.) #beam FWHM in rad
 deltaT = noiseUkArcmin/thetaFWHMarcmin # noise variance per unit area
 nlI = (deltaT*thetaFWHM)**2*np.exp(ll*(ll+1.)*thetaFWHM**2/(8.*np.log(2.)))/TCMB**2 #beam deconvolved noise relative to CMB temperature
 
-nlI[0:2]=1e10
+nlI[0:100]=1e10
 nlI[int(lmax)::]=1e10
 
 #beam deconvolved noise
@@ -278,6 +284,7 @@ MV_noise=1./MV_noise
 print Ls
 print NL_KK
 pickle.dump([Ls,NL_KK],open(path+'%s_N0_%s_%d%d_%s.pkl'%(tag,lmax,10*noiseUkArcmin,10*thetaFWHMarcmin,no_div),'w'))
+print 'result dumped to', path+'%s_N0_%s_%d%d_%s.pkl'%(tag,lmax,10*noiseUkArcmin,10*thetaFWHMarcmin,no_div)
 #	pickle.dump([Ls,N0_lim],open('lensNoisePowerlim'+str(int(noiseUkArcmin*10))+str(int(thetaFWHMarcmin*10))+'_'+str(int(lcut))+'.pkl','w'))
 #plt.loglog(ells,ells*(ells+1.)*cl_phiphi/2./np.pi, label=r'$C_\ell^{\phi\phi}$')
 #plt.xlim(2, 3000)
@@ -288,6 +295,15 @@ pickle.dump([Ls,NL_KK],open(path+'%s_N0_%s_%d%d_%s.pkl'%(tag,lmax,10*noiseUkArcm
 #plt.savefig('noise_phiphi'+str(int(noiseUkArcmin*10))+str(int(thetaFWHMarcmin*10))+'_'+str(int(lcut))+'.png')
 #tag='Planck2013'
 #Ls2,NL_KK2,MV_noise2=pickle.load(open(path+'lensNoisePower'+str(int(noiseUkArcmin*10))+str(int(thetaFWHMarcmin*10))+'_%s_nl_lensedCls.pkl'%tag,'r'))
+
+plt.figure()
+plt.loglog(Ls, 1./4*Ls**4*NL_KK['tt'])
+plt.loglog(Ls, 1./4*Ls**4*NL_KK['eb'])
+plt.xlim(100,4000)
+plt.ylim(1e-8,1e-5)
+plt.grid()
+plt.savefig('ALtheory.png')
+plt.show()
 #
 #
 #colors=['b','r','c','g','y','m']

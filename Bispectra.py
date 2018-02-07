@@ -184,6 +184,7 @@ class Bispectra():
             print "Initializing CLASS..."
             print self.cosmo
             self.closmo_lin.compute()
+            print 'sigma8 ', self.closmo_lin.sigma8()
         else:
             self.closmo_lin=None
 
@@ -194,6 +195,7 @@ class Bispectra():
             print "Initializing CLASS with halofit..."
             print self.cosmo
             self.closmo_nl.compute()
+            print 'sigma8 ', self.closmo_nl.sigma8()
         else:
             self.closmo_nl=None
 
@@ -233,11 +235,8 @@ class Bispectra():
             k2      = (self.l2+0.5)/self.chi[ii]
             k3      = (self.l3+0.5)/self.chi[ii]
 
-            print len(k1), len(k2), len(k3)
 
             index=np.all([k1>=self.kmin,k2>=self.kmin,k3>=self.kmin,k1<=self.kmax,k2<=self.kmax,k3<=self.kmax],axis=0)
-
-            print index
 
             k1      = k1[index]
             k2      = k2[index]
@@ -245,8 +244,6 @@ class Bispectra():
             ang12   = self.ang12[index]
             ang23   = self.ang23[index]
             ang31   = self.ang31[index]
-
-            print len(k1), len(k2), len(k3)
 
             for j in xrange(len(k1)):
                 spec1+=[cosmo_pk(k1[j],z_i)]

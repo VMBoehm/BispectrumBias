@@ -70,23 +70,23 @@ def I2(bispec, L, l, theta, len_l, len_L,len_ang):
     return result/(2.*np.pi)**2
 
 
-def filt(l,FWHM):
+def filt(l,FWHM,lmin,lmax):
 
     FWHM_ = FWHM/60.*(np.pi/180.)
     sigma2= FWHM_**2/8./np.log(2.)
     filt=np.exp(-l**2*sigma2/2.)
     try:
-        filt[np.where(l>5000)]=0.
-        filt[np.where(l<30)]=0.
+        filt[np.where(l>lmax)]=0.
+        filt[np.where(l<lmin)]=0.
     except:
-        if l>5000:
+        if l>lmax:
             filt=0.
-        if l<30:
+        if l<lmin:
             filt=0.
 
     return filt
 
-def skew(bispec, FWHM, L, l, Ll, theta, len_l, len_L,len_ang, kappa):
+def skew(bispec, FWHM, L, l, Ll, theta, len_l, len_L,len_ang,lmin,lmax,kappa=True):
 
     result = np.array([])
     bin_size = len_ang*len_l
@@ -102,7 +102,7 @@ def skew(bispec, FWHM, L, l, Ll, theta, len_l, len_L,len_ang, kappa):
             l_=l[j]
             spec_int  = spec[j*len_ang:(j+1)*len_ang]
             l3 = Ll_[j*len_ang:(j+1)*len_ang]
-            integrand = spec_int*filt(L_,FWHM)*filt(l_,FWHM)*filt(l3,FWHM)
+            integrand = spec_int*filt(L_,FWHM,lmin,lmax)*filt(l_,FWHM,lmin,lmax)*filt(l3,FWHM,lmin,lmax)
             if kappa:
                 integrand*=-1./8.*(L_*l_*l3)**2
 
