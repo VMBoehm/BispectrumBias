@@ -34,7 +34,7 @@ if __name__ == "__main__":
 
     "---begin settings---"
 
-    tag         = 'sim_comp1b'
+    tag         = 'sim_comp_1b'
 
     #type of bispectrum
     kkg         = False
@@ -73,7 +73,7 @@ if __name__ == "__main__":
     #sampling in L/l and angle
     len_L       = 100
     len_l       = len_L+20
-    len_ang     = 80
+    len_ang     = 100
 
     #ell range (for L and l)
     L_min       = 1. #set to 2
