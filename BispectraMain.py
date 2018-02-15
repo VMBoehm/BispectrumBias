@@ -34,7 +34,7 @@ if __name__ == "__main__":
 
     "---begin settings---"
 
-    tag         = 'sim_comp'
+    tag         = 'sim_comp1b'
 
     #type of bispectrum
     kkg         = False
@@ -47,7 +47,7 @@ if __name__ == "__main__":
     #compute beta integrals?
     integrals   = True
 
-    skewness    = True
+    skewness    = False
     FWHMs       = [0.5,1.,2.,3.,4.,5.,8.,10.]
 
     #use LSST like redshift bins
@@ -73,23 +73,23 @@ if __name__ == "__main__":
     #sampling in L/l and angle
     len_L       = 100
     len_l       = len_L+20
-    len_ang     = 100
+    len_ang     = 80
 
     #ell range (for L and l)
     L_min       = 1. #set to 2
-    L_max       = 5000.
+    L_max       = 3000.
 
     l_min       = L_min
-    l_max       = 6000.
+    l_max       = 8000.
 
 
     Delta_theta = 1e-4
 
     nl          = True
-    cparams     = C.Planck2013_Giulio#C.Planck2015_TTlowPlensing#
+    cparams     = C.SimulationCosmology
 
-    k_min       = 2e-3#0.0105*cparams[1]['h']
-    k_max       = 50.#42.9*cparams[1]['h']
+    k_min       = 0.0105*cparams[1]['h']
+    k_max       = 42.9*cparams[1]['h']
     #k-range1: 0.0105*cparams[1]['h']-42.9*cparams[1]['h']
     #k-range2: 0.0105*cparams[1]['h']-49*cparams[1]['h']
 
@@ -126,10 +126,11 @@ if __name__ == "__main__":
 
     print "z_cmb: %f"%z_cmb
 
-    z_a     = np.exp(np.linspace(np.log(z_min),np.log(100.),70,endpoint=False))
-    z_b     = np.linspace(100.,z_cmb-0.001,10)
-    z       = np.append(z_a,z_b)
-    assert(len(z)==bin_num)
+    if kkk or (LSST==False):
+      z_a     = np.exp(np.linspace(np.log(z_min),np.log(100.),70,endpoint=False))
+      z_b     = np.linspace(100.,z_cmb-0.001,10)
+      z       = np.append(z_a,z_b)
+      assert(len(z)==bin_num)
 
     if kkg or kgg:
 
@@ -150,7 +151,7 @@ if __name__ == "__main__":
                     gz, dgn = pickle.load(open(dn_filename+'tot_extrapolated.pkl','r'))
                     dndz    = interp1d(gz, dgn, kind='linear',bounds_error=False,fill_value=0.)
 
-                z       = np.linspace(min(mbin[0][0]-0.3,z_min),mbin[0][1]+0.3,bin_num)
+                z       = np.linspace(max(mbin[0]-0.3,z_min),mbin[0]+mbin[1]+0.3,bin_num)
                 bias    = z+1.
                 norm    = simps(dndz(z),z)
 
@@ -176,7 +177,10 @@ if __name__ == "__main__":
 
     if ell_type=="full":
         #L = |-L|, equally spaced in lin at low L and in log at high L
-        L       = np.exp(np.linspace(np.log(L_min),np.log(L_max),len_L))
+        La      = np.linspace(L_min,100,50)
+        Lb      = np.exp(np.linspace(np.log(100),np.log(L_max),len_L-49))[1:]
+        L       = np.append(La,Lb)
+        print L
         la      = L
         lb      = np.exp(np.linspace(np.log(L_max),np.log(l_max),21))[1:]
         l       = np.append(la,lb)
@@ -305,7 +309,7 @@ if __name__ == "__main__":
 #            bs.set_up()
         k_min   = bs.kmin
         k_max   = bs.kmax
-        PBB     = postborn.PostBorn_Bispec(params,k_min,k_max)#,kkg,dndz,norm)
+        PBB     = postborn.PostBorn_Bispec(params,k_min,k_max,kkg,dndz,norm)
 
 
         if kkg:

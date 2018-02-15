@@ -58,9 +58,6 @@ class Bispectra():
 
         print "bispectrum size: ", self.len_bi
 
-        self.kmin     = k_min
-        self.kmax     = k_max
-
         self.config   = config
 
         self.set_stage= False
@@ -73,7 +70,7 @@ class Bispectra():
         self.kkg        = kkg
         self.kgg        = kgg
         self.kkk        = kkk
-        assert(kkk+kgg+kgg==1)
+        assert(kkk+kgg+kkg==1)
 
         self.dndz       = dndz
         self.norm       = norm
@@ -102,6 +99,8 @@ class Bispectra():
 
         self.sym    = sym
 
+        self.kmin   = k_min
+        self.kmax   = k_max
         kmax        = max(self.l2)/min(self.chi)
         kmin        = min(self.l2)/max(self.chi)
 
@@ -110,9 +109,14 @@ class Bispectra():
             self.kmin=kmin
         if self.kmax==None:
             self.kmax=kmax
-        print "kmin and kmax from ell/chi", kmin, kmax
-        print "kmin and kmax for bispectrum delta", self.kmin, self.kmax
 
+
+        print "kmin and kmax from ell/chi", kmin, kmax
+
+        self.kmax = min(kmax,self.kmax)
+        self.kmin = max(kmin,self.kmin)
+
+        print "kmin and kmax used in calculation", self.kmin, self.kmax
 
 
     def __call__(self):
@@ -159,21 +163,20 @@ class Bispectra():
             self.data.get_abc(k4n,self.z[np.where(self.z<=self.fit_z_max)],self.fit_z_max)
 
 
-        self.cosmo['output']='mPk'
+        self.cosmo['output']='tCl, mPk'
 
-        self.cosmo['tol_perturb_integration']   = 1.e-6
+        self.cosmo['tol_perturb_integration']=1e-6
 
-        #self.cosmo['l_max_scalars']             = min(self.L_max,4000)
-        self.cosmo['z_max_pk']                  = max(self.z)
+        self.cosmo['P_k_max_1/Mpc']= self.kmax
+        self.cosmo['z_max_pk']     = max(max(self.z),1.5)
 
-        self.cosmo['P_k_max_1/Mpc']             = self.kmax
-        self.cosmo['k_min_tau0']                = self.kmin*13000.
+        self.cosmo['k_min_tau0']   = self.kmin*13000.
 
 
-        #self.cosmo['k_max_tau0_over_l_max']=3.
-        self.cosmo['k_step_sub']=0.015
-        self.cosmo['k_step_super']=0.0001
-        self.cosmo['k_step_super_reduction']=0.1
+        self.cosmo['k_step_sub']   = 0.015
+        self.cosmo['k_step_super'] = 0.0001
+        self.cosmo['k_step_super_reduction']= 0.1
+        self.cosmo['k_per_decade_for_pk']   = 20
 
 
         #Initializing class
@@ -190,6 +193,7 @@ class Bispectra():
 
         if self.nl:
             self.cosmo['non linear'] = "halofit"
+            self.cosmo['halofit_k_per_decade']=100
             self.closmo_nl=Class()
             self.closmo_nl.set(self.cosmo)
             print "Initializing CLASS with halofit..."
@@ -226,6 +230,7 @@ class Bispectra():
             z_i     = self.z[ii]
             print ii/len(self.z)*100.
             print (time.time()-beg)/60., 'min'
+            print 'z: ', z_i
 
             spec1   =[]
             spec2   =[]
@@ -245,10 +250,14 @@ class Bispectra():
             ang23   = self.ang23[index]
             ang31   = self.ang31[index]
 
+            print len(k1)
+            a=time.time()
             for j in xrange(len(k1)):
                 spec1+=[cosmo_pk(k1[j],z_i)]
                 spec2+=[cosmo_pk(k2[j],z_i)]
                 spec3+=[cosmo_pk(k3[j],z_i)]
+            print (time.time()-a)/60.
+
 
 
             specs = [np.asarray(spec1),np.asarray(spec2),np.asarray(spec3)]
@@ -278,9 +287,9 @@ class Bispectra():
         """
 
 
-        B=2.*hf.get_F2_kernel(k1,k2,ang12)*spectra[0]*spectra[1]\
-        +2.*hf.get_F2_kernel(k2,k3,ang23)*spectra[1]*spectra[2]\
-        +2.*hf.get_F2_kernel(k3,k1,ang31)*spectra[2]*spectra[0]
+        B =2.*hf.get_F2_kernel(k1,k2,ang12)*spectra[0]*spectra[1]
+        B+=2.*hf.get_F2_kernel(k2,k3,ang23)*spectra[1]*spectra[2]
+        B+=2.*hf.get_F2_kernel(k3,k1,ang31)*spectra[2]*spectra[0]
 
         return B
 
