@@ -34,7 +34,7 @@ if __name__ == "__main__":
 
     "---begin settings---"
 
-    tag         = 'sim_comp_1b'
+    tag         = 'sim_comp_2c'
 
     #type of bispectrum
     kkg         = False
@@ -88,7 +88,7 @@ if __name__ == "__main__":
     nl          = True
     cparams     = C.SimulationCosmology
 
-    k_min       = 0.0105*cparams[1]['h']
+    k_min       = 0.0105*cparams[1]['h']/3. #divided by three for lens planes
     k_max       = 42.9*cparams[1]['h']
     #k-range1: 0.0105*cparams[1]['h']-42.9*cparams[1]['h']
     #k-range2: 0.0105*cparams[1]['h']-49*cparams[1]['h']
@@ -179,7 +179,7 @@ if __name__ == "__main__":
         #L = |-L|, equally spaced in lin at low L and in log at high L
         La      = np.linspace(L_min,100,50)
         Lb      = np.exp(np.linspace(np.log(100),np.log(L_max),len_L-49))[1:]
-        L       = np.append(La,Lb)
+        L       = np.exp(np.linspace(np.log(L_min),np.log(L_max),len_L))#np.append(La,Lb)
         print L
         la      = L
         lb      = np.exp(np.linspace(np.log(L_max),np.log(l_max),21))[1:]
