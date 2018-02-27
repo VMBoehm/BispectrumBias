@@ -34,7 +34,7 @@ if __name__ == "__main__":
 
     "---begin settings---"
 
-    tag         = 'sim_comp_2c'
+    tag         = 'sim_comp_old'
 
     #type of bispectrum
     kkg         = False
@@ -71,24 +71,24 @@ if __name__ == "__main__":
     z_min       = 1e-3
 
     #sampling in L/l and angle
-    len_L       = 100
-    len_l       = len_L+20
+    len_L       = 163
+    len_l       = len_L#+20
     len_ang     = 100
 
     #ell range (for L and l)
     L_min       = 1. #set to 2
-    L_max       = 3000.
+    L_max       = 8000.
 
     l_min       = L_min
     l_max       = 8000.
 
 
-    Delta_theta = 1e-4
+    Delta_theta = 1e-2
 
     nl          = True
     cparams     = C.SimulationCosmology
 
-    k_min       = 0.0105*cparams[1]['h']/3. #divided by three for lens planes
+    k_min       = 0.0105*cparams[1]['h']#divided by three for lens planes
     k_max       = 42.9*cparams[1]['h']
     #k-range1: 0.0105*cparams[1]['h']-42.9*cparams[1]['h']
     #k-range2: 0.0105*cparams[1]['h']-49*cparams[1]['h']
@@ -177,13 +177,15 @@ if __name__ == "__main__":
 
     if ell_type=="full":
         #L = |-L|, equally spaced in lin at low L and in log at high L
-        La      = np.linspace(L_min,100,50)
-        Lb      = np.exp(np.linspace(np.log(100),np.log(L_max),len_L-49))[1:]
-        L       = np.exp(np.linspace(np.log(L_min),np.log(L_max),len_L))#np.append(La,Lb)
-        print L
-        la      = L
-        lb      = np.exp(np.linspace(np.log(L_max),np.log(l_max),21))[1:]
-        l       = np.append(la,lb)
+        #La      = np.linspace(L_min,100,50)
+        #Lb      = np.exp(np.linspace(np.log(100),np.log(L_max),len_L-49))[1:]
+        #L       = np.exp(np.linspace(np.log(L_min),np.log(L_max),len_L))#np.append(La,Lb)
+        side1a        = np.linspace(L_min+1,50,48,endpoint=False)#np.exp(np.linspace(log_min,log_max,sample1d))
+        side1b        = np.exp(np.linspace(np.log(50),np.log(L_max),len_L-48))
+        L             = np.append(side1a,side1b)
+        #la      = L
+        #lb      = np.exp(np.linspace(np.log(L_max),np.log(l_max),21))[1:]
+        l       = L#np.append(la,lb)
         assert(len(l)==len_l)
 
     elif ell_type=='equilat':
