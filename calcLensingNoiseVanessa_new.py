@@ -196,8 +196,8 @@ tag         = params[0]['name']
 fields      = ['tt','te','ee','eb','bb','tb']
 path        ='/home/nessa/Documents/Projects/LensingBispectrum/CMB-nonlinear/outputs/N0files/'
 
-thetaFWHMarcmin = 1. #beam FWHM
-noiseUkArcmin   = 1.#eval(sys.argv[1]) #Noise level in uKarcmin
+thetaFWHMarcmin = 1.4 #beam FWHM
+noiseUkArcmin   = 6.#eval(sys.argv[1]) #Noise level in uKarcmin
 l_max_T         = 4000
 l_max_P         = 4000
 TCMB            = 2.7255e6
