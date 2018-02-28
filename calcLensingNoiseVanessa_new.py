@@ -21,6 +21,32 @@ import Cosmology as Cosmo
 plt.rc('text',usetex=True)
 plt.rc('font',**{'family':'serif','serif':['Computer Modern'],'size':16})
 
+"""------------settings----------------"""
+params      = Cosmo.SimulationCosmology
+tag         = params[0]['name']
+fields      = ['tt']#,'te','ee','eb','bb','tb']
+nl          = True
+out_path    ='/home/nessa/Documents/Projects/LensingBispectrum/CMB-nonlinear/outputs/N0files/'
+
+thetaFWHMarcmin = 7. #beam FWHM
+noiseUkArcmin   = 30.#eval(sys.argv[1]) #Noise level in uKarcmin
+l_max_T         = 2000
+l_max_P         = 2000
+l_min           = 2
+L_max           = max(max(l_max_P,l_max_T)+2000,6000) #for l integration
+L_min           = 1
+TCMB            = 2.7255e6
+div             = False #divide EB by factor of 2.5
+
+if nl:
+  nl_='_nl'
+else:
+  nl_=''
+
+class_file='class_cls_%s%s.pkl'%(tag,nl_)
+inputpath='./outputs/ClassCls/'
+
+"""------------settings----------------"""
 
 def get_del_lnCl_del_lnl(lvec, Cl, test_plots=False):
 
@@ -86,10 +112,10 @@ def get_cl2(cl_unlen, cl_tot, l2, lmin, lmax):
 	cl2_tot[idxs1] = cl_tot[lowl[idxs1]] + deltal[idxs1] * (cl_tot[highl[idxs1]] - cl_tot[lowl[idxs1]])
 	cl2_unlen[idxs1] = cl_unlen[lowl[idxs1]] + deltal[idxs1] * (cl_unlen[highl[idxs1]] - cl_unlen[lowl[idxs1]])
 
-	cl2_tot[idxs2] = 1e10#cl_tot[0] + deltal[idxs2] * (cl_tot[0] - cl_tot[1])
-	cl2_unlen[idxs2] = 0.#cl_unlen[0] + deltal[idxs2] * (cl_unlen[0] - cl_unlen[1])
-	cl2_tot[idxs3] = 1e10#cl_tot[lmax-lmin] + deltal[idxs3]*(cl_tot[lmax-lmin] - cl_tot[lmax-lmin-1]) * np.exp(-deltal[idxs3]**2)
-	cl2_unlen[idxs3] = 0. #cl_unlen[lmax-lmin] + deltal[idxs3]*(cl_unlen[lmax-lmin] - cl_unlen[lmax-lmin-1]) * np.exp(-deltal[idxs3]**2)
+	cl2_tot[idxs2] = cl_tot[0] + deltal[idxs2] * (cl_tot[0] - cl_tot[1])
+	cl2_unlen[idxs2] = cl_unlen[0] + deltal[idxs2] * (cl_unlen[0] - cl_unlen[1])
+	cl2_tot[idxs3] = cl_tot[lmax-lmin] + deltal[idxs3]*(cl_tot[lmax-lmin] - cl_tot[lmax-lmin-1]) * np.exp(-deltal[idxs3]**2)
+	cl2_unlen[idxs3] = cl_unlen[lmax-lmin] + deltal[idxs3]*(cl_unlen[lmax-lmin] - cl_unlen[lmax-lmin-1]) * np.exp(-deltal[idxs3]**2)
 
 	return cl2_unlen, cl2_tot
 
@@ -155,12 +181,12 @@ def noise_kernel(theta, l1, L, field, cl_unlen, cl_len, cl_tot, lmin, lmax):
 
 
 
-def get_lensing_noise(ells, cl_len, cl_unlen, nl, fields,lmin,l_max_T,lmax_P):
+def get_lensing_noise(ells, cl_len, cl_unlen, nl, fields,lmin,lmax):
     result ={}
 
     cl_tot = {}
     n_Ls   = 200
-    LogLs  = np.linspace(np.log(1.),np.log(max(ells)+0.1), n_Ls)
+    LogLs  = np.linspace(np.log(1.),np.log(4000), n_Ls)
     Ls     = np.unique(np.floor(np.exp(LogLs)).astype(int))
 
     for field in fields:
@@ -171,10 +197,6 @@ def get_lensing_noise(ells, cl_len, cl_unlen, nl, fields,lmin,l_max_T,lmax_P):
 
 
     for field in fields:
-        if field in ['ee','bb','eb']:
-            lmax=l_max_P
-        else:
-            lmax=l_max_T
         integral=[]
         for L in Ls:
             N = 100
@@ -191,17 +213,6 @@ def get_lensing_noise(ells, cl_len, cl_unlen, nl, fields,lmin,l_max_T,lmax_P):
 ## Read in ells, unlensed, lensed and noise spectra (TT, EE, ...)
 ## and define which spectra we have measured (fields)
 
-params      = Cosmo.SimulationCosmology
-tag         = params[0]['name']
-fields      = ['tt','te','ee','eb','bb','tb']
-path        ='/home/nessa/Documents/Projects/LensingBispectrum/CMB-nonlinear/outputs/N0files/'
-
-thetaFWHMarcmin = 1.4 #beam FWHM
-noiseUkArcmin   = 6.#eval(sys.argv[1]) #Noise level in uKarcmin
-l_max_T         = 4000
-l_max_P         = 4000
-TCMB            = 2.7255e6
-div             = False #divide EB by factor of 2.5
 
 print 'Evaluating reconstruction noise for fields %s, noise level %f muK/arcmin and %s arcmin sq beam'%(str(fields),noiseUkArcmin,thetaFWHMarcmin)
 
@@ -210,31 +221,7 @@ if l_max_T!=l_max_P:
 else:
     lmax=str(l_max_T)
 
-try:
-    Parameter,cl_unl,cl_len=pickle.load(open('/home/nessa/Documents/Projects/LensingBispectrum/CMB-nonlinear/outputs/ClassCls/class_cls_%s_nl_4N0.pkl'%tag,'r'))
-    print 'loaded ', 'class_cls_%s_nl_4N0.pkl'%tag
-except:
-    print 'class_cls_%s_nl_4N0.pkl'%tag
-    l_max = max(l_max_T, l_max_P)+2000
-
-    closmo=Class()
-    class_params=params[1]
-    class_params['output']= 'lCl tCl pCl'
-    class_params['non linear'] = "halofit"
-    class_params['lensing'] = 'yes'
-    class_params['l_max_scalars'] = l_max
-    class_params['tol_perturb_integration']=1.e-6
-    class_params['perturb_sampling_stepsize']=0.01
-    class_params['l_switch_limber'] = 40.
-    class_params['accurate_lensing']=1
-    closmo.set(class_params)
-    print "Initializing CLASS with", class_params
-    closmo.compute()
-    print "sigma8:", closmo.sigma8()
-    cl_unl=closmo.raw_cl(l_max)
-    cl_len=closmo.lensed_cl(l_max)
-    pickle.dump([class_params,cl_unl,cl_len],open('/home/nessa/Documents/Projects/LensingBispectrum/CMB-nonlinear/outputs/ClassCls/class_cls_%s_nl_4N0.pkl'%tag,'w'))
-    print 'Dumped class cls under %s'%('/home/nessa/Documents/Projects/LensingBispectrum/CMB-nonlinear/outputs/ClassCls/class_cls_%s_nl_4N0.pkl'%tag)
+Parameter,cl_unl,cl_len=pickle.load(open(inputpath+'%s'%class_file,'r'))
 
 
 cl, nl = {}, {}
@@ -245,27 +232,25 @@ cl_phiphi=cl_len['pp'][ll]
 
 thetaFWHM = thetaFWHMarcmin*np.pi/(180.*60.) #beam FWHM in rad
 deltaT = noiseUkArcmin/thetaFWHMarcmin # noise variance per unit area
-nlI = (deltaT*thetaFWHM)**2*np.exp(ll*(ll+1.)*thetaFWHM**2/(8.*np.log(2.)))/TCMB**2 #beam deconvolved noise relative to CMB temperature
+nlI_T = (deltaT*thetaFWHM)**2*np.exp(ll*(ll+1.)*thetaFWHM**2/(8.*np.log(2.)))/TCMB**2 #beam deconvolved noise relative to CMB temperature
+nlI_pol = (deltaT*thetaFWHM)**2*np.exp(ll*(ll+1.)*thetaFWHM**2/(8.*np.log(2.)))/TCMB**2
 
-nlI[0:100]=1e10
-nlI[int(lmax)::]=1e10
+nlI_T[0:l_min]=1e10
+nlI_T[l_max_T::]=1e10
+
+nlI_pol[0:l_min]=1e10
+nlI_pol[l_max_P::]=1e10
 
 #beam deconvolved noise
-nl['tt']  = nlI
-nl['te']  = np.zeros(len(nlI))
-nl['tb']  = np.zeros(len(nlI))
-nl['ee']  = 2*nlI
-nl['bb']  = 2*nlI
-nl['eb']  = np.zeros(len(nlI))
+nl['tt']  = nlI_T
+nl['te']  = np.zeros(len(nlI_T))
+nl['tb']  = np.zeros(len(nlI_T))
+nl['ee']  = 2*nlI_pol
+nl['bb']  = 2*nlI_pol
+nl['eb']  = np.zeros(len(nlI_T))
 
-print path+'lensNoisePower'+str(int(noiseUkArcmin*10))+str(int(thetaFWHMarcmin*10))+'_%s_nl.pkl'%tag
-#try:
-#    Ls,NL_KK,MV_noise=pickle.load(open(path+'lensNoisePower1010_Planck2013_nl.pkl','r'))
-#except:
-#    print 'lensNoisePower'+str(int(noiseUkArcmin*10))+str(int(thetaFWHMarcmin*10))+'_%s_nl.pkl'%tag, 'not found'
-Ls, NL_KK = get_lensing_noise(ll, cl_len,cl_unl, nl, fields,2,l_max_T,l_max_P)
+Ls, NL_KK = get_lensing_noise(ll, cl_len,cl_unl, nl, fields,L_min,L_max)
 
-#N0_lim    = get_lowL_limit(cl['TT_unlen'][2::],cl['tt'][2::], cl['tt'][2::]+nl['tt'][2::], ells[2::],Ls)
 
 
 if div:
@@ -281,10 +266,10 @@ for f in fields:
 			MV_noise+=1./NL_KK[f]
 MV_noise=1./MV_noise
 
-print Ls
-print NL_KK
-pickle.dump([Ls,NL_KK],open(path+'%s_N0_%s_%d%d_%s.pkl'%(tag,lmax,10*noiseUkArcmin,10*thetaFWHMarcmin,no_div),'w'))
-print 'result dumped to', path+'%s_N0_%s_%d%d_%s.pkl'%(tag,lmax,10*noiseUkArcmin,10*thetaFWHMarcmin,no_div)
+filename = out_path+'%s_N0_%s_%d%d_%s%s.pkl'%(tag,lmax,10*noiseUkArcmin,10*thetaFWHMarcmin,no_div,nl_)
+
+pickle.dump([Ls,NL_KK],open(filename,'w'))
+print 'result dumped to', filename
 #	pickle.dump([Ls,N0_lim],open('lensNoisePowerlim'+str(int(noiseUkArcmin*10))+str(int(thetaFWHMarcmin*10))+'_'+str(int(lcut))+'.pkl','w'))
 #plt.loglog(ells,ells*(ells+1.)*cl_phiphi/2./np.pi, label=r'$C_\ell^{\phi\phi}$')
 #plt.xlim(2, 3000)
@@ -298,8 +283,8 @@ print 'result dumped to', path+'%s_N0_%s_%d%d_%s.pkl'%(tag,lmax,10*noiseUkArcmin
 
 plt.figure()
 plt.loglog(Ls, 1./4*Ls**4*NL_KK['tt'])
-plt.loglog(Ls, 1./4*Ls**4*NL_KK['eb'])
-plt.xlim(100,4000)
+#plt.loglog(Ls, 1./4*Ls**4*NL_KK['eb'])
+plt.xlim(50,3000)
 plt.ylim(1e-8,1e-5)
 plt.grid()
 plt.savefig('ALtheory.png')

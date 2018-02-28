@@ -428,10 +428,9 @@ class CosmoData():
 
 		return result
 
-	def get_Cls(self,tag,nl=False,lmax=6000):
-
+	def get_Cls(self,tag,nl=False,lmax=6000,path='./outputs/ClassCls/'):
 		params =copy.deepcopy(self.class_params)
-		params['output']='tCl lCl mPk'
+		params['output']='tCl lCl pCl mPk'
 		params['lensing']='yes'
 		if nl:
 			params['non linear']="halofit"
@@ -459,7 +458,9 @@ class CosmoData():
 
 		cl_unl=closmo.raw_cl(lmax)
 
-		pickle.dump([params,cl_unl,cl_len],open('/home/nessa/Documents/Projects/LensingBispectrum/Simulations/NewRuns/CMBLensSims/inputParams/'+'class_cls_%s.pkl'%tag,'w'))
+		pickle.dump([params,cl_unl,cl_len],open(path+'class_cls_%s.pkl'%tag,'w'))
+
+		print 'dumped to ', path+'class_cls_%s.pkl'%tag
 
 		return True
 

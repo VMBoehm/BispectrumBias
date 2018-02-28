@@ -22,6 +22,33 @@ plt.rc('text',usetex=True)
 plt.rc('font',**{'family':'serif','serif':['Computer Modern'],'size':16})
 
 
+"""--------------Settings------------------"""
+params  = Cosmo.SimulationCosmology
+tag     = params[0]['name']
+nl      = True #nonlinear lensed power spectra
+fields  = ['tt']#,'eb']#,'te','ee','eb','bb','tb']
+
+if nl:
+  nl='_nl'
+else:
+  nl=''
+class_file='class_cls_%s%s.pkl'%(tag,nl)
+
+inputpath='./outputs/ClassCls/'
+outputpath='./R_files/'
+
+thetaFWHMarcmin = 7. #beam FWHM
+noiseUkArcmin   = 30.
+l_max_T         = 2000 #noise cut off in CMB
+l_max_P         = 2000 #noise cut off in CMB
+l_min           = 2 #noise cut off in CMB
+lmax            = max(max(l_max_P,l_max_T)+2000,6000) #max l in integration
+TCMB            = 2.7255e6
+"""--------------Settings------------------"""
+
+filename = outputpath+'R_'+str(int(noiseUkArcmin*10))+str(int(thetaFWHMarcmin*10))+'_%s%s_lmax%d.pkl'%(tag,nl,l_max_T)
+
+
 def get_del_lnCl_del_lnl(lvec, Cl, test_plots=False):
 
     # TODO: use h^4 central finite difference
@@ -86,10 +113,10 @@ def get_cl2(cl_unlen, cl_tot, l2, lmin, lmax):
 	cl2_tot[idxs1] = cl_tot[lowl[idxs1]] + deltal[idxs1] * (cl_tot[highl[idxs1]] - cl_tot[lowl[idxs1]])
 	cl2_unlen[idxs1] = cl_unlen[lowl[idxs1]] + deltal[idxs1] * (cl_unlen[highl[idxs1]] - cl_unlen[lowl[idxs1]])
 
-	cl2_tot[idxs2] = 1e10#cl_tot[0] + deltal[idxs2] * (cl_tot[0] - cl_tot[1])
-	cl2_unlen[idxs2] = 0.#cl_unlen[0] + deltal[idxs2] * (cl_unlen[0] - cl_unlen[1])
-	cl2_tot[idxs3] = 1e10#cl_tot[lmax-lmin] + deltal[idxs3]*(cl_tot[lmax-lmin] - cl_tot[lmax-lmin-1]) * np.exp(-deltal[idxs3]**2)
-	cl2_unlen[idxs3] = 0. #cl_unlen[lmax-lmin] + deltal[idxs3]*(cl_unlen[lmax-lmin] - cl_unlen[lmax-lmin-1]) * np.exp(-deltal[idxs3]**2)
+	cl2_tot[idxs2] = cl_tot[0] + deltal[idxs2] * (cl_tot[0] - cl_tot[1])
+	cl2_unlen[idxs2] = cl_unlen[0] + deltal[idxs2] * (cl_unlen[0] - cl_unlen[1])
+	cl2_tot[idxs3] = cl_tot[lmax-lmin] + deltal[idxs3]*(cl_tot[lmax-lmin] - cl_tot[lmax-lmin-1]) * np.exp(-deltal[idxs3]**2)
+	cl2_unlen[idxs3] = cl_unlen[lmax-lmin] + deltal[idxs3]*(cl_unlen[lmax-lmin] - cl_unlen[lmax-lmin-1]) * np.exp(-deltal[idxs3]**2)
 
 	return cl2_unlen, cl2_tot
 
@@ -119,7 +146,7 @@ def noise_kernel(theta, l1, L, field, cl_unlen, cl_len, cl_tot, lmin, lmax):
         g_    = (cl1_len * Ldotl1 + cl2_len * Ldotl2) / (2. * cl1_tot * cl2_tot)
         kernel['perp']  = g_*(sin_theta*l1)**2*cl1_unlen
         kernel['para']  = g_*(cos_theta*l1)**2*cl1_unlen
-        kernel['SL']    = g_*(cos_theta*l1)*cl1_unlen
+        kernel['SL']    = g_*Ldotl1*cl1_len
 
     elif field == 'eb':
         cl1_len = cl_len['ee'][l1]
@@ -132,7 +159,7 @@ def noise_kernel(theta, l1, L, field, cl_unlen, cl_len, cl_tot, lmin, lmax):
         kernel['perp']  = g_*(sin_theta*l1)**2*cl1_unlen*sin_2mu
         kernel['para']  = g_*(cos_theta*l1)**2*cl1_unlen*sin_2mu
 
-    for tag in ['perp','para']:
+    for tag in ['perp','para','SL']:
         kernel[tag]*= (l1 * (2. * np.pi)**(-2.))
 
     return kernel
@@ -146,8 +173,8 @@ def get_lensing_noise(ells, cl_len, cl_unlen, nl, fields,lmin,lmax):
     result ={}
 
     cl_tot = {}
-    n_Ls   = 400
-    LogLs  = np.linspace(np.log(1.),np.log(max(ells)+0.1), n_Ls)
+    n_Ls   = 200
+    LogLs  = np.linspace(np.log(1.),np.log(4000), n_Ls)
     Ls     = np.unique(np.floor(np.exp(LogLs)).astype(float))
 
     for field in ['tt','ee','bb']:
@@ -167,7 +194,7 @@ def get_lensing_noise(ells, cl_len, cl_unlen, nl, fields,lmin,lmax):
             N = 200
             thetas = np.linspace(0.,2*np.pi,N)
             dtheta= 2.*np.pi/N
-            Theta, Ells = np.meshgrid(thetas,np.arange(lmin,lmax+1))
+            Theta, Ells = np.meshgrid(thetas,np.arange(1,lmax+1))
             kernel_grid = noise_kernel(Theta, Ells, L, field, cl_unlen, cl_len, cl_tot, lmin, lmax)
             integral['perp']+=[dtheta * np.sum(np.sum(kernel_grid['perp'], axis = 0), axis = 0)]
             integral['para']+=[dtheta * np.sum(np.sum(kernel_grid['para'], axis = 0), axis = 0)]
@@ -180,24 +207,10 @@ def get_lensing_noise(ells, cl_len, cl_unlen, nl, fields,lmin,lmax):
 
 ## Read in ells, unlensed, lensed and noise spectra (TT, EE, ...)
 ## and define which spectra we have measured (fields)
-
-params=Cosmo.SimulationCosmology
-tag=params[0]['name']
-fields = ['tt']#,'eb']#,'te','ee','eb','bb','tb']
-class_file='class_cls_Jias_Simulationlmax6000_nl.pkl'
-
-thetaFWHMarcmin = 1.4 #beam FWHM
-noiseUkArcmin = 6.#eval(sys.argv[1]) #Noise level in uKarcmin
-l_max_T       = 4000
-l_max_P       = 4000
-lmax          = max(l_max_P,l_max_T)+1000
-l_min         = 2
-TCMB          = 2.7255e6
-
 print 'Evaluating reconstruction noise for fields %s, noise level %f muK/arcmin and %s arcmin sq beam'%(str(fields),noiseUkArcmin,thetaFWHMarcmin)
 
-Parameter,cl_unl,cl_len=pickle.load(open('/home/nessa/Documents/Projects/LensingBispectrum/class_outputs/%s'%class_file,'r'))
-print class_file
+Parameter,cl_unl,cl_len=pickle.load(open(inputpath+'%s'%class_file,'r'))
+print 'loaded ', inputpath+'%s'%class_file
 cl, nl = {}, {}
 ll=cl_unl['ell']
 cl_phiphi=cl_len['pp'][ll]
@@ -209,6 +222,7 @@ nlI = (deltaT*thetaFWHM)**2*np.exp(ll*(ll+1.)*thetaFWHM**2/(8.*np.log(2.)))/TCMB
 
 nlI[0:l_min]=1e20
 nlI[l_max_T::]=1e20
+assert(fields==['tt'])
 
 #beam deconvolved noise
 nl['tt']  = nlI
@@ -218,25 +232,24 @@ nl['ee']  = 2*nlI
 nl['bb']  = 2*nlI
 nl['eb']  = np.zeros(len(nlI))
 
-path='./R_files/'
 
-filename = path+'R_'+str(int(noiseUkArcmin*10))+str(int(thetaFWHMarcmin*10))+'_%s_nl'%tag
 try:
     assert(0)
-    Ls,results = pickle.load(open(filename+'.pkl','r'))
+    Ls,results = pickle.load(open(filename,'r'))
 except:
     Ls,results = get_lensing_noise(ll, cl_len,cl_unl, nl, fields,2,lmax)
 
-    pickle.dump([Ls,results],open(filename+'.pkl','w'))
+    pickle.dump([Ls,results],open(filename,'w'))
 
-print filename
+
+print 'results dumped to ', filename
 
 plt.figure()
 plt.plot(Ls,Ls**(-2)*results['tt']['perp'],ls='',marker='o',label='tt perp')
 plt.plot(Ls,Ls**(-2)*results['tt']['para'],ls='',marker='o',label='tt para')
 #plt.plot(Ls,Ls**(-2)*results['eb']['perp'],label='eb perp')
 #plt.plot(Ls,Ls**(-2)*results['eb']['para'],label='eb para')
-plt.xlim(100,3000)
+plt.xlim(100,2000)
 plt.legend(loc='best',ncol=2,frameon=False)
 plt.savefig(filename+'.png')
 plt.show()

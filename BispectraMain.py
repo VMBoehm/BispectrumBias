@@ -34,7 +34,7 @@ if __name__ == "__main__":
 
     "---begin settings---"
 
-    tag         = 'sim_comp_old'
+    tag         = 'sim_comp_4c'
 
     #type of bispectrum
     kkg         = False
@@ -71,19 +71,19 @@ if __name__ == "__main__":
     z_min       = 1e-3
 
     #sampling in L/l and angle
-    len_L       = 163
-    len_l       = len_L#+20
+    len_L       = 100
+    len_l       = len_L+20
     len_ang     = 100
 
     #ell range (for L and l)
     L_min       = 1. #set to 2
-    L_max       = 8000.
+    L_max       = 3000.
 
     l_min       = L_min
     l_max       = 8000.
 
 
-    Delta_theta = 1e-2
+    Delta_theta = 2e-2
 
     nl          = True
     cparams     = C.SimulationCosmology
@@ -179,13 +179,13 @@ if __name__ == "__main__":
         #L = |-L|, equally spaced in lin at low L and in log at high L
         #La      = np.linspace(L_min,100,50)
         #Lb      = np.exp(np.linspace(np.log(100),np.log(L_max),len_L-49))[1:]
-        #L       = np.exp(np.linspace(np.log(L_min),np.log(L_max),len_L))#np.append(La,Lb)
-        side1a        = np.linspace(L_min+1,50,48,endpoint=False)#np.exp(np.linspace(log_min,log_max,sample1d))
-        side1b        = np.exp(np.linspace(np.log(50),np.log(L_max),len_L-48))
-        L             = np.append(side1a,side1b)
-        #la      = L
-        #lb      = np.exp(np.linspace(np.log(L_max),np.log(l_max),21))[1:]
-        l       = L#np.append(la,lb)
+        L       = np.exp(np.linspace(np.log(L_min),np.log(L_max),len_L))#np.append(La,Lb)
+#        side1a        = np.linspace(L_min+1,50,48,endpoint=False)#np.exp(np.linspace(log_min,log_max,sample1d))
+#        side1b        = np.exp(np.linspace(np.log(50),np.log(L_max),len_L-48))
+#        L             = np.append(side1a,side1b)
+        la      = L
+        lb      = np.exp(np.linspace(np.log(L_max),np.log(l_max),21))[1:]
+        l       = np.append(la,lb)
         assert(len(l)==len_l)
 
     elif ell_type=='equilat':
