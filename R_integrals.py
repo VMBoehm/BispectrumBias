@@ -144,10 +144,10 @@ def noise_kernel(theta, l1, L, field, cl_unlen, cl_len, cl_tot, lmin, lmax):
         cl1_tot   = cl_tot['tt'][l1]
 
         cl2_len, cl2_tot = get_cl2(cl_len['tt'], cl_tot['tt'], l2, lmin, lmax)
-        g_               = (cl1_len * Ldotl1 + cl2_len * Ldotl2) / (2. * cl1_tot * cl2_tot)
+        g_               = (cl1_len * Ldotl1 + cl2_len * Ldotl2)/ (2. * cl1_tot * cl2_tot)
         kernel['perp']  = g_*(sin_theta*l1)**2*cl1_unlen
         kernel['para']  = g_*(cos_theta*l1)**2*cl1_unlen
-        kernel['SL']    = g_*(cl1_len * Ldotl1 + cl2_len * Ldotl2)
+        kernel['SL']    = g_*(cl1_unlen * Ldotl1)
 
     elif field == 'eb':
         cl1_len = cl_len['ee'][l1]

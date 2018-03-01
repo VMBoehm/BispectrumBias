@@ -22,7 +22,7 @@ l_max_T         = 4000
 l_max_P         = 4000
 len_ang         = 400
 len_l           = 4560
-nums            = [10,20,30,35,40,45,50,55,60,65]
+nums            = [30,35,40,45,50,55,60,65]
 bispec_tag      = 'comp_3c'
 
 
@@ -35,8 +35,6 @@ ALpath  ='./outputs/N0files/'
 
 
 if div:
-    print 'Dividing EB by factor 2.5!'
-    NL_KK['EB']*=1./2.5
     no_div='div25'
 else:
     no_div='nodiv'
@@ -67,6 +65,7 @@ print filename
 
 TypeC=[]
 TypeA=[]
+TypeA2=[]
 
 for ii in nums:
     print ii
@@ -76,12 +75,15 @@ for ii in nums:
     Rs_perp = np.interp(L,LL,Rs['tt']['perp'])
     TypeC+=[Rs_perp*Int0[ii]+Rs_para*Int2[ii]]
     L1,typea= pickle.load(open(biaspath+'A1_%d_%d_%d.pkl'%(ii,len_ang,len_l),'r'))
+    L1,typea2= pickle.load(open(biaspath+'A1_%d_%d_%d.pkl'%(ii,800,len_l),'r'))
     TypeA+=[typea]
+    TypeA2+=[typea]
     assert(L1==L)
 
 Ls=Ls[nums]
 TypeC=np.asarray(TypeC)
 TypeA=np.asarray(TypeA)
+TypeA2=np.asarray(TypeA2)
 bias_sum = TypeC-TypeA #minus in TypeA code
 
 SL        = np.interp(Ls,LL,Rs['tt']['SL'])
@@ -103,13 +105,14 @@ cltt_unl = cl_unl['tt']
 
 clphiphi =np.interp(Ls,ll,clpp)
 
-config="Bfit"
-LsTypeC, N32TypeC = pickle.load(open('/home/nessa/Documents/Projects/LensingBispectrum/CosmoCodes/results/SimComparison/TypeC_%s'%config))
-
-LsTypeA,N32TypeA=pickle.load(open('/home/nessa/Documents/Projects/LensingBispectrum/CosmoCodes/results/SimComparison/TypeA_%s'%config, 'r'))
+#config="Bfit"
+#LsTypeC, N32TypeC = pickle.load(open('/home/nessa/Documents/Projects/LensingBispectrum/CosmoCodes/results/SimComparison/TypeC_%s'%config))
+#
+#LsTypeA,N32TypeA=pickle.load(open('/home/nessa/Documents/Projects/LensingBispectrum/CosmoCodes/results/SimComparison/TypeA_%s'%config, 'r'))
 
 plt.figure()
 plt.semilogy(Ls,abs(TypeA), 'ro',label='TypeA')
+plt.semilogy(Ls,abs(TypeA2), 'g+',label='TypeA')
 plt.semilogy(Ls,abs(TypeC), 'bo',markersize=3,label='TypeC')
 #plt.semilogy(Ls,clphiphi,'bo')
 #plt.ylim(1e-21,1e-8)
@@ -128,14 +131,17 @@ plt.semilogy(Ls,clphiphi)
 
 plt.show()
 
-plt.figure()
-plt.plot(LL,LL.astype(float)**(-4)*2*Rs['tt']['SL'])
-plt.plot(LA,LA.astype(float)**(-4)*1./NL_KK['tt'],ls='--')
-plt.ylim(1e5,1e8)
-plt.show()
 
-plt.figure()
-plt.plot(LL,)
-plt.plot(LA,2*Rs['tt']['SL']/NL_KK['tt'],ls='--')
-plt.ylim(0,4000)
-plt.show()
+
+#plt.figure()
+#plt.plot(LL,LL.astype(float)**(-4)*2*Rs['tt']['SL'],'ro')
+#plt.plot(LA,LA.astype(float)**(-4)*1./NL_KK['tt'],'b+')
+#plt.show()
+#
+##bigger difference comes from variable redeclaration, not lensed Cls
+#plt.figure()
+#plt.semilogx(LA,(Rs['tt']['SL']*2-1./NL_KK['tt'])*NL_KK['tt'],'--')
+#plt.plot(LA,np.zeros(len(LA)))
+#plt.xlim(100,2000)
+#plt.ylim(-0.4,0.1)
+#plt.show()
