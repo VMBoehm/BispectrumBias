@@ -75,9 +75,9 @@ for ii in nums:
     Rs_perp = np.interp(L,LL,Rs['tt']['perp'])
     TypeC+=[Rs_perp*Int0[ii]+Rs_para*Int2[ii]]
     L1,typea= pickle.load(open(biaspath+'A1_%d_%d_%d.pkl'%(ii,len_ang,len_l),'r'))
-    L1,typea2= pickle.load(open(biaspath+'A1_%d_%d_%d.pkl'%(ii,800,len_l),'r'))
+    L1,typea2= pickle.load(open(biaspath+'A1_%d_%d_%d_longl.pkl'%(ii,len_ang,len_l),'r'))
     TypeA+=[typea]
-    TypeA2+=[typea]
+    TypeA2+=[typea2]
     assert(L1==L)
 
 Ls=Ls[nums]
@@ -96,6 +96,18 @@ AL        = np.interp(Ls,LA,NL_KK['tt'])
 
 
 tot_bias  = -4.*AL**2*SL*bias_sum
+
+
+
+
+plt.figure()
+plt.plot(Ls,(TypeA-TypeA2)/TypeA,'ro')
+plt.show()
+
+plt.figure()
+plt.semilogy(Ls,abs((TypeA-TypeC)/TypeC),'ro')
+plt.semilogy(Ls,abs((TypeA2-TypeC)/TypeC),'bo')
+plt.show()
 
 class_params,cl_unl,cl_len = pickle.load(open(inputpath+class_file,'r'))
 clpp  = cl_len['pp']
