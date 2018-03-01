@@ -24,19 +24,19 @@ plt.rc('font',**{'family':'serif','serif':['Computer Modern'],'size':16})
 """------------settings----------------"""
 params      = Cosmo.SimulationCosmology
 tag         = params[0]['name']
-fields      = ['tt']#,'te','ee','eb','bb','tb']
+fields      = ['tt','te','ee','eb','bb','tb']
 nl          = True
 out_path    ='/home/nessa/Documents/Projects/LensingBispectrum/CMB-nonlinear/outputs/N0files/'
 
-thetaFWHMarcmin = 7. #beam FWHM
-noiseUkArcmin   = 30.#eval(sys.argv[1]) #Noise level in uKarcmin
-l_max_T         = 2000
-l_max_P         = 2000
+thetaFWHMarcmin = 1. #beam FWHM
+noiseUkArcmin   = 1. #eval(sys.argv[1]) #Noise level in uKarcmin
+l_max_T         = 3000
+l_max_P         = 5000
 l_min           = 2
-L_max           = max(max(l_max_P,l_max_T)+2000,6000) #for l integration
+L_max           = 6000 #for l integration
 L_min           = 1
 TCMB            = 2.7255e6
-div             = False #divide EB by factor of 2.5
+div             = True #divide EB by factor of 2.5
 
 if nl:
   nl_='_nl'
@@ -131,11 +131,10 @@ def noise_kernel(theta, l1, L, field, cl_unlen, cl_len, cl_tot, lmin, lmax):
     sin_2phi = np.sin( 2 * phi )
 
     if field == 'tt':
-#        cl1_len   = cl_len['tt'][l1]
-        cl1_unlen = cl_len['tt'][l1]
+        cl1_len   = cl_len['tt'][l1]
         cl1_tot   = cl_tot['tt'][l1]
-        cl2_unlen, cl2_tot = get_cl2(cl_len['tt'], cl_tot['tt'], l2, lmin, lmax)
-        kernel    = ( cl1_unlen * Ldotl1 + cl2_unlen * Ldotl2 )**2 / (2. * cl1_tot * cl2_tot)
+        cl2_len, cl2_tot = get_cl2(cl_len['tt'], cl_tot['tt'], l2, lmin, lmax)
+        kernel    = ( cl1_len * Ldotl1 + cl2_len * Ldotl2 )**2 / (2. * cl1_tot * cl2_tot)
 
     elif field == 'te':
         cl2TT = get_cl2(cl_len['tt'], cl_tot['tt'], l2, lmin, lmax)[1]
@@ -202,8 +201,8 @@ def get_lensing_noise(ells, cl_len, cl_unlen, nl, fields,lmin,lmax):
             N = 100
             thetas = np.linspace(0.,2*np.pi,N)
             dtheta= 2.*np.pi/N
-            Theta, Ells = np.meshgrid(thetas,np.arange(lmin,lmax+1))
-            kernel_grid = noise_kernel(Theta, Ells, L, field, cl_unlen, cl_len, cl_tot, lmin, lmax)
+            Theta, Ells = np.meshgrid(thetas,np.arange(lmin,lmax))
+            kernel_grid = noise_kernel(Theta, Ells, L, field, cl_unlen, cl_len, cl_tot, min(ells), max(ells))
             integral+=[dtheta * np.sum(np.sum(kernel_grid, axis = 0), axis = 0)]
         result[field] = 1./ np.asarray(integral)
 
@@ -235,11 +234,11 @@ deltaT = noiseUkArcmin/thetaFWHMarcmin # noise variance per unit area
 nlI_T = (deltaT*thetaFWHM)**2*np.exp(ll*(ll+1.)*thetaFWHM**2/(8.*np.log(2.)))/TCMB**2 #beam deconvolved noise relative to CMB temperature
 nlI_pol = (deltaT*thetaFWHM)**2*np.exp(ll*(ll+1.)*thetaFWHM**2/(8.*np.log(2.)))/TCMB**2
 
-nlI_T[0:l_min]=1e10
-nlI_T[l_max_T::]=1e10
+nlI_T[0:l_min]=1e20
+nlI_T[l_max_T::]=1e20
 
-nlI_pol[0:l_min]=1e10
-nlI_pol[l_max_P::]=1e10
+nlI_pol[0:l_min]=1e20
+nlI_pol[l_max_P::]=1e20
 
 #beam deconvolved noise
 nl['tt']  = nlI_T
@@ -249,59 +248,42 @@ nl['ee']  = 2*nlI_pol
 nl['bb']  = 2*nlI_pol
 nl['eb']  = np.zeros(len(nlI_T))
 
+
 Ls, NL_KK = get_lensing_noise(ll, cl_len,cl_unl, nl, fields,L_min,L_max)
 
 
 
 if div:
     print 'Dividing EB by factor 2.5!'
-    NL_KK['EB']*=1./2.5
+    NL_KK['eb']*=1./2.5
     no_div='div25'
 else:
     no_div='nodiv'
 
 MV_noise=0
 for f in fields:
-	if f!='BB':
+	if f!='bb':
 			MV_noise+=1./NL_KK[f]
 MV_noise=1./MV_noise
 
 filename = out_path+'%s_N0_%s_%d%d_%s%s.pkl'%(tag,lmax,10*noiseUkArcmin,10*thetaFWHMarcmin,no_div,nl_)
 
 pickle.dump([Ls,NL_KK],open(filename,'w'))
-print 'result dumped to', filename
-#	pickle.dump([Ls,N0_lim],open('lensNoisePowerlim'+str(int(noiseUkArcmin*10))+str(int(thetaFWHMarcmin*10))+'_'+str(int(lcut))+'.pkl','w'))
-#plt.loglog(ells,ells*(ells+1.)*cl_phiphi/2./np.pi, label=r'$C_\ell^{\phi\phi}$')
-#plt.xlim(2, 3000)
-#plt.ylim(2.e-17,2.e-7)
-#plt.legend(loc='best')
-#plt.xlabel(r'$L$')
-#plt.ylabel(r'$l^2 N_l^{\phi\phi}/2 \pi$')
-#plt.savefig('noise_phiphi'+str(int(noiseUkArcmin*10))+str(int(thetaFWHMarcmin*10))+'_'+str(int(lcut))+'.png')
-#tag='Planck2013'
-#Ls2,NL_KK2,MV_noise2=pickle.load(open(path+'lensNoisePower'+str(int(noiseUkArcmin*10))+str(int(thetaFWHMarcmin*10))+'_%s_nl_lensedCls.pkl'%tag,'r'))
 
-plt.figure()
-plt.loglog(Ls, 1./4*Ls**4*NL_KK['tt'])
-#plt.loglog(Ls, 1./4*Ls**4*NL_KK['eb'])
-plt.xlim(50,3000)
-plt.ylim(1e-8,1e-5)
-plt.grid()
-plt.savefig('ALtheory.png')
-plt.show()
-#
-#
-#colors=['b','r','c','g','y','m']
+
+
 #bla=np.loadtxt(path+'noise_vanessa-_bw_10_dT_10.txt',delimiter=' ',comments='#' )
 #bla=bla.T
-#plt.figure(figsize=(9,7))
-#print Ls
-#plt.loglog(ll,1./4.*(ll*(ll+1.))**2*cl_phiphi,color=colors[0], label=r'$C_L^{\kappa\kappa}$')
-#plt.loglog(Ls, 1./4.*(Ls*(Ls + 1.))**2.* NL_KK2['tt'],color=colors[1],label='tt')
-#plt.loglog(Ls, 1./4.*(Ls*(Ls + 1.))**2.* NL_KK2['ee'],color=colors[2],label='ee')
-#plt.loglog(Ls, 1./4.*(Ls*(Ls + 1.))**2.* NL_KK2['te'],color=colors[3],label='te')
-#plt.loglog(Ls, 1./4.*(Ls*(Ls + 1.))**2.* NL_KK2['eb'],color=colors[4],label='eb')
-#plt.loglog(Ls, 1./4.*(Ls*(Ls + 1.))**2.* NL_KK2['tb'],color=colors[5],label='tb')
+colors=['b','r','c','g','y','m']
+plt.figure(figsize=(9,7))
+plt.loglog(ll,1./4.*(ll*(ll+1.))**2*cl_phiphi,color=colors[0], label=r'$C_L^{\kappa\kappa}$')
+plt.loglog(Ls, 1./4.*(Ls*(Ls + 1.))**2.* NL_KK['tt'],color=colors[1],label='tt')
+plt.loglog(Ls, 1./4.*(Ls*(Ls + 1.))**2.* NL_KK['ee'],color=colors[2],label='ee')
+plt.loglog(Ls, 1./4.*(Ls*(Ls + 1.))**2.* NL_KK['te'],color=colors[3],label='te')
+plt.loglog(Ls, 1./4.*(Ls*(Ls + 1.))**2.* NL_KK['eb'],color=colors[4],label='eb')
+plt.loglog(Ls, 1./4.*(Ls*(Ls + 1.))**2.* NL_KK['tb'],color=colors[5],label='tb')
+plt.loglog(Ls, 1./4.*(Ls*(Ls + 1.))**2.* MV_noise,color='black',label='MV')
+plt.tick_params(axis='y', which='both', labelleft='off', labelright='on')
 #plt.loglog(bla[0], bla[2],'k--')
 #plt.loglog(bla[0], bla[3],'k--')
 #plt.loglog(bla[0], bla[4],'k--')
@@ -325,12 +307,13 @@ plt.show()
 #plt.loglog(Ls, 1./4.*(Ls + 1.)**2.*Ls**2.* MV_noise,'k-',lw=2,label='MV unlen')
 #plt.loglog(Ls, 1./4.*(Ls + 1.)**2.*Ls**2.* MV_noise2,'k--',lw=2,label='MV len')
 ##plt.loglog(Ls, 1./4.*(Ls + 1.)**2.*Ls**2.* N0_lim ,label='lim')
-#plt.xlim(2, 2000)
-#plt.ylim(3.e-9,5.e-6)
-#plt.legend(loc='best',ncol=4,frameon=False, columnspacing=0.8)
-#plt.xlabel(r'$L$')
-#plt.ylabel(r'$N_L^{\kappa\kappa}$')
-#plt.savefig('noise_kk'+str(int(noiseUkArcmin*10))+str(int(thetaFWHMarcmin*10))+'match_quicklens_%s.png'%tag)
+plt.xlim(2, 2000)
+plt.ylim(3.e-9,5.e-6)
+plt.grid()
+plt.legend(loc='best',ncol=4,frameon=False, columnspacing=0.8)
+plt.xlabel(r'$L$')
+plt.ylabel(r'$N_L^{\kappa\kappa}$')
+plt.savefig('noise_kk'+str(int(noiseUkArcmin*10))+str(int(thetaFWHMarcmin*10))+'_%s.png'%tag)
 #
 #
 #N02015={}

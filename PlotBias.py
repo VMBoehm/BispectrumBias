@@ -16,10 +16,10 @@ field   = 'tt'
 nl      = True
 div     = False
 
-thetaFWHMarcmin = 7
-noiseUkArcmin   = 30.
-l_max_T         = 2000
-l_max_P         = 2000
+thetaFWHMarcmin = 1.4
+noiseUkArcmin   = 6.
+l_max_T         = 4000
+l_max_P         = 4000
 len_ang         = 400
 len_l           = 4560
 nums            = [10,20,30,35,40,45,50,55,60,65]
@@ -30,6 +30,8 @@ Rpath   ='./R_files/'
 Ipath   ='./outputs/integrals/'
 biaspath='./biasResults/lmin2_noise6_theta14/comp_3c/'
 ALpath  ='./outputs/N0files/'
+
+
 
 
 if div:
@@ -49,6 +51,10 @@ if nl:
   nl_='_nl'
 else:
   nl_=''
+
+class_file='class_cls_%s%s.pkl'%(tag,nl_)
+
+inputpath='./outputs/ClassCls/'
 
 filename= Rpath+'R_'+str(int(noiseUkArcmin*10))+str(int(thetaFWHMarcmin*10))+'_%s%s_lmax%d.pkl'%(tag,nl_,l_max_T)
 
@@ -89,7 +95,7 @@ AL        = np.interp(Ls,LA,NL_KK['tt'])
 
 tot_bias  = -4.*AL**2*SL*bias_sum
 
-class_params,cl_unl,cl_len = pickle.load(open('../Simulations/NewRuns/CMBLensSims/inputParams/class_cls_Jias_Simulation_new_nl.pkl','r'))
+class_params,cl_unl,cl_len = pickle.load(open(inputpath+class_file,'r'))
 clpp  = cl_len['pp']
 ll    = cl_len['ell']
 cltt  = cl_len['tt']
@@ -123,8 +129,13 @@ plt.semilogy(Ls,clphiphi)
 plt.show()
 
 plt.figure()
-plt.plot(LL,LL**(-4)*2*Rs['tt']['SL'])
+plt.plot(LL,LL.astype(float)**(-4)*2*Rs['tt']['SL'])
 plt.plot(LA,LA.astype(float)**(-4)*1./NL_KK['tt'],ls='--')
-plt.xlim(100,4000)
-plt.ylim(5e3,6e5)
+plt.ylim(1e5,1e8)
+plt.show()
+
+plt.figure()
+plt.plot(LL,)
+plt.plot(LA,2*Rs['tt']['SL']/NL_KK['tt'],ls='--')
+plt.ylim(0,4000)
 plt.show()

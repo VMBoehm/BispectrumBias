@@ -34,7 +34,7 @@ if __name__ == "__main__":
 
     "---begin settings---"
 
-    tag         = 'sim_comp_4c'
+    tag         = 'sim_comp_5c'
 
     #type of bispectrum
     kkg         = False
@@ -83,7 +83,7 @@ if __name__ == "__main__":
     l_max       = 8000.
 
 
-    Delta_theta = 2e-2
+    Delta_theta = 1e-3
 
     nl          = True
     cparams     = C.SimulationCosmology

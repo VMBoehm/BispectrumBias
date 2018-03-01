@@ -21,12 +21,19 @@ import Cosmology as Cosmo
 plt.rc('text',usetex=True)
 plt.rc('font',**{'family':'serif','serif':['Computer Modern'],'size':16})
 
-
 """--------------Settings------------------"""
 params  = Cosmo.SimulationCosmology
 tag     = params[0]['name']
-nl      = True #nonlinear lensed power spectra
 fields  = ['tt']#,'eb']#,'te','ee','eb','bb','tb']
+nl      = True #nonlinear lensed power spectra
+
+thetaFWHMarcmin = 1.4 #beam FWHM
+noiseUkArcmin   = 6.
+l_max_T         = 4000 #noise cut off in CMB
+l_max_P         = 4000 #noise cut off in CMB
+l_min           = 2 #noise cut off in CMB
+lmax            = max(max(l_max_P,l_max_T)+2000,6000) #max l in integration
+TCMB            = 2.7255e6
 
 if nl:
   nl='_nl'
@@ -37,14 +44,7 @@ class_file='class_cls_%s%s.pkl'%(tag,nl)
 inputpath='./outputs/ClassCls/'
 outputpath='./R_files/'
 
-thetaFWHMarcmin = 7. #beam FWHM
-noiseUkArcmin   = 30.
-l_max_T         = 2000 #noise cut off in CMB
-l_max_P         = 2000 #noise cut off in CMB
-l_min           = 2 #noise cut off in CMB
-lmax            = max(max(l_max_P,l_max_T)+2000,6000) #max l in integration
-TCMB            = 2.7255e6
-"""--------------Settings------------------"""
+"""------------settings----------------"""
 
 filename = outputpath+'R_'+str(int(noiseUkArcmin*10))+str(int(thetaFWHMarcmin*10))+'_%s%s_lmax%d.pkl'%(tag,nl,l_max_T)
 
@@ -126,14 +126,14 @@ def noise_kernel(theta, l1, L, field, cl_unlen, cl_len, cl_tot, lmin, lmax):
     l1dotl2= Ldotl1 - l1**2
     l2 = np.sqrt( L**2 + l1**2 - 2.*Ldotl1 )
     l2[ np.where(l2 < 0.000001) ] = 0.000001 ## Avoid nasty things
-    cos_phi = l1dotl2 / ( l1 * l2 )
-    phi = np.arccos( cos_phi )
+#    cos_phi = l1dotl2 / ( l1 * l2 )
+#    phi = np.arccos( cos_phi )
     sin_theta = np.sin(theta)
     cos_theta = np.cos(theta)
-    mu = np.arccos(Ldotl2/l2/L)
-    sin_2mu  = np.sin(2.*(theta-mu))
-    phi      = np.arccos(l1dotl2/l1/l2)
-    sin_2phi = np.sin(2*phi)
+#    mu = np.arccos(Ldotl2/l2/L)
+#    sin_2mu  = np.sin(2.*(theta-mu))
+#    phi      = np.arccos(l1dotl2/l1/l2)
+#    sin_2phi = np.sin(2*phi)
 
 
     kernel={}
@@ -142,11 +142,12 @@ def noise_kernel(theta, l1, L, field, cl_unlen, cl_len, cl_tot, lmin, lmax):
         cl1_len   = cl_len['tt'][l1]
         cl1_unlen = cl_unlen['tt'][l1]
         cl1_tot   = cl_tot['tt'][l1]
-        cl2_len, cl2_tot = get_cl2(cl_unlen['tt'], cl_tot['tt'], l2, lmin, lmax)
-        g_    = (cl1_len * Ldotl1 + cl2_len * Ldotl2) / (2. * cl1_tot * cl2_tot)
+
+        cl2_len, cl2_tot = get_cl2(cl_len['tt'], cl_tot['tt'], l2, lmin, lmax)
+        g_               = (cl1_len * Ldotl1 + cl2_len * Ldotl2) / (2. * cl1_tot * cl2_tot)
         kernel['perp']  = g_*(sin_theta*l1)**2*cl1_unlen
         kernel['para']  = g_*(cos_theta*l1)**2*cl1_unlen
-        kernel['SL']    = g_*Ldotl1*cl1_len
+        kernel['SL']    = g_*(cl1_len * Ldotl1 + cl2_len * Ldotl2)
 
     elif field == 'eb':
         cl1_len = cl_len['ee'][l1]
@@ -175,9 +176,9 @@ def get_lensing_noise(ells, cl_len, cl_unlen, nl, fields,lmin,lmax):
     cl_tot = {}
     n_Ls   = 200
     LogLs  = np.linspace(np.log(1.),np.log(4000), n_Ls)
-    Ls     = np.unique(np.floor(np.exp(LogLs)).astype(float))
+    Ls     = np.unique(np.floor(np.exp(LogLs)).astype(int))
 
-    for field in ['tt','ee','bb']:
+    for field in fields:
         try:
             cl_tot[field] = cl_len[field]+nl[field]
         except:
@@ -191,11 +192,11 @@ def get_lensing_noise(ells, cl_len, cl_unlen, nl, fields,lmin,lmax):
         integral['para']=[]
         integral['SL']=[]
         for L in Ls:
-            N = 200
+            N = 100
             thetas = np.linspace(0.,2*np.pi,N)
             dtheta= 2.*np.pi/N
             Theta, Ells = np.meshgrid(thetas,np.arange(1,lmax+1))
-            kernel_grid = noise_kernel(Theta, Ells, L, field, cl_unlen, cl_len, cl_tot, lmin, lmax)
+            kernel_grid = noise_kernel(Theta, Ells, L, field, cl_unlen, cl_len, cl_tot, min(ells), max(ells))
             integral['perp']+=[dtheta * np.sum(np.sum(kernel_grid['perp'], axis = 0), axis = 0)]
             integral['para']+=[dtheta * np.sum(np.sum(kernel_grid['para'], axis = 0), axis = 0)]
             integral['SL']+=[dtheta * np.sum(np.sum(kernel_grid['SL'], axis = 0), axis = 0)]
@@ -245,8 +246,8 @@ except:
 print 'results dumped to ', filename
 
 plt.figure()
-plt.plot(Ls,Ls**(-2)*results['tt']['perp'],ls='',marker='o',label='tt perp')
-plt.plot(Ls,Ls**(-2)*results['tt']['para'],ls='',marker='o',label='tt para')
+plt.plot(Ls,Ls.astype(float)**(-2)*results['tt']['perp'],ls='',marker='o',label='tt perp')
+plt.plot(Ls,Ls.astype(float)**(-2)*results['tt']['para'],ls='',marker='o',label='tt para')
 #plt.plot(Ls,Ls**(-2)*results['eb']['perp'],label='eb perp')
 #plt.plot(Ls,Ls**(-2)*results['eb']['para'],label='eb para')
 plt.xlim(100,2000)
