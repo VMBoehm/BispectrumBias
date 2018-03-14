@@ -1,10 +1,5 @@
-## calcLensingNoise.py
-## Based on 'LensingNoise.py' in OxFish_New
-## Calculate the minimum variance noise spectrum
-## Computes A_L = N^0 and plots (ell+1)^2*N^0/(2 pi) and compares with C^{dd}
-## uses lensed power spectra
-## make sure you are using correct version of Cosmology/ copy recent version from downloaded
-## choose settings: cosmology, lmax before running
+""" R_integrals """
+#tested against N0 code
 
 
 from __future__ import division
@@ -27,8 +22,8 @@ tag     = params[0]['name']
 fields  = ['tt']#,'eb']#,'te','ee','eb','bb','tb']
 nl      = True #nonlinear lensed power spectra
 
-thetaFWHMarcmin = 1.4 #beam FWHM
-noiseUkArcmin   = 6.
+thetaFWHMarcmin = 1. #beam FWHM
+noiseUkArcmin   = 1.
 l_max_T         = 4000 #noise cut off in CMB
 l_max_P         = 4000 #noise cut off in CMB
 l_min           = 2 #noise cut off in CMB
@@ -246,11 +241,12 @@ except:
 print 'results dumped to ', filename
 
 plt.figure()
-plt.plot(Ls,Ls.astype(float)**(-2)*results['tt']['perp'],ls='',marker='o',label='tt perp')
-plt.plot(Ls,Ls.astype(float)**(-2)*results['tt']['para'],ls='',marker='o',label='tt para')
-#plt.plot(Ls,Ls**(-2)*results['eb']['perp'],label='eb perp')
+plt.semilogx(Ls,Ls.astype(float)**(-2)*results['tt']['perp'],label='tt perp')
+plt.semilogx(Ls,Ls.astype(float)**(-2)*results['tt']['para'],label='tt para')
 #plt.plot(Ls,Ls**(-2)*results['eb']['para'],label='eb para')
-plt.xlim(100,2000)
+plt.tick_params(axis='y', which='both', labelleft='off', labelright='on')
+plt.grid()
+plt.xlim(2,2000)
 plt.legend(loc='best',ncol=2,frameon=False)
-plt.savefig(filename+'.png')
+#plt.savefig(filename+'.png')
 plt.show()

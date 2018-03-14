@@ -34,7 +34,7 @@ if __name__ == "__main__":
 
     "---begin settings---"
 
-    tag         = 'sim_comp_5c'
+    tag         = 'sim_comp_8c'
 
     #type of bispectrum
     kkg         = False
@@ -63,7 +63,7 @@ if __name__ == "__main__":
     post_born   = True
 
     #fitting formula (use B_delta fitting formula from Gil-Marin et al. arXiv:1111.4477
-    B_fit       = True
+    B_fit       = False
     fit_z_max   = 1.5
 
     #number of redshift bins
@@ -83,12 +83,12 @@ if __name__ == "__main__":
     l_max       = 8000.
 
 
-    Delta_theta = 1e-3
+    Delta_theta = 1e-2
 
     nl          = True
     cparams     = C.SimulationCosmology
 
-    k_min       = 0.0105*cparams[1]['h']#divided by three for lens planes
+    k_min       = 0.0105*cparams[1]['h']#divided times three for lens planes
     k_max       = 42.9*cparams[1]['h']
     #k-range1: 0.0105*cparams[1]['h']-42.9*cparams[1]['h']
     #k-range2: 0.0105*cparams[1]['h']-49*cparams[1]['h']
