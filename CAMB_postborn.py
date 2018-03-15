@@ -156,7 +156,7 @@ class PostBorn_Bispec():
         for i, l in enumerate(self.ls):
             k =(l+0.5)/chis
             w[:]=1
-            w[k<1e-4]=0
+            w[k<self.kmin]=0
             w[k>=self.kmax]=0
             cl[i] = np.dot(dchis,w*self.PK.P(zs, k, grid=False)*win/k**4)
         if self.cross==False:
@@ -184,7 +184,7 @@ class PostBorn_Bispec():
         for i, l in enumerate(self.ls):
             k=(l+0.5)/chis
             w[:]=1
-            w[k<1e-4]=0
+            w[k<self.kmin]=0
             w[k>=self.kmax]=0
             cl[i] = np.dot(dchis,
                 w*self.PK.P(zs, k, grid=False)/k**4*win*wing)
@@ -272,6 +272,7 @@ class PostBorn_Bispec():
             ax.set_xlabel('$L$')
             ax.set_xlim([l1,1e4])
             ax.set_ylim([1e-20,1e-13])
+            ax.tick_params(axis='y', which='both', labelleft='on', labelright='off')
 
             #convert k to phi
             if not cross:
@@ -288,6 +289,7 @@ class PostBorn_Bispec():
         axes[0].set_ylabel('$b^{\kappa\kappa\kappa}_{L_1 L_2 L_3}$', fontsize=18);
         fig.subplots_adjust(hspace=0)
         fig.tight_layout(h_pad=0, w_pad=0)
+
         if cross:
             plt.savefig('postborn_testplot_cross_no_chis.png')
             pickle.dump(res,open('postborn_phiphig.pkl','w'))
@@ -300,13 +302,13 @@ class PostBorn_Bispec():
 
 if __name__ == "__main__":
     params=deepcopy(C.SimulationCosmology[1])
-    H0=params['h']*100
-    Om_b=params['omega_b']/params['h']**2
-    Om_cdm=params['omega_cdm']/params['h']**2
-    Omega_m0=Om_b+Om_cdm
-    print H0, Omega_m0
-    gamma=16./(3.*Omega_m0*H0**2)*LIGHT_SPEED**2
-    sym=False
+#    H0=params['h']*100
+#    Om_b=params['omega_b']/params['h']**2
+#    Om_cdm=params['omega_cdm']/params['h']**2
+#    Omega_m0=Om_b+Om_cdm
+#    print H0, Omega_m0
+#    gamma=16./(3.*Omega_m0*H0**2)*LIGHT_SPEED**2
+#    sym=False
     dndz=None
     norm=None
 #    sym = True
@@ -318,6 +320,10 @@ if __name__ == "__main__":
 #    norm    = simps(dndz(z),z)
 
     PBB=PostBorn_Bispec(C.SimulationCosmology[1],cross=False,dndz=dndz, norm=norm)
+    PBB.plot(cross=False)
+    PBB=PostBorn_Bispec(C.SimulationCosmology[1],k_min=1e-3,cross=False,dndz=dndz, norm=norm)
+    PBB.plot(cross=False)
+    PBB=PostBorn_Bispec(C.SimulationCosmology[1],k_min=1e-2,cross=False,dndz=dndz, norm=norm)
     PBB.plot(cross=False)
 
     #for cross in [True]:

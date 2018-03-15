@@ -34,7 +34,7 @@ if __name__ == "__main__":
 
     "---begin settings---"
 
-    tag         = 'sim_comp_8c'
+    tag         = 'comp_pB_2'
 
     #type of bispectrum
     kkg         = False
@@ -42,10 +42,10 @@ if __name__ == "__main__":
     kkk         = True
 
     #triangle configuration
-    ell_type    ='full'#'equilat','folded'
+    ell_type    ='folded'#'equilat','folded'
 
     #compute beta integrals?
-    integrals   = True
+    integrals   = False
 
     skewness    = False
     FWHMs       = [0.5,1.,2.,3.,4.,5.,8.,10.]
@@ -63,7 +63,7 @@ if __name__ == "__main__":
     post_born   = True
 
     #fitting formula (use B_delta fitting formula from Gil-Marin et al. arXiv:1111.4477
-    B_fit       = False
+    B_fit       = True
     fit_z_max   = 1.5
 
     #number of redshift bins
@@ -71,25 +71,25 @@ if __name__ == "__main__":
     z_min       = 1e-3
 
     #sampling in L/l and angle
-    len_L       = 100
+    len_L       = 60
     len_l       = len_L+20
-    len_ang     = 100
+    len_ang     = 60
 
     #ell range (for L and l)
     L_min       = 1. #set to 2
-    L_max       = 3000.
+    L_max       = 10000.
 
     l_min       = L_min
     l_max       = 8000.
 
 
-    Delta_theta = 1e-2
+    Delta_theta = 0.
 
     nl          = True
     cparams     = C.SimulationCosmology
 
-    k_min       = 0.0105*cparams[1]['h']#divided times three for lens planes
-    k_max       = 42.9*cparams[1]['h']
+    k_min       = 1e-4#0.0105*cparams[1]['h']*3#times three for lens planes
+    k_max       = 100#42.9*cparams[1]['h']
     #k-range1: 0.0105*cparams[1]['h']-42.9*cparams[1]['h']
     #k-range2: 0.0105*cparams[1]['h']-49*cparams[1]['h']
 
@@ -106,8 +106,9 @@ if __name__ == "__main__":
     else:
         spectrum_config='_lnPs'
 
-    if ell_type=='equilat':
+    if ell_type in['equilat','folded']:
         len_side= 250
+
 
     "---end settings---"
 
@@ -192,6 +193,10 @@ if __name__ == "__main__":
         assert(len_side>150)
         L       = np.exp(np.linspace(np.log(L_min),np.log(L_max),len_side))
         l       = None
+    elif ell_type=='folded':
+        assert(len_side>150)
+        L       = np.exp(np.linspace(np.log(L_min),np.log(L_max),len_side))
+        l       = 0.5*L
 
     if ell_type=='full':
         theta   = np.linspace(Delta_theta,2*np.pi-Delta_theta, len_ang)
@@ -221,6 +226,18 @@ if __name__ == "__main__":
             l1= L[i]
             l3= L[i]
             l2= sqrt(l1*l1+l3*l3-2.*l1*l3*cosmu[i])
+            ell1+=[l1]
+            ell2+=[l2]
+            ell3+=[l3]
+            ang31+=[-cosmu[i]]
+            ang12+=[(l3*l3-l1*l1-l2*l2)/(2.*l1*l2)]
+            ang23+=[(l1*l1-l3*l3-l2*l2)/(2.*l3*l2)]
+            angmu+=[theta[i]]
+    elif ell_type=='folded':
+        for i in range(len_side):
+            l1= L[i]
+            l3= l[i]
+            l2= l[i]
             ell1+=[l1]
             ell2+=[l2]
             ell3+=[l3]

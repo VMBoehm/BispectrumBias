@@ -25,13 +25,13 @@ l_max_P         = 4000
 len_ang         = 800
 len_l           = 5040
 nums            = np.arange(5,100)#[10,20,30,35,40,45,50,55,60,70,80,85,90,93]
-nums2           = np.arange(5,140)
+nums2           = np.arange(5,100)
 
 Rpath   ='./R_files/'
 Ipath   ='./outputs/integrals/'
 biaspath='./biasResults/lmin2_noise1_theta10/comp_3c/'
-biaspath2='./biasResults/lmin50_noise1_theta10/comp_3c/'
-biaspath3='./biasResults/lmin2_noise1_theta10/comp_6c/'
+biaspath2='./biasResults/lmin2_noise1_theta10/comp_3c_born/'
+biaspath3='./biasResults/lmin2_noise1_theta10/comp_7c/'
 #biaspath4='./biasResults/lmin2_noise6_theta14/comp_6c/'
 ALpath  ='./outputs/N0files/'
 
@@ -76,7 +76,7 @@ Ls2=[]
 
 for ii in nums:
     L1,typea  = pickle.load(open(biaspath+'Totbias_%d_%d_%d.pkl'%(ii,len_ang,len_l),'r'))
-    L1,typea2 = pickle.load(open(biaspath+'Totbias_%d_%d_%d.pkl'%(ii,len_ang/2,len_l),'r'))
+    L1,typea2 = pickle.load(open(biaspath+'Totbias_%d_%d_%d.pkl'%(ii,1400,len_l),'r'))
     L1,typea3 = pickle.load(open(biaspath2+'Totbias_%d_%d_%d.pkl'%(ii,len_ang,len_l),'r'))
 
     bias1+=[typea]
@@ -131,19 +131,36 @@ SL       = np.interp(Ls,LL,Rs['tt']['SL'])
 
 # bias is still a percent effect, size is very sensible to cancellation between typeA and typeC
 plt.figure()
-plt.loglog(Ls,abs(bias1/CL_bias),'r*')
-plt.plot(Ls,abs(bias2/CL_bias),'bo',markersize=3)
+plt.loglog(Ls,abs(bias1/CL_bias),'r*',label='orig')
+
 plt.plot(Ls,abs(bias3/CL_bias),'g^')
 plt.semilogx(Ls2,abs(bias4/CL_bias2),'c+')
+plt.plot(Ls,abs(bias2/CL_bias),'bo',markersize=3)
+plt.legend()
 plt.show()
 
 plt.figure()
 plt.plot(Ls,abs(bias2/bias1-1),'ro',label='len ang 400')
-plt.semilogy(Ls,abs(bias3/bias1-1),'go',label='lmin 50')
+plt.semilogy(Ls,abs(bias3/bias1-1),'go',label='comp 1c')
 plt.semilogy(Ls,abs(np.interp(Ls,Ls2,bias4)/bias1-1),'co',label='comp 6')
 plt.axhline(y=0.1)
 plt.xlim(100,3000)
 plt.legend(loc='best')
 plt.show()
 
+
+plt.figure()
+plt.plot(Ls,bias1,'r*')
+
+plt.plot(Ls,bias3,'g^')
+plt.semilogx(Ls2,bias4,'c+')
+plt.plot(Ls,bias2,'bo',markersize=3)
+plt.show()
+
 pickle.dump([Ls,-2*AL*bias1],open('newbias1010_.pkl','w'))
+pickle.dump([Ls,-2*AL*bias3],open('newbias1010_born.pkl','w'))
+pickle.dump([Ls,-2*AL*bias4],open('newbias1010_kmin.pkl','w'))
+
+pickle.dump([Ls,AL],open('AL1010.pkl','w'))
+
+
