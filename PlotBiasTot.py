@@ -29,10 +29,11 @@ nums2           = np.arange(5,100)
 
 Rpath   ='./R_files/'
 Ipath   ='./outputs/integrals/'
-biaspath='./biasResults/lmin2_noise1_theta10/comp_3c/'
+biaspath='./biasResults/lmin2_noise1_theta10/comp_1c/'
 biaspath2='./biasResults/lmin2_noise1_theta10/comp_3c_born/'
-biaspath3='./biasResults/lmin2_noise1_theta10/comp_7c/'
-#biaspath4='./biasResults/lmin2_noise6_theta14/comp_6c/'
+biaspath3='./biasResults/lmin2_noise1_theta10/comp_8c/'
+biaspath4='./biasResults/lmin2_noise1_theta10/comp_7c_born/'
+biaspath5='./biasResults/lmin2_noise1_theta10/comp_7c/'
 ALpath  ='./outputs/N0files/'
 
 
@@ -71,30 +72,33 @@ bias1=[]
 bias2=[]
 bias3=[]
 bias4=[]
+bias5=[]
 Ls=[]
 Ls2=[]
 
 for ii in nums:
     L1,typea  = pickle.load(open(biaspath+'Totbias_%d_%d_%d.pkl'%(ii,len_ang,len_l),'r'))
-    L1,typea2 = pickle.load(open(biaspath+'Totbias_%d_%d_%d.pkl'%(ii,1400,len_l),'r'))
-    L1,typea3 = pickle.load(open(biaspath2+'Totbias_%d_%d_%d.pkl'%(ii,len_ang,len_l),'r'))
-
+    L1,typea2 = pickle.load(open(biaspath2+'Totbias_%d_%d_%d.pkl'%(ii,len_ang,len_l),'r'))
+    L1,typea3 = pickle.load(open(biaspath3+'Totbias_%d_%d_%d.pkl'%(ii,len_ang,len_l),'r'))
+    L1,typea4 = pickle.load(open(biaspath4+'Totbias_%d_%d_%d.pkl'%(ii,len_ang,len_l),'r'))
+    L1,typea5 = pickle.load(open(biaspath5+'Totbias_%d_%d_%d.pkl'%(ii,len_ang,len_l),'r'))
+    bias4+=[typea4]
     bias1+=[typea]
     bias2+=[typea2]
     bias3+=[typea3]
+    bias5+=[typea5]
 
     Ls+=[L1]
 
 
-for ii in nums2:
-    L2,typea4 = pickle.load(open(biaspath3+'Totbias_%d_%d_%d.pkl'%(ii,len_ang,len_l),'r'))
-    bias4+=[typea4]
-    Ls2+=[L2]
+
+
 
 bias1=np.asarray(bias1)
 bias2=np.asarray(bias2)
 bias3=np.asarray(bias3)
 bias4=np.asarray(bias4)
+bias4=np.asarray(bias5)
 Ls =np.array(Ls)
 Ls2 =np.array(Ls2)
  #minus in TypeA code
@@ -106,7 +110,7 @@ print A_L_file
 LA, NL_KK = pickle.load(open(A_L_file,'r'))
 
 AL        = np.interp(Ls,LA,NL_KK['tt'])
-AL2       = np.interp(Ls2,LA,NL_KK['tt'])
+#AL2       = np.interp(Ls2,LA,NL_KK['tt'])
 
 class_params,cl_unl,cl_len = pickle.load(open(inputpath+class_file,'r'))
 clpp  = cl_len['pp']
@@ -115,11 +119,11 @@ cltt  = cl_len['tt']
 cltt_unl = cl_unl['tt']
 
 clphiphi =np.interp(Ls,ll,clpp)
-clphiphi2 =np.interp(Ls2,ll,clpp)
+#clphiphi2 =np.interp(Ls2,ll,clpp)
 
 
 
-CL_bias2 = 1./(-2.*AL2)*clphiphi2
+#CL_bias2 = 1./(-2.*AL2)*clphiphi2
 CL_bias = 1./(-2.*AL)*clphiphi
 
 Rpath   ='./R_files/'
@@ -134,7 +138,7 @@ plt.figure()
 plt.loglog(Ls,abs(bias1/CL_bias),'r*',label='orig')
 
 plt.plot(Ls,abs(bias3/CL_bias),'g^')
-plt.semilogx(Ls2,abs(bias4/CL_bias2),'c+')
+plt.semilogx(Ls,abs(bias4/CL_bias),'c+')
 plt.plot(Ls,abs(bias2/CL_bias),'bo',markersize=3)
 plt.legend()
 plt.show()
@@ -142,7 +146,7 @@ plt.show()
 plt.figure()
 plt.plot(Ls,abs(bias2/bias1-1),'ro',label='len ang 400')
 plt.semilogy(Ls,abs(bias3/bias1-1),'go',label='comp 1c')
-plt.semilogy(Ls,abs(np.interp(Ls,Ls2,bias4)/bias1-1),'co',label='comp 6')
+plt.semilogy(Ls,abs(bias4/bias1-1),'co',label='comp 6')
 plt.axhline(y=0.1)
 plt.xlim(100,3000)
 plt.legend(loc='best')
@@ -153,13 +157,15 @@ plt.figure()
 plt.plot(Ls,bias1,'r*')
 
 plt.plot(Ls,bias3,'g^')
-plt.semilogx(Ls2,bias4,'c+')
+plt.semilogx(Ls,bias4,'c+')
 plt.plot(Ls,bias2,'bo',markersize=3)
 plt.show()
 
-pickle.dump([Ls,-2*AL*bias1],open('newbias1010_.pkl','w'))
-pickle.dump([Ls,-2*AL*bias3],open('newbias1010_born.pkl','w'))
-pickle.dump([Ls,-2*AL*bias4],open('newbias1010_kmin.pkl','w'))
+pickle.dump([Ls,-2*AL*bias1],open('newbias1010.pkl','w'))
+pickle.dump([Ls,-2*AL*bias2],open('newbias1010_born.pkl','w'))
+pickle.dump([Ls,-2*AL*bias3],open('newbias1010_orig.pkl','w'))
+#pickle.dump([Ls,-2*AL*bias4],open('newbias1010_born_kmin.pkl','w'))
+pickle.dump([Ls,-2*AL*bias5],open('newbias1010_kmin.pkl','w'))
 
 pickle.dump([Ls,AL],open('AL1010.pkl','w'))
 

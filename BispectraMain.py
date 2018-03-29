@@ -34,7 +34,7 @@ if __name__ == "__main__":
 
     "---begin settings---"
 
-    tag         = 'comp_pB_2'
+    tag         = 'comp_9c'
 
     #type of bispectrum
     kkg         = False
@@ -42,7 +42,7 @@ if __name__ == "__main__":
     kkk         = True
 
     #triangle configuration
-    ell_type    ='folded'#'equilat','folded'
+    ell_type    ='full'#'equilat','folded'
 
     #compute beta integrals?
     integrals   = False
@@ -67,29 +67,29 @@ if __name__ == "__main__":
     fit_z_max   = 1.5
 
     #number of redshift bins
-    bin_num     = 80
+    bin_num     = 100
     z_min       = 1e-3
 
     #sampling in L/l and angle
-    len_L       = 60
+    len_L       = 100
     len_l       = len_L+20
-    len_ang     = 60
+    len_ang     = len_L
 
     #ell range (for L and l)
     L_min       = 1. #set to 2
-    L_max       = 10000.
+    L_max       = 3000.
 
     l_min       = L_min
     l_max       = 8000.
 
 
-    Delta_theta = 0.
+    Delta_theta = 1e-4
 
     nl          = True
     cparams     = C.SimulationCosmology
 
-    k_min       = 1e-4#0.0105*cparams[1]['h']*3#times three for lens planes
-    k_max       = 100#42.9*cparams[1]['h']
+    k_min       = 0.0105*cparams[1]['h']*3#times three for lens planes
+    k_max       = 50*cparams[1]['h']
     #k-range1: 0.0105*cparams[1]['h']-42.9*cparams[1]['h']
     #k-range2: 0.0105*cparams[1]['h']-49*cparams[1]['h']
 
@@ -128,8 +128,8 @@ if __name__ == "__main__":
     print "z_cmb: %f"%z_cmb
 
     if kkk or (LSST==False):
-      z_a     = np.exp(np.linspace(np.log(z_min),np.log(100.),70,endpoint=False))
-      z_b     = np.linspace(100.,z_cmb-0.001,10)
+      z_a     = np.exp(np.linspace(np.log(z_min),np.log(100.),80,endpoint=False))
+      z_b     = np.linspace(100.,z_cmb-0.001,20)
       z       = np.append(z_a,z_b)
       assert(len(z)==bin_num)
 
