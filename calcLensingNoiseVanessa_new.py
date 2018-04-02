@@ -32,7 +32,7 @@ thetaFWHMarcmin = 1. #beam FWHM
 noiseUkArcmin   = 1. #eval(sys.argv[1]) #Noise level in uKarcmin
 l_max_T         = 4000
 l_max_P         = 4000
-l_min           = 2
+l_min           = 500
 L_max           = 6000 #for l integration
 L_min           = 1
 TCMB            = 2.7255e6
@@ -266,7 +266,7 @@ for f in fields:
 			MV_noise+=1./NL_KK[f]
 MV_noise=1./MV_noise
 
-filename = out_path+'%s_N0_%s_%d%d_%s%s.pkl'%(tag,lmax,10*noiseUkArcmin,10*thetaFWHMarcmin,no_div,nl_)
+filename = out_path+'%s_N0_%s_%d_%d%d_%s%s.pkl'%(tag,lmax,l_min,10*noiseUkArcmin,10*thetaFWHMarcmin,no_div,nl_)
 
 pickle.dump([Ls,NL_KK],open(filename,'w'))
 

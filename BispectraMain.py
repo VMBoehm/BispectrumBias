@@ -34,7 +34,7 @@ if __name__ == "__main__":
 
     "---begin settings---"
 
-    tag         = 'comp_9c'
+    tag         = 'comp_11c'
 
     #type of bispectrum
     kkg         = False
@@ -76,7 +76,7 @@ if __name__ == "__main__":
     len_ang     = len_L
 
     #ell range (for L and l)
-    L_min       = 1. #set to 2
+    L_min       = 0.1 #set to 2
     L_max       = 3000.
 
     l_min       = L_min
@@ -89,7 +89,7 @@ if __name__ == "__main__":
     cparams     = C.SimulationCosmology
 
     k_min       = 0.0105*cparams[1]['h']*3#times three for lens planes
-    k_max       = 50*cparams[1]['h']
+    k_max       = 50.*cparams[1]['h']
     #k-range1: 0.0105*cparams[1]['h']-42.9*cparams[1]['h']
     #k-range2: 0.0105*cparams[1]['h']-49*cparams[1]['h']
 
