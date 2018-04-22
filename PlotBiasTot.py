@@ -25,7 +25,7 @@ l_max_T         = 4000
 l_max_P         = 4000
 len_ang         = 800
 len_l           = 5040
-bs_tag          = 'comp_9c_born_res'
+bs_tag          = 'comp_12c_res'
 
 
 biaspath='./biasResults/lmin%d_noise%d_theta%d/%s/'%(lmin,noiseUkArcmin,thetaFWHMarcmin*10,bs_tag)
@@ -73,7 +73,6 @@ cltt_unl = cl_unl['tt']
 clphiphi =np.interp(Ls,ll,clpp)
 
 
-
-pickle.dump([Ls,-2.*AL*bias],open(outputpath+'N32bias_%s_%d_%d_%d.pkl'%(bs_tag,thetaFWHMarcmin,noiseUkArcmin,lmin),'w'))
+pickle.dump([Ls,2.*AL*bias],open(outputpath+'N32bias_%s_%d_%d_%d.pkl'%(bs_tag,thetaFWHMarcmin,noiseUkArcmin,lmin),'w'))
 
 

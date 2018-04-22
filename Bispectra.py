@@ -93,7 +93,7 @@ class Bispectra():
         if self.B_fit:
             print "using Gil-Marin et al. fitting formula"
 
-        self.path   = path+'spectra/'
+        self.path   = path+'bispectra/'
 
         self.b      = b
 
@@ -129,6 +129,7 @@ class Bispectra():
         if self.sym:
             self.filename+='_sym'
         try:
+            assert(False)
             self.bi_phi=np.load(self.filename+'.npy')
             print "loading file %s"%(self.filename+'.npy')
         except:

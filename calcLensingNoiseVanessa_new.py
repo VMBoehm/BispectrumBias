@@ -32,7 +32,7 @@ thetaFWHMarcmin = 1. #beam FWHM
 noiseUkArcmin   = 1. #eval(sys.argv[1]) #Noise level in uKarcmin
 l_max_T         = 4000
 l_max_P         = 4000
-l_min           = 500
+l_min           = 50
 L_max           = 6000 #for l integration
 L_min           = 1
 TCMB            = 2.7255e6
@@ -313,7 +313,7 @@ plt.grid()
 plt.legend(loc='best',ncol=4,frameon=False, columnspacing=0.8)
 plt.xlabel(r'$L$')
 plt.ylabel(r'$N_L^{\kappa\kappa}$')
-plt.savefig('noise_kk'+str(int(noiseUkArcmin*10))+str(int(thetaFWHMarcmin*10))+'_%s.png'%tag)
+plt.savefig('noise_kk'+str(int(noiseUkArcmin*10))+str(int(thetaFWHMarcmin*10))+'_%s.pdf'%tag)
 #
 #
 #N02015={}

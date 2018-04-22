@@ -34,7 +34,7 @@ if __name__ == "__main__":
 
     "---begin settings---"
 
-    tag         = 'comp_11c'
+    tag         = 'comp_1d'
 
     #type of bispectrum
     kkg         = False
@@ -42,7 +42,7 @@ if __name__ == "__main__":
     kkk         = True
 
     #triangle configuration
-    ell_type    ='full'#'equilat','folded'
+    ell_type    ='equilat'#'equilat','folded'
 
     #compute beta integrals?
     integrals   = False
@@ -67,7 +67,7 @@ if __name__ == "__main__":
     fit_z_max   = 1.5
 
     #number of redshift bins
-    bin_num     = 100
+    bin_num     = 60
     z_min       = 1e-3
 
     #sampling in L/l and angle
@@ -76,8 +76,8 @@ if __name__ == "__main__":
     len_ang     = len_L
 
     #ell range (for L and l)
-    L_min       = 0.1 #set to 2
-    L_max       = 3000.
+    L_min       = 10 #set to 2
+    L_max       = 10000.
 
     l_min       = L_min
     l_max       = 8000.
@@ -88,14 +88,16 @@ if __name__ == "__main__":
     nl          = True
     cparams     = C.SimulationCosmology
 
-    k_min       = 0.0105*cparams[1]['h']*3#times three for lens planes
-    k_max       = 50.*cparams[1]['h']
+    k_min       = 1e-4#times three for lens planes
+    k_max       = 100
     #k-range1: 0.0105*cparams[1]['h']-42.9*cparams[1]['h']
     #k-range2: 0.0105*cparams[1]['h']-49*cparams[1]['h']
 
     #for skewness
     ll_min      = 2
     ll_max      = 5000
+
+
 
     #path, where to store results
     path        = "/home/nessa/Documents/Projects/LensingBispectrum/CMB-nonlinear/outputs/"
@@ -127,10 +129,13 @@ if __name__ == "__main__":
 
     print "z_cmb: %f"%z_cmb
 
+    zmax  = 1.#z_cmb-0.001
+
     if kkk or (LSST==False):
       z_a     = np.exp(np.linspace(np.log(z_min),np.log(100.),80,endpoint=False))
       z_b     = np.linspace(100.,z_cmb-0.001,20)
       z       = np.append(z_a,z_b)
+      z       = np.exp(np.linspace(np.log(z_min),np.log(zmax),bin_num))
       assert(len(z)==bin_num)
 
     if kkg or kgg:
@@ -328,7 +333,7 @@ if __name__ == "__main__":
 #            bs.set_up()
         k_min   = bs.kmin
         k_max   = bs.kmax
-        PBB     = postborn.PostBorn_Bispec(params,k_min,k_max,kkg,dndz,norm)
+        PBB     = postborn.PostBorn_Bispec(params,k_min,k_max,kkg,dndz,norm,z_max=zmax)
 
 
         if kkg:

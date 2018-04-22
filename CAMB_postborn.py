@@ -24,7 +24,7 @@ from Constants import LIGHT_SPEED
 
 class PostBorn_Bispec():
 
-    def __init__(self,CLASSparams,k_min=1e-4,k_max=100,cross=False, dndz=None, norm=None, lmax=None, acc=4, NL=True):
+    def __init__(self,CLASSparams,k_min=1e-4,k_max=100,cross=False, dndz=None, norm=None, lmax=None, acc=4, NL=True,z_max=1.5):
         pars = camb.CAMBparams()
         try:
             A_s=CLASSparams['A_s']
@@ -52,6 +52,9 @@ class PostBorn_Bispec():
 
         chistar = self.results.conformal_time(0)- model.tau_maxvis.value #chi_cmb
         zmax    = self.results.redshift_at_comoving_radial_distance(chistar) #z_cmb
+        self.chi_max = self.results.comoving_radial_distance(z_max)
+        print('chimax ', self.chi_max)
+
 
         print "Postborn z_max: ", zmax
 
@@ -106,6 +109,7 @@ class PostBorn_Bispec():
         for i, l in enumerate(ls):
             k=(l+0.5)/chis
             w[:]=1
+            w[np.where(chis>self.chi_max)]=0
             w[k>=self.kmax]=0
             w[k<=self.kmin]=0
             cl = np.dot(dchis*w*self.PK.P(zs, k, grid=False)/k**4*win,cchi)
@@ -153,11 +157,13 @@ class PostBorn_Bispec():
         win     = (1/chis-1/chi_source)*(1/chis-1/chi_source2)/chis**2
         cl      = np.zeros(self.ls.shape)
         w       = np.ones(chis.shape)
+
         for i, l in enumerate(self.ls):
             k =(l+0.5)/chis
             w[:]=1
             w[k<self.kmin]=0
             w[k>=self.kmax]=0
+            w[np.where(chis>self.chi_max)]=0
             cl[i] = np.dot(dchis,w*self.PK.P(zs, k, grid=False)*win/k**4)
         if self.cross==False:
             cl*= self.ls**4
