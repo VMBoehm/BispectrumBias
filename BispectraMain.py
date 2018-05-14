@@ -34,7 +34,7 @@ if __name__ == "__main__":
 
     "---begin settings---"
 
-    tag         = 'comp_1d'
+    tag         = 'lowz1s'
 
     #type of bispectrum
     kkg         = False
@@ -67,26 +67,26 @@ if __name__ == "__main__":
     fit_z_max   = 1.5
 
     #number of redshift bins
-    bin_num     = 60
-    z_min       = 1e-3
+    bin_num     = 200
+    z_min       = 1e-4
 
     #sampling in L/l and angle
-    len_L       = 100
+    len_L       = 200
     len_l       = len_L+20
     len_ang     = len_L
 
     #ell range (for L and l)
-    L_min       = 10 #set to 2
+    L_min       = 1. #set to 2
     L_max       = 10000.
 
     l_min       = L_min
-    l_max       = 8000.
+    l_max       = 10000.
 
 
     Delta_theta = 1e-4
 
     nl          = True
-    cparams     = C.SimulationCosmology
+    cparams     = C.Pratten
 
     k_min       = 1e-4#times three for lens planes
     k_max       = 100
@@ -119,23 +119,31 @@ if __name__ == "__main__":
 
 
     params  = deepcopy(cparams[1])
+
+    acc = deepcopy(C.acc_1)
+
+    params.update(acc)
+
     closmo  = Class()
     closmo.set(params)
     closmo.compute()
-    z_cmb   = closmo.get_current_derived_parameters(['z_rec'])['z_rec']
+    z_cmb   = 1.#closmo.get_current_derived_parameters(['z_rec'])['z_rec']
     closmo.struct_cleanup()
     closmo.empty()
     del closmo
 
     print "z_cmb: %f"%z_cmb
 
-    zmax  = 1.#z_cmb-0.001
+    zmax  = 1.#z_cmb-0.0001
 
     if kkk or (LSST==False):
-      z_a     = np.exp(np.linspace(np.log(z_min),np.log(100.),80,endpoint=False))
-      z_b     = np.linspace(100.,z_cmb-0.001,20)
-      z       = np.append(z_a,z_b)
-      z       = np.exp(np.linspace(np.log(z_min),np.log(zmax),bin_num))
+#      z_a     = np.exp(np.linspace(np.log(z_min),np.log(100.),80,endpoint=False))
+#      z_b     = np.linspace(100.,z_cmb-0.001,20)
+#      za       = np.append(z_a,z_b)
+      z      = np.exp(np.linspace(np.log(z_min),np.log(1.),bin_num))
+      #zb      = np.linspace(3.,zmax,bin_num/2+1)[1:]
+      #z       = np.append(za,zb)
+      print z
       assert(len(z)==bin_num)
 
     if kkg or kgg:

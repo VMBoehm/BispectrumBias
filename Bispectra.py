@@ -166,20 +166,11 @@ class Bispectra():
 
         self.cosmo['output']='tCl, mPk'
 
-        self.cosmo['tol_perturb_integration']=1e-6
 
         self.cosmo['P_k_max_1/Mpc']= self.kmax
         self.cosmo['z_max_pk']     = max(max(self.z),1.5)
 
-        self.cosmo['k_min_tau0']   = self.kmin*13000.
-
-
-        self.cosmo['k_step_sub']   = 0.015
-        self.cosmo['k_step_super'] = 0.0001
-        self.cosmo['k_step_super_reduction']= 0.1
-        self.cosmo['k_per_decade_for_pk']   = 20
-
-
+        print self.cosmo
         #Initializing class
         if self.nl==False:
             self.closmo_lin=Class()
@@ -194,7 +185,6 @@ class Bispectra():
 
         if self.nl:
             self.cosmo['non linear'] = "halofit"
-            self.cosmo['halofit_k_per_decade']=100
             self.closmo_nl=Class()
             self.closmo_nl.set(self.cosmo)
             print "Initializing CLASS with halofit..."

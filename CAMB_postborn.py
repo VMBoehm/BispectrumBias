@@ -24,7 +24,7 @@ from Constants import LIGHT_SPEED
 
 class PostBorn_Bispec():
 
-    def __init__(self,CLASSparams,k_min=1e-4,k_max=100,cross=False, dndz=None, norm=None, lmax=None, acc=4, NL=True,z_max=1.5):
+    def __init__(self,CLASSparams,k_min=1e-4,k_max=100,cross=False, dndz=None, norm=None, lmax=None, acc=4, NL=True, z_max=1.):
         pars = camb.CAMBparams()
         try:
             A_s=CLASSparams['A_s']
@@ -50,10 +50,11 @@ class PostBorn_Bispec():
             acc=4 #(change back to 1 unless you need high accuracy - much faster)
         self.nz = 200*acc
 
-        chistar = self.results.conformal_time(0)- model.tau_maxvis.value #chi_cmb
-        zmax    = self.results.redshift_at_comoving_radial_distance(chistar) #z_cmb
+        chistar = self.results.comoving_radial_distance(z_max)#elf.results.conformal_time(0)- model.tau_maxvis.value #chi_cmb
+        zmax    = 1.#self.results.redshift_at_comoving_radial_distance(chistar) #z_cmb
         self.chi_max = self.results.comoving_radial_distance(z_max)
         print('chimax ', self.chi_max)
+        print('chistar ', chistar)
 
 
         print "Postborn z_max: ", zmax
