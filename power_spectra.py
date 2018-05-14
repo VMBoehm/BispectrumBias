@@ -24,14 +24,18 @@ import copy
 
 def compute_power_spectrum(ell_min, ell_max,kmin, kmax,z,nl,bias,params):
 
-    ell = np.exp(np.linspace(np.log(ell_min),np.log(ell_max),400))
+    ell = np.exp(np.linspace(np.log(ell_min),np.log(ell_max),1000))
 
     data    = C.CosmoData(params,z)
     chi     = data.chi(z)
 
-    k    = np.outer(1./chi,ell+0.5)
+    k    = np.outer(1./chi,ell)
 
-    k_   = np.exp(np.linspace(np.log(kmin),np.log(kmax),50))
+    k_   = np.exp(np.linspace(np.log(kmin),np.log(1.),100,endpoint=False))
+    k_ = np.append(k_,np.linspace(1., kmax,100))
+    pl.figure()
+    pl.plot(k_,ls='', marker='o')
+    pl.show()
 
     spec_z  = np.zeros((len(z),len(ell)))
 
@@ -39,8 +43,7 @@ def compute_power_spectrum(ell_min, ell_max,kmin, kmax,z,nl,bias,params):
     params['output']='tCl, mPk'
     params['z_max_pk'] = max(z)
     params['P_k_max_1/Mpc'] = kmax
-    params['k_min_tau0'] = kmin*13000.
-    params['perturb_sampling_stepsize']=0.01
+    #params['perturb_sampling_stepsize']=0.01
 
 
     if nl:
@@ -58,6 +61,8 @@ def compute_power_spectrum(ell_min, ell_max,kmin, kmax,z,nl,bias,params):
 #
     z_cmb    = closmo.get_current_derived_parameters(['z_rec'])['z_rec']
     print '$\sigma_8$=', closmo.get_current_derived_parameters(['sigma8'])
+
+    data     = C.CosmoData(params,np.exp(np.linspace(np.log(1e-5),np.log(z_cmb-0.001),200)))
     chi_cmb  = data.chi(z_cmb)
 
     W_lens  = ((chi_cmb-chi)/(chi_cmb*chi))*(z+1.)
@@ -66,9 +71,9 @@ def compute_power_spectrum(ell_min, ell_max,kmin, kmax,z,nl,bias,params):
 
     for ii in xrange(len(z)):
         print(ii)
-        spec =[cosmo_pk(k_[j],z[ii]) for j in xrange(50)]
+        spec =[cosmo_pk(k_[j],z[ii]) for j in xrange(len(k_))]
         spec = np.array(spec)
-        spec_z[ii] = np.interp(k[ii],k_,spec,left=0.,right=0.)
+        spec_z[ii] = np.exp(np.interp(np.log(k[ii]),np.log(k_),np.log(spec),left=0.,right=0.))
 
     spec_z= np.transpose(spec_z)
 
@@ -77,7 +82,7 @@ def compute_power_spectrum(ell_min, ell_max,kmin, kmax,z,nl,bias,params):
         C_pp+=[simps(kernel*spec_z[ii],chi)]
 
     C_pp=np.array(C_pp)
-    C_pp*=(data.prefacs**2/(ell+0.5)**4)
+    C_pp*=(data.prefacs**2/(ell)**4)
 
     dchidz  = data.dchidz(z)
     norm    = simps(dndz(z),z)
@@ -136,11 +141,10 @@ if __name__ == "__main__":
     tag         = params[0]['name']
 
     nl          = True
-
     ell_min     = 10
     ell_max     = 10000
     kmin        = 1e-4
-    kmax        = 10
+    kmax        = 100
 
     print ell_min, ell_max
 
@@ -149,14 +153,14 @@ if __name__ == "__main__":
 
     path='/home/nessa/Documents/Projects/LensingBispectrum/CMB-nonlinear/outputs/power_spectra/'
 
-
+    acc_params = copy.deepcopy(C.acc_1)
     class_params=copy.deepcopy(params[1])
+    class_params.update(acc_params)
     class_params['non linear']='halofit'
     class_params['output']='tCl, lCl'
     class_params['lensing']='yes'
     class_params['l_max_scalars']=ell_max
     class_params['l_switch_limber']=1#3000
-    #class_params['perturb_sampling_stepsize']=0.01
     print 'beginning computation with ',class_params
     closmo      = Class()
     closmo.set(class_params)
@@ -171,7 +175,7 @@ if __name__ == "__main__":
     #set up z range and binning in z space
     z_cmb       = closmo.get_current_derived_parameters(['z_rec'])['z_rec']
 
-    zmaxs=[1.,2.,5.,z_cmb-0.01]
+    zmaxs=[z_cmb-0.0001]
     clpp=[]
     for z_max in zmaxs:#1.5
 
@@ -201,9 +205,17 @@ if __name__ == "__main__":
 #
 #
     pl.figure()
-    pl.loglog(ll,cl_pp,label='myself')
+    pl.loglog(ll,cl_pp,label='my code')
     pl.loglog(ells[1::],cl_phiphi[1::],label='Class')
     pl.legend()
+    pl.xlim(10,4000)
+    pl.show()
+
+    pl.figure()
+    pl.semilogx(ll,cl_pp/np.interp(ll,ells[1::],cl_phiphi[1::])-1,label='mycode/Class-1')
+    pl.legend()
+    pl.ylim(0.,.2)
+    pl.xlim(100,4000)
     pl.show()
 
 #    N0              = np.interp(ll,L_s,AL)
