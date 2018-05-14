@@ -24,15 +24,15 @@ import copy
 
 def compute_power_spectrum(ell_min, ell_max,kmin, kmax,z,nl,bias,params):
 
-    ell = np.exp(np.linspace(np.log(ell_min),np.log(ell_max),1000))
+    ell = np.exp(np.linspace(np.log(ell_min),np.log(ell_max),500))
 
     data    = C.CosmoData(params,z)
     chi     = data.chi(z)
 
     k    = np.outer(1./chi,ell)
 
-    k_   = np.exp(np.linspace(np.log(kmin),np.log(1.),100,endpoint=False))
-    k_ = np.append(k_,np.linspace(1., kmax,100))
+    k_   = np.exp(np.linspace(np.log(kmin),np.log(1.),50,endpoint=False))
+    k_   = np.append(k_,np.linspace(1., kmax,50))
     pl.figure()
     pl.plot(k_,ls='', marker='o')
     pl.show()
@@ -62,7 +62,7 @@ def compute_power_spectrum(ell_min, ell_max,kmin, kmax,z,nl,bias,params):
     z_cmb    = closmo.get_current_derived_parameters(['z_rec'])['z_rec']
     print '$\sigma_8$=', closmo.get_current_derived_parameters(['sigma8'])
 
-    data     = C.CosmoData(params,np.exp(np.linspace(np.log(1e-5),np.log(z_cmb-0.001),200)))
+    data     = C.CosmoData(params,np.exp(np.linspace(np.log(1e-4),np.log(z_cmb-0.001),200)))
     chi_cmb  = data.chi(z_cmb)
 
     W_lens  = ((chi_cmb-chi)/(chi_cmb*chi))*(z+1.)
@@ -132,9 +132,9 @@ if __name__ == "__main__":
 
 
     #choose Cosmology (see Cosmology module)
-    params      = C.SimulationCosmology
+    params      = C.Pratten
 
-    z_min       = 1e-5
+    z_min       = 1e-4
 
     bin_num     = 200
 
@@ -175,7 +175,7 @@ if __name__ == "__main__":
     #set up z range and binning in z space
     z_cmb       = closmo.get_current_derived_parameters(['z_rec'])['z_rec']
 
-    zmaxs=[z_cmb-0.0001]
+    zmaxs=[1.,2.,3.,5.,z_cmb-0.0001]
     clpp=[]
     for z_max in zmaxs:#1.5
 
@@ -215,7 +215,8 @@ if __name__ == "__main__":
     pl.semilogx(ll,cl_pp/np.interp(ll,ells[1::],cl_phiphi[1::])-1,label='mycode/Class-1')
     pl.legend()
     pl.ylim(0.,.2)
-    pl.xlim(100,4000)
+    pl.grid()
+    pl.xlim(10,4000)
     pl.show()
 
 #    N0              = np.interp(ll,L_s,AL)
