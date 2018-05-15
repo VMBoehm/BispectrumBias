@@ -207,6 +207,7 @@ acc_1={
 "k_step_sub":0.015,
 "k_step_super":0.0001,
 "k_step_super_reduction":0.1,
+'k_per_decade_for_pk': 20,
 'perturb_sampling_stepsize':0.01,
 'tol_perturb_integration':1.e-6,
 'halofit_k_per_decade': 3000.
@@ -430,20 +431,11 @@ class CosmoData():
 		params['output']='tCl mPk'
 
 
-		params['tol_perturb_integration']=1e-6
-
 		params['P_k_max_1/Mpc']= max(k_array)
 		params['z_max_pk']     = z_max
 
-		params['k_min_tau0']=min(k_array)*13000.
-
-
-		params['k_step_sub']=0.015
-		params['k_step_super']=0.0001
-		params['k_step_super_reduction']=0.1
-		params['k_per_decade_for_pk']=20
 		params['non linear']=""
-#		params['k_output_values']=50.
+		params.update(acc_1)
 
 		print (min(k_array),max(k_array))
 		print params
@@ -467,7 +459,7 @@ class CosmoData():
 		self.sigma8_z 		= splrep(z_,sigma8/(self.LJ_D_z(z_))) #sigma_8 today rescaled to other redshifts
 
 		if get_n:
-			self.n   = HF.get_derivative(np.log(k_array),np.log(P),method="si")
+			self.n   = HF.get_derivative(np.log(k_array),np.log(P),method="spl")
 
 		h   = self.class_params['h']
 		k_  = np.exp(np.linspace(np.log(1e-3*h),np.log(10*h),100))
@@ -496,7 +488,7 @@ class CosmoData():
 
 			if get_n:
 				pl.figure()
-				pl.semilogx(k_array,splev(np.log(k_array),self.n,ext=2),marker="o")
+				pl.semilogx(k_array,self.n(np.log(k_array)),marker="o")
 				pl.xlim(min(k_array),max(k_array))
 				pl.xlabel("k")
 				pl.ylabel("spectra index n")
@@ -522,7 +514,7 @@ class CosmoData():
 		except:
 			self.get_linPm(k,test=True,get_n=True,z_max=z_max,z_=z)
 
-		n=splev(np.log(k),self.n,ext=2)
+		n=self.n(np.log(k))
 
 
 		Q=(4.-2.**n)/(1.+2**(n+1.))

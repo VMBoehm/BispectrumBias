@@ -141,7 +141,7 @@ if __name__ == "__main__":
     tag         = params[0]['name']
 
     nl          = True
-    ell_min     = 10
+    ell_min     = 1
     ell_max     = 10000
     kmin        = 1e-4
     kmax        = 100

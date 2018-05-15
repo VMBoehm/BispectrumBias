@@ -34,7 +34,7 @@ if __name__ == "__main__":
 
     "---begin settings---"
 
-    tag         = 'lowz1s'
+    tag         = 'lowz5s'
 
     #type of bispectrum
     kkg         = False
@@ -64,7 +64,7 @@ if __name__ == "__main__":
 
     #fitting formula (use B_delta fitting formula from Gil-Marin et al. arXiv:1111.4477
     B_fit       = True
-    fit_z_max   = 1.5
+    fit_z_max   = 5.
 
     #number of redshift bins
     bin_num     = 200
@@ -127,14 +127,14 @@ if __name__ == "__main__":
     closmo  = Class()
     closmo.set(params)
     closmo.compute()
-    z_cmb   = 1.#closmo.get_current_derived_parameters(['z_rec'])['z_rec']
+    z_cmb   = 5.#closmo.get_current_derived_parameters(['z_rec'])['z_rec']
     closmo.struct_cleanup()
     closmo.empty()
     del closmo
 
     print "z_cmb: %f"%z_cmb
 
-    zmax  = 1.#z_cmb-0.0001
+    zmax  = 5.#z_cmb-0.0001
 
     if kkk or (LSST==False):
 #      z_a     = np.exp(np.linspace(np.log(z_min),np.log(100.),80,endpoint=False))

@@ -18,14 +18,14 @@ field   = 'tt'
 nl      = True
 div     = False
 
-thetaFWHMarcmin = 1.
-noiseUkArcmin   = 1.
-lmin            = 500
+thetaFWHMarcmin = 1.4
+noiseUkArcmin   = 6.
+lmin            = 50
 l_max_T         = 4000
 l_max_P         = 4000
 len_ang         = 800
 len_l           = 5040
-bs_tag          = 'comp_12c_res'
+bs_tag          = 'full'
 
 
 biaspath='./biasResults/lmin%d_noise%d_theta%d/%s/'%(lmin,noiseUkArcmin,thetaFWHMarcmin*10,bs_tag)
