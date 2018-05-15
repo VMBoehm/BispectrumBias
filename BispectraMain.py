@@ -64,7 +64,7 @@ if __name__ == "__main__":
 
     #fitting formula (use B_delta fitting formula from Gil-Marin et al. arXiv:1111.4477
     B_fit       = True
-    fit_z_max   = 5.
+    fit_z_max   = 5
 
     #number of redshift bins
     bin_num     = 200
@@ -140,7 +140,7 @@ if __name__ == "__main__":
 #      z_a     = np.exp(np.linspace(np.log(z_min),np.log(100.),80,endpoint=False))
 #      z_b     = np.linspace(100.,z_cmb-0.001,20)
 #      za       = np.append(z_a,z_b)
-      z      = np.exp(np.linspace(np.log(z_min),np.log(1.),bin_num))
+      z      = np.exp(np.linspace(np.log(z_min),np.log(5.),bin_num))
       #zb      = np.linspace(3.,zmax,bin_num/2+1)[1:]
       #z       = np.append(za,zb)
       print z

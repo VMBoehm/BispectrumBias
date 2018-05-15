@@ -427,7 +427,6 @@ class CosmoData():
 
 		params=copy.deepcopy(self.class_params)
 
-
 		params['output']='tCl mPk'
 
 
@@ -454,9 +453,15 @@ class CosmoData():
 			Pk = np.asarray([closmo.pk(k,z) for k in k_i])
 			self.k_NL+=[min(k_i[np.where(Pk*k_i**3/(2*np.pi**2)>1.)])]
 
+		pl.figure()
+		pl.semilogy(z_,self.k_NL)
+		pl.show()
 		print "sigma8:", sigma8
 
-		self.sigma8_z 		= splrep(z_,sigma8/(self.LJ_D_z(z_))) #sigma_8 today rescaled to other redshifts
+		self.sigma8_z 		= splrep(z_,sigma8*(self.LJ_D_z(z_))) #sigma_8 today rescaled to other redshifts
+		pl.figure()
+		pl.plot(z_,splev(z_,self.sigma8_z))
+		pl.show()
 
 		if get_n:
 			self.n   = HF.get_derivative(np.log(k_array),np.log(P),method="spl")
@@ -497,17 +502,29 @@ class CosmoData():
 		closmo.struct_cleanup()
 		closmo.empty()
 
-	def get_abc(self,k,z,z_max):
+	def get_abc(self,k,z,z_max,fit_type='GM'):
 
-		a1 = 0.484
-		a4 = 0.392
-		a7 = 0.128
-		a2 = 3.740
-		a5 = 1.013
-		a8 = -0.722
-		a3 = -0.849
-		a6 = -0.575
-		a9 = -0.926
+
+		if fit_type=='GM':
+			a1 = 0.484
+			a4 = 0.392
+			a7 = 0.128
+			a2 = 3.740
+			a5 = 1.013
+			a8 = -0.722
+			a3 = -0.849
+			a6 = -0.575
+			a9 = -0.926
+		if fit_type=='SC':
+			a1 = 0.25
+			a4 = 1.
+			a7 = 1.
+			a2 = 3.5
+			a5 = 2.
+			a8 = 0.
+			a3 = 2.
+			a6 = -0.2
+			a9 = 0.
 
 		try:
 			self.n

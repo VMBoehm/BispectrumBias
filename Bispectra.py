@@ -28,7 +28,7 @@ class Bispectra():
         - newtonian potential bi_psi (function of chi)
         - lensing potential bi_phi
     """
-    def __init__(self,cosmo,data, ell1,ell2,ell3,z,config,ang12,ang23,ang31, path, z_cmb, b=None, nonlin=False, B_fit=False, kkg=False, kgg=False, kkk=True, dndz=None,norm=None,k_min=None,k_max=None,sym=False, fit_z_max=1.5):
+    def __init__(self,cosmo,data, ell1,ell2,ell3,z,config,ang12,ang23,ang31, path, z_cmb, b=None, nonlin=False, B_fit=False, kkg=False, kgg=False, kkk=True, dndz=None,norm=None,k_min=None,k_max=None,sym=False, fit_z_max=5.):
 
 
         self.cosmo      = copy.deepcopy(cosmo)
@@ -158,9 +158,9 @@ class Bispectra():
 
 #TODO: check!
         if self.B_fit:
-            k4n=np.exp(np.linspace(np.log(self.kmin),np.log(self.kmax),100))
-            k4n=np.concatenate((k4n,np.exp(np.linspace(np.log(1e-3),np.log(0.5),100))))[:-1]
-            k4n=np.sort(k4n)
+            k4n=np.exp(np.linspace(np.log(self.kmin),np.log(self.kmax),300))
+            #k4n=np.concatenate((k4n,np.exp(np.linspace(np.log(1e-3),np.log(0.5),50))))[:-1]
+            #k4n=np.unique(np.sort(k4n))
             self.data.get_abc(k4n,self.z[np.where(self.z<=self.fit_z_max)],self.fit_z_max)
 
 

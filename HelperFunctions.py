@@ -86,7 +86,7 @@ def get_derivative(x, F_x, method, order=4, smooth=False):
 	* order: order of the spline if spline interpolation is used
 	"""
 
-	methods=['cd','si','spl']
+	methods=['spl']
 	try:
 		assert(method in methods)
 	except:
