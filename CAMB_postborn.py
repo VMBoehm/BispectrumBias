@@ -109,6 +109,12 @@ class PostBorn_Bispec():
         cl      = np.zeros(ls.shape)
         w       = np.ones(chis.shape)
         cchi    = cl_chi_chistar(chis,ls, grid=True)
+        print chis.shape
+        print ls.shape
+        plt.figure()
+        plt.loglog(chis,cchi[:,100])
+        plt.show()
+
         if self.cross:
             cchi    = cl_chi_chistar2(chis,ls, grid=True)
 
@@ -116,6 +122,7 @@ class PostBorn_Bispec():
         for i, l in enumerate(ls):
             k=(l+0.5)/chis
             w[:]=1
+            #should take care of everything
             w[chis>self.chimaxint]=0
             w[k>=self.kmax]=0
             w[k<=self.kmin]=0
@@ -170,7 +177,7 @@ class PostBorn_Bispec():
             w[:]=1
             w[k<self.kmin]=0
             w[k>=self.kmax]=0
-            w[chis>self.chimaxint]=0
+            #w[chis>self.chimaxint]=0
             cl[i] = np.dot(dchis,w*self.PK.P(zs, k, grid=False)*win/k**4)
         if self.cross==False:
             cl*= self.ls**4
@@ -334,10 +341,10 @@ if __name__ == "__main__":
 
     PBB=PostBorn_Bispec(C.SimulationCosmology[1],cross=False,dndz=dndz, norm=norm)
     PBB.plot(cross=False)
-    PBB=PostBorn_Bispec(C.SimulationCosmology[1],k_min=1e-3,cross=False,dndz=dndz, norm=norm)
-    PBB.plot(cross=False)
-    PBB=PostBorn_Bispec(C.SimulationCosmology[1],k_min=1e-2,cross=False,dndz=dndz, norm=norm)
-    PBB.plot(cross=False)
+#    PBB=PostBorn_Bispec(C.SimulationCosmology[1],k_min=1e-3,cross=False,dndz=dndz, norm=norm)
+#    PBB.plot(cross=False)
+#    PBB=PostBorn_Bispec(C.SimulationCosmology[1],k_min=1e-2,cross=False,dndz=dndz, norm=norm)
+#    PBB.plot(cross=False)
 
     #for cross in [True]:
 #        PBB=PostBorn_Bispec(C.SimulationCosmology[1],cross=cross,dndz=dndz, norm=norm)
