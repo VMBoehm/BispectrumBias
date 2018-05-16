@@ -448,7 +448,7 @@ class CosmoData():
 
 		self.k_NL 	= []
 
-		k_i=k_array#1./self.cosmo.class_params['h']
+		k_i=np.exp(np.linspace(np.log(min(k_array)),np.log(max(k_array)),1000))#1./self.cosmo.class_params['h']
 		for z in z_[np.where(z_<=z_max)]:
 			Pk = np.asarray([closmo.pk(k,z) for k in k_i])
 			self.k_NL+=[min(k_i[np.where(Pk*k_i**3/(2*np.pi**2)>1.)])]

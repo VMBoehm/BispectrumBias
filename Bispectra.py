@@ -156,7 +156,6 @@ class Bispectra():
         initializes all indice-related arrays and instance of class
         """
 
-#TODO: check!
         if self.B_fit:
             k4n=np.exp(np.linspace(np.log(self.kmin),np.log(self.kmax),300))
             #k4n=np.concatenate((k4n,np.exp(np.linspace(np.log(1e-3),np.log(0.5),50))))[:-1]
