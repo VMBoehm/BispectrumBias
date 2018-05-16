@@ -60,7 +60,7 @@ if __name__ == "__main__":
     #Limber      = False
 
     #post Born (use post Born terms from Pratten & Lewis arXiv:1605.05662)
-    post_born   = False
+    post_born   = True
 
     #fitting formula (use B_delta fitting formula from Gil-Marin et al. arXiv:1111.4477
     B_fit       = True
@@ -341,7 +341,7 @@ if __name__ == "__main__":
 #            bs.set_up()
         k_min   = bs.kmin
         k_max   = bs.kmax
-        PBB     = postborn.PostBorn_Bispec(params,k_min,k_max,kkg,dndz,norm,z_max=zmax)
+        PBB     = postborn.PostBorn_Bispec(params,k_min,k_max,kkg,dndz,norm,zmaxint=zmax)
 
 
         if kkg:

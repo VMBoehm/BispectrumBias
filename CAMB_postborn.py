@@ -24,7 +24,7 @@ from Constants import LIGHT_SPEED
 
 class PostBorn_Bispec():
 
-    def __init__(self,CLASSparams,k_min=1e-4,k_max=100,cross=False, dndz=None, norm=None, lmax=None, acc=4, NL=True, z_max=1.):
+    def __init__(self,CLASSparams,k_min=1e-4,k_max=100,cross=False, dndz=None, norm=None, lmax=None, acc=4, NL=True, zmaxint=1.):
         pars = camb.CAMBparams()
         try:
             A_s=CLASSparams['A_s']
@@ -36,6 +36,8 @@ class PostBorn_Bispec():
         self.results= camb.get_background(pars)
 
         self.cross= cross
+        if self.cross:
+          print 'computing cross'
         self.dndz = dndz
 #Get matter power spectrum interpolation objects for fiducial model
         self.kmax = k_max
@@ -50,14 +52,17 @@ class PostBorn_Bispec():
             acc=4 #(change back to 1 unless you need high accuracy - much faster)
         self.nz = 200*acc
 
-        chistar = self.results.comoving_radial_distance(z_max)#elf.results.conformal_time(0)- model.tau_maxvis.value #chi_cmb
-        zmax    = self.results.redshift_at_comoving_radial_distance(chistar) #z_cmb
-        self.chi_max = self.results.comoving_radial_distance(z_max)
-        print('chimax ', self.chi_max)
+        #integration up to zcmb
+        chistar = self.results.conformal_time(0)- model.tau_maxvis.value
+        zmax    = self.results.redshift_at_comoving_radial_distance(chistar)
+        print "Postborn z_max: ", zmax
+        print "Postborn z_max integration: ", zmaxint
+        self.chimaxint = self.results.comoving_radial_distance(zmaxint)
+        print('chimax integration ', self.chimaxint)
         print('chistar ', chistar)
 
 
-        print "Postborn z_max: ", zmax
+
 
         k_per_logint= None
         self.PK     = camb.get_matter_power_interpolator(pars, nonlinear=NL,
@@ -70,12 +75,13 @@ class PostBorn_Bispec():
         self.acc    = acc
         self.lmax   = lmax
 
-        #Get cross-CL kappa for M_* matrix
+        #Get CL kappa for M_* matrix
         nchimax     = 100*acc
         chimaxs     = np.linspace(0 ,chistar, nchimax)
 
         cls = np.zeros((nchimax,ls.size))
         cls2= np.zeros((nchimax,ls.size))
+
         for i, chimax in enumerate(chimaxs[1:]):
             if self.cross:
                 cl2 = self.cl_cross(chimax)
@@ -110,7 +116,7 @@ class PostBorn_Bispec():
         for i, l in enumerate(ls):
             k=(l+0.5)/chis
             w[:]=1
-            w[np.where(chis>self.chi_max)]=0
+            w[chis>self.chimaxint]=0
             w[k>=self.kmax]=0
             w[k<=self.kmin]=0
             cl = np.dot(dchis*w*self.PK.P(zs, k, grid=False)/k**4*win,cchi)
@@ -164,7 +170,7 @@ class PostBorn_Bispec():
             w[:]=1
             w[k<self.kmin]=0
             w[k>=self.kmax]=0
-            w[np.where(chis>self.chi_max)]=0
+            w[chis>self.chimaxint]=0
             cl[i] = np.dot(dchis,w*self.PK.P(zs, k, grid=False)*win/k**4)
         if self.cross==False:
             cl*= self.ls**4
