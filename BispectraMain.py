@@ -34,7 +34,7 @@ if __name__ == "__main__":
 
     "---begin settings---"
 
-    tag         = 'lowz5s'
+    tag         = 'zcmb'
 
     #type of bispectrum
     kkg         = False
@@ -127,21 +127,21 @@ if __name__ == "__main__":
     closmo  = Class()
     closmo.set(params)
     closmo.compute()
-    z_cmb   = 5.#closmo.get_current_derived_parameters(['z_rec'])['z_rec']
+    z_cmb   = closmo.get_current_derived_parameters(['z_rec'])['z_rec']
     closmo.struct_cleanup()
     closmo.empty()
     del closmo
 
     print "z_cmb: %f"%z_cmb
 
-    zmax  = 5. #z_cmb-0.0001
+    zmax  = z_cmb-0.0001
 
     if kkk or (LSST==False):
 #      z     = np.exp(np.linspace(np.log(z_min),np.log(1.),bin_num))
 #      z_b     = np.linspace(100.,z_cmb-0.001,20)
 #      za       = np.append(z_a,z_b)
-      za      = np.exp(np.linspace(np.log(z_min),np.log(2.5),bin_num/2))
-      zb      = np.linspace(2.5,zmax,bin_num/2+1)[1:]
+      za      = np.exp(np.linspace(np.log(z_min),np.log(3.),bin_num/2))
+      zb      = np.linspace(3.,zmax,bin_num/2+1)[1:]
       z       = np.append(za,zb)
       print z
       assert(len(z)==bin_num)
