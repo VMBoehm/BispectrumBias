@@ -161,7 +161,7 @@ class Bispectra():
             k4n=np.exp(np.linspace(np.log(self.kmin),np.log(self.kmax),300))
             #k4n=np.concatenate((k4n,np.exp(np.linspace(np.log(1e-3),np.log(0.5),50))))[:-1]
             #k4n=np.unique(np.sort(k4n))
-            self.data.get_abc(k4n,self.z[np.where(self.z<=self.fit_z_max)],self.fit_z_max)
+            self.data.get_abc(k4n,self.z[np.where(self.z<=self.fit_z_max)],self.fit_z_max,fit_type='SC')
 
 
         self.cosmo['output']='tCl, mPk'

@@ -51,7 +51,7 @@ class PostBorn_Bispec():
         self.nz = 200*acc
 
         chistar = self.results.comoving_radial_distance(z_max)#elf.results.conformal_time(0)- model.tau_maxvis.value #chi_cmb
-        zmax    = 5.#self.results.redshift_at_comoving_radial_distance(chistar) #z_cmb
+        zmax    = self.results.redshift_at_comoving_radial_distance(chistar) #z_cmb
         self.chi_max = self.results.comoving_radial_distance(z_max)
         print('chimax ', self.chi_max)
         print('chistar ', chistar)
