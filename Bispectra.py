@@ -28,7 +28,7 @@ class Bispectra():
         - newtonian potential bi_psi (function of chi)
         - lensing potential bi_phi
     """
-    def __init__(self,cosmo,data, ell1,ell2,ell3,z,config,ang12,ang23,ang31, path, z_cmb, b=None, nonlin=False, B_fit=False, kkg=False, kgg=False, kkk=True, dndz=None,norm=None,k_min=None,k_max=None,sym=False, fit_z_max=5.):
+    def __init__(self,cosmo,data, ell1,ell2,ell3,z,config,ang12,ang23,ang31, path, z_cmb, b=None, nonlin=False, B_fit=False, kkg=False, kgg=False, kkk=True, dndz=None,norm=None,k_min=None,k_max=None,sym=False, fit_z_max=5., ft='GM'):
 
 
         self.cosmo      = copy.deepcopy(cosmo)
@@ -87,11 +87,11 @@ class Bispectra():
         if self.nl:
             print "Using non-linear matter power spectrum"
 
-
+        self.ft = ft
         self.B_fit     = B_fit
         self.fit_z_max = fit_z_max
         if self.B_fit:
-            print "using Gil-Marin et al. fitting formula"
+            print "using fitting formula", self.ft
 
         self.path   = path+'bispectra/'
 
@@ -125,7 +125,7 @@ class Bispectra():
         computes the lensing bispectrum
         """
 
-        self.filename   = self.path+"bispec_phi_%s_Lmin%d-Lmax%d-lmax%d-lenBi%d"%(self.config,self.L_min,self.L_max,self.l_max,self.len_bi)
+        self.filename   = self.path+"bispec_phi_%s_Lmin%d-Lmax%d-lmax%d-lenBi%d_%s"%(self.config,self.L_min,self.L_max,self.l_max,self.len_bi,self.ft)
         if self.sym:
             self.filename+='_sym'
         try:
@@ -160,7 +160,7 @@ class Bispectra():
             k4n=np.exp(np.linspace(np.log(self.kmin),np.log(self.kmax),300))
             #k4n=np.concatenate((k4n,np.exp(np.linspace(np.log(1e-3),np.log(0.5),50))))[:-1]
             #k4n=np.unique(np.sort(k4n))
-            self.data.get_abc(k4n,self.z[np.where(self.z<=self.fit_z_max)],self.fit_z_max,fit_type='SC')
+            self.data.get_abc(k4n,self.z[np.where(self.z<=self.fit_z_max)],self.fit_z_max,fit_type=self.ft)
 
 
         self.cosmo['output']='tCl, mPk'

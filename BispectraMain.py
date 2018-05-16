@@ -60,7 +60,7 @@ if __name__ == "__main__":
     #Limber      = False
 
     #post Born (use post Born terms from Pratten & Lewis arXiv:1605.05662)
-    post_born   = True
+    post_born   = False
 
     #fitting formula (use B_delta fitting formula from Gil-Marin et al. arXiv:1111.4477
     B_fit       = True
