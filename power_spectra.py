@@ -14,6 +14,7 @@ import numpy as np
 
 from scipy.integrate import simps
 from scipy.interpolate import interp1d
+import scipy
 
 import matplotlib.pyplot as pl
 
@@ -68,6 +69,22 @@ def compute_power_spectrum(ell_min, ell_max,kmin, kmax,z,nl,bias,params):
     W_lens  = ((chi_cmb-chi)/(chi_cmb*chi))*(z+1.)
     kernel  = (W_lens*chi)**2
 
+    pl.figure()
+    pl.plot(z,(chi_cmb-chi)/(chi_cmb)*chi*data.D_chi(chi),label='1')
+    pl.plot(z,(chi_cmb-chi)/(chi_cmb)*chi,label='2')
+#    pl.semilogy(z,(chi_cmb-chi)/(chi_cmb)*chi/(1+z),label='3')
+    pl.legend()
+    pl.xlim(0,5)
+    pl.show()
+    def kernel_1(chi):
+      return -(chi_cmb-chi)/(chi_cmb)*chi*data.D_chi(chi)
+    def kernel_2(chi):
+      return -(chi_cmb-chi)/(chi_cmb)*chi
+
+    chi1= scipy.optimize.minimize_scalar(kernel_1)
+    chi2= scipy.optimize.minimize_scalar(kernel_2)
+    print chi1, data.z_chi(chi1['x'])
+    print chi2, data.z_chi(chi2['x'])
 
     for ii in xrange(len(z)):
         print(ii)
@@ -153,9 +170,9 @@ if __name__ == "__main__":
 
     path='/home/nessa/Documents/Projects/LensingBispectrum/CMB-nonlinear/outputs/power_spectra/'
 
-    acc_params = copy.deepcopy(C.acc_1)
+    #acc_params = copy.deepcopy(C.acc_1)
     class_params=copy.deepcopy(params[1])
-    class_params.update(acc_params)
+    #class_params.update(acc_params)
     class_params['non linear']='halofit'
     class_params['output']='tCl, lCl'
     class_params['lensing']='yes'
@@ -175,7 +192,7 @@ if __name__ == "__main__":
     #set up z range and binning in z space
     z_cmb       = closmo.get_current_derived_parameters(['z_rec'])['z_rec']
 
-    zmaxs=[1.,2.,3.,5.,z_cmb-0.0001]
+    zmaxs=[z_cmb-1e-4]#1.,2.,3.,5.,z_cmb-0.0001]
     clpp=[]
     for z_max in zmaxs:#1.5
 
@@ -201,7 +218,7 @@ if __name__ == "__main__":
       ll, cl_pp, cl_gg, cl_xx = compute_power_spectrum(ell_min, ell_max, kmin,kmax, z, nl,bias,copy.deepcopy(params[1]))
       clpp+=[cl_pp]
 
-    pickle.dump([ll,clpp,zmaxs],open(path+'cl_pp_zbins_%s.pkl'%(tag),'w'))
+    #pickle.dump([ll,clpp,zmaxs],open(path+'cl_pp_zbins_%s.pkl'%(tag),'w'))
 #
 #
     pl.figure()
