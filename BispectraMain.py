@@ -127,7 +127,7 @@ if __name__ == "__main__":
     closmo  = Class()
     closmo.set(params)
     closmo.compute()
-    z_cmb   = closmo.get_current_derived_parameters(['z_rec'])['z_rec']
+    z_cmb   = 1.#closmo.get_current_derived_parameters(['z_rec'])['z_rec']
     closmo.struct_cleanup()
     closmo.empty()
     del closmo
@@ -135,6 +135,7 @@ if __name__ == "__main__":
     print "z_cmb: %f"%z_cmb
 
     zmax  = 1.#z_cmb-0.0001
+
 
     if kkk or (LSST==False):
       z     = np.exp(np.linspace(np.log(z_min),np.log(zmax),bin_num))
