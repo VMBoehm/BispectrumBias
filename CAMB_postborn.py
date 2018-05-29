@@ -57,8 +57,8 @@ class PostBorn_Bispec():
         zmax    = self.results.redshift_at_comoving_radial_distance(chistar)
         print "Postborn z_max: ", zmax
         print "Postborn z_max integration: ", zmaxint
-        self.chimaxint = self.results.comoving_radial_distance(zmaxint)
-        print('chimax integration ', self.chimaxint)
+        #self.chimaxint = self.results.comoving_radial_distance(zmaxint)
+        #print('chimax integration ', self.chimaxint)
         print('chistar ', chistar)
 
 
@@ -109,11 +109,6 @@ class PostBorn_Bispec():
         cl      = np.zeros(ls.shape)
         w       = np.ones(chis.shape)
         cchi    = cl_chi_chistar(chis,ls, grid=True)
-        print chis.shape
-        print ls.shape
-        plt.figure()
-        plt.loglog(chis,cchi[:,100])
-        plt.show()
 
         if self.cross:
             cchi    = cl_chi_chistar2(chis,ls, grid=True)
@@ -123,7 +118,6 @@ class PostBorn_Bispec():
             k=(l+0.5)/chis
             w[:]=1
             #should take care of everything
-            w[chis>self.chimaxint]=0
             w[k>=self.kmax]=0
             w[k<=self.kmin]=0
             cl = np.dot(dchis*w*self.PK.P(zs, k, grid=False)/k**4*win,cchi)
@@ -177,6 +171,7 @@ class PostBorn_Bispec():
             w[:]=1
             w[k<self.kmin]=0
             w[k>=self.kmax]=0
+            #take out everything higher than zmaxint in clkappa
             #w[chis>self.chimaxint]=0
             cl[i] = np.dot(dchis,w*self.PK.P(zs, k, grid=False)*win/k**4)
         if self.cross==False:
@@ -220,6 +215,8 @@ class PostBorn_Bispec():
         return  - 2*cos12*((l1/l2+cos12)*self.Mstarsp(l1,l2,grid=False) + (l2/l1+cos12)*self.Mstarsp(l2,l1, grid=False) )\
                 - 2*cos23*((l2/l3+cos23)*self.Mstarsp(l2,l3,grid=False) + (l3/l2+cos23)*self.Mstarsp(l3,l2, grid=False) )\
                 - 2*cos31*((l3/l1+cos31)*self.Mstarsp(l3,l1,grid=False) + (l1/l3+cos31)*self.Mstarsp(l1,l3 ,grid=False) )
+
+
 
     def bi_born_cross(self,L1,L2,L3,gamma,sym=False):
 

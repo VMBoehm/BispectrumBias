@@ -34,7 +34,7 @@ if __name__ == "__main__":
 
     "---begin settings---"
 
-    tag         = 'lowz1'
+    tag         = 'zcmb'
 
     #type of bispectrum
     kkg         = False
@@ -42,7 +42,7 @@ if __name__ == "__main__":
     kkk         = True
 
     #triangle configuration
-    ell_type    ='full'#'equilat','folded'
+    ell_type    ='folded'#'equilat','folded'
 
     #compute beta integrals?
     integrals   = False
@@ -67,7 +67,7 @@ if __name__ == "__main__":
     fit_z_max   = 5.
 
     #number of redshift bins
-    bin_num     = 100
+    bin_num     = 200
     z_min       = 1e-4
 
     #sampling in L/l and angle
@@ -134,16 +134,16 @@ if __name__ == "__main__":
 
     print "z_cmb: %f"%z_cmb
 
-    zmax  = 1.#z_cmb-0.0001
+    zmax  = z_cmb-0.0001
 
     if kkk or (LSST==False):
-#      z     = np.exp(np.linspace(np.log(z_min),np.log(1.),bin_num))
+      z     = np.exp(np.linspace(np.log(z_min),np.log(zmax),bin_num))
 #      z_b     = np.linspace(100.,z_cmb-0.001,20)
 #      za       = np.append(z_a,z_b)
-      za      = np.exp(np.linspace(np.log(z_min),np.log(0.5),int(bin_num/2)))
-      zb      = np.linspace(0.5,zmax,int(bin_num/2+1))[1:]
-      z       = np.append(za,zb)
-      print z
+#      za      = np.exp(np.linspace(np.log(z_min),np.log(0.5),int(bin_num/2)))
+#      zb      = np.linspace(0.5,zmax,int(bin_num/2+1))[1:]
+#      z       = np.append(za,zb)
+#      print z
       assert(len(z)==bin_num)
 
     if kkg or kgg:
