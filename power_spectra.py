@@ -184,6 +184,7 @@ if __name__ == "__main__":
     closmo.compute()
     cl_len= closmo.lensed_cl(int(ell_max))
     cl_unl= closmo.raw_cl(int(ell_max))
+    tag+='zcmb'
     pickle.dump([class_params,cl_unl,cl_len],open('../class_outputs/class_cls_%s.pkl'%tag,'w'))
     cl_phiphi       = cl_len['pp'][int(ell_min):int(ell_max)]
     ells            = cl_len['ell'][int(ell_min):int(ell_max)]
@@ -192,7 +193,7 @@ if __name__ == "__main__":
     #set up z range and binning in z space
     z_cmb       = closmo.get_current_derived_parameters(['z_rec'])['z_rec']
 
-    zmaxs=[z_cmb-1e-4]#1.,2.,3.,5.,z_cmb-0.0001]
+    zmaxs=[z_cmb-1e-4, 1.]#,2.,3.,5.,z_cmb-0.0001]
     clpp=[]
     for z_max in zmaxs:#1.5
 

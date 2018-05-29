@@ -53,12 +53,12 @@ class PostBorn_Bispec():
         self.nz = 200*acc
 
         #integration up to zcmb
-        chistar = self.results.comoving_radial_distance(zmaxint)#self.results.conformal_time(0)- model.tau_maxvis.value
+        chistar = self.results.conformal_time(0)- model.tau_maxvis.value
         zmax    = self.results.redshift_at_comoving_radial_distance(chistar)
         print "Postborn z_max: ", zmax
-        #print "Postborn z_max integration: ", zmaxint
-        #self.chimaxint = self.results.comoving_radial_distance(zmaxint)
-        #print('chimax integration ', self.chimaxint)
+        print "Postborn z_max integration: ", zmaxint
+        self.chimaxint = self.results.comoving_radial_distance(zmaxint)
+        print('chimax integration ', self.chimaxint)
         print('chistar ', chistar)
 
 
@@ -120,7 +120,7 @@ class PostBorn_Bispec():
             #should take care of everything
             w[k>=self.kmax]=0
             w[k<=self.kmin]=0
-            #w[chis>self.chimaxint]=0
+            w[chis>self.chimaxint]=0
             cl = np.dot(dchis*w*self.PK.P(zs, k, grid=False)/k**4*win,cchi)
             if self.cross:
                 Mstar[i,:] = cl

@@ -34,7 +34,7 @@ if __name__ == "__main__":
 
     "---begin settings---"
 
-    tag         = 'zs1'
+    tag         = 'zmax1'
 
     #type of bispectrum
     kkg         = False
@@ -127,7 +127,7 @@ if __name__ == "__main__":
     closmo  = Class()
     closmo.set(params)
     closmo.compute()
-    z_cmb   = 1.#closmo.get_current_derived_parameters(['z_rec'])['z_rec']
+    z_cmb   = closmo.get_current_derived_parameters(['z_rec'])['z_rec']
     closmo.struct_cleanup()
     closmo.empty()
     del closmo
