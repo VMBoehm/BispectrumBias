@@ -81,10 +81,10 @@ def compute_power_spectrum(ell_min, ell_max,kmin, kmax,z,nl,bias,params):
     def kernel_2(chi):
       return -(chi_cmb-chi)/(chi_cmb)*chi
 
-    chi1= scipy.optimize.minimize_scalar(kernel_1)
-    chi2= scipy.optimize.minimize_scalar(kernel_2)
-    print chi1, data.z_chi(chi1['x'])
-    print chi2, data.z_chi(chi2['x'])
+#    chi1= scipy.optimize.minimize_scalar(kernel_1)
+#    chi2= scipy.optimize.minimize_scalar(kernel_2)
+#    print chi1, data.z_chi(chi1['x'])
+#    print chi2, data.z_chi(chi2['x'])
 
     for ii in xrange(len(z)):
         print(ii)
@@ -193,7 +193,7 @@ if __name__ == "__main__":
     #set up z range and binning in z space
     z_cmb       = closmo.get_current_derived_parameters(['z_rec'])['z_rec']
 
-    zmaxs=[z_cmb-1e-4, 1.]#,2.,3.,5.,z_cmb-0.0001]
+    zmaxs=[1.,z_cmb-0.0001]
     clpp=[]
     for z_max in zmaxs:#1.5
 
@@ -219,7 +219,7 @@ if __name__ == "__main__":
       ll, cl_pp, cl_gg, cl_xx = compute_power_spectrum(ell_min, ell_max, kmin,kmax, z, nl,bias,copy.deepcopy(params[1]))
       clpp+=[cl_pp]
 
-    #pickle.dump([ll,clpp,zmaxs],open(path+'cl_pp_zbins_%s.pkl'%(tag),'w'))
+    pickle.dump([ll,clpp,zmaxs],open(path+'cl_pp_zbins_%s.pkl'%(tag),'w'))
 #
 #
     pl.figure()

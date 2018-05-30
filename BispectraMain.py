@@ -42,7 +42,7 @@ if __name__ == "__main__":
     kkk         = True
 
     #triangle configuration
-    ell_type    ='folded'#'equilat','folded'
+    ell_type    ='full'#'equilat','folded'
 
     #compute beta integrals?
     integrals   = False
@@ -67,29 +67,29 @@ if __name__ == "__main__":
     fit_z_max   = 5.
 
     #number of redshift bins
-    bin_num     = 200
+    bin_num     = 100
     z_min       = 1e-4
 
     #sampling in L/l and angle
-    len_L       = 200
+    len_L       = 100
     len_l       = len_L+20
     len_ang     = len_L
 
     #ell range (for L and l)
     L_min       = 1. #set to 2
-    L_max       = 10000.
+    L_max       = 3000.
 
     l_min       = L_min
-    l_max       = 10000.
+    l_max       = 8000.
 
 
     Delta_theta = 1e-4
 
     nl          = True
-    cparams     = C.Pratten
+    cparams     = C.SimulationCosmology
 
     k_min       = 1e-4#times three for lens planes
-    k_max       = 100
+    k_max       = 50.
     #k-range1: 0.0105*cparams[1]['h']-42.9*cparams[1]['h']
     #k-range2: 0.0105*cparams[1]['h']-49*cparams[1]['h']
 
@@ -144,7 +144,7 @@ if __name__ == "__main__":
 #      za      = np.exp(np.linspace(np.log(z_min),np.log(0.5),int(bin_num/2)))
 #      zb      = np.linspace(0.5,zmax,int(bin_num/2+1))[1:]
 #      z       = np.append(za,zb)
-#      print z
+      print z
       assert(len(z)==bin_num)
 
     if kkg or kgg:
