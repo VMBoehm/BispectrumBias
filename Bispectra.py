@@ -15,11 +15,12 @@ import numpy as np
 import HelperFunctions as hf
 from scipy.integrate import simps
 from scipy.interpolate import splev
-#import matplotlib.pyplot as pl
+import matplotlib.pyplot as plt
 from classy import Class
 import copy
 import time
 
+from scipy.interpolate import RectBivariateSpline
 
 
 class Bispectra():
@@ -195,6 +196,55 @@ class Bispectra():
 
         self.set_stage=True
 
+        if max(self.z)>3.:
+          z_ = np.exp(np.linspace(np.log(min(self.z)),np.log(1.5),10))
+          z_ = np.append(z_,np.linspace(1.5,max(self.z),10)[1::])
+
+        else:
+          z_ = np.exp(np.linspace(np.log(min(self.z)),np.log(max(self.z)),10))
+
+        print(z_)
+
+        k_ = np.exp(np.linspace(np.log(self.kmin),np.log(self.kmax),50))
+
+        spec_=np.zeros((len(z_),len(k_)))
+
+        if self.nl:
+            cosmo_pk = self.closmo_nl.pk
+        else:
+            cosmo_pk = self.closmo_lin.pk
+
+        for jj in xrange(len(z_)):
+            print(jj)
+            spec_[jj]=np.asarray([cosmo_pk(kk,z_[jj]) for kk in k_])
+
+
+        self.pk_int = RectBivariateSpline(k_,z_,np.transpose(spec_))
+
+
+        z2=np.linspace(min(z_),max(z_),len(z_))
+        k2=np.exp(np.linspace(np.log(min(k_)),np.log(max(k_)),100))
+        plt.figure()
+        for z in [0.1,0.5,1.]:
+          plt.loglog(k_,spec_[jj])
+          plt.loglog(k_,self.pk_int(k_,z,grid=False),marker='+',ls='',markersize=2)
+        plt.show()
+
+        plt.figure()
+        for jj in np.arange(0,len(z_),2):
+          plt.loglog(k_,self.pk_int(k_,z2[jj],grid=False),marker='+',ls='',markersize=2)
+          plt.loglog(k_,self.pk_int(k_,z_[jj],grid=False),marker='o',ls='',markersize=2)
+          plt.loglog(k_,spec_[jj])
+        plt.show()
+
+        plt.figure()
+        for jj in np.arange(0,len(z_),2):
+          plt.loglog(k_,spec_[jj])
+
+          plt.loglog(k2,self.pk_int(k2,z2[jj],grid=False),marker='+',ls='',markersize=2)
+        plt.show()
+
+
 
 
 
@@ -208,10 +258,7 @@ class Bispectra():
 
         bi_delta  = np.zeros((len(self.z),self.len_bi))
 
-        if self.nl:
-            cosmo_pk = self.closmo_nl.pk
-        else:
-            cosmo_pk = self.closmo_lin.pk
+
 
         beg = time.time()
         for ii in np.arange(0,len(self.z)):
@@ -240,17 +287,17 @@ class Bispectra():
             ang23   = self.ang23[index]
             ang31   = self.ang31[index]
 
-            print len(k1)
+
             a=time.time()
-            for j in xrange(len(k1)):
-                spec1+=[cosmo_pk(k1[j],z_i)]
-                spec2+=[cosmo_pk(k2[j],z_i)]
-                spec3+=[cosmo_pk(k3[j],z_i)]
+            spec1=self.pk_int(k1,z_i,grid=False)
+            spec2=self.pk_int(k2,z_i,grid=False)
+            spec3=self.pk_int(k3,z_i,grid=False)
+
             print (time.time()-a)/60.
 
 
 
-            specs = [np.asarray(spec1),np.asarray(spec2),np.asarray(spec3)]
+            specs = [spec1,spec2,spec3]
 
             if self.B_fit==False:
                     bi_delta_chi    = self.bispectrum_delta(specs,k1,k2,k3,ang12, ang23, ang31)

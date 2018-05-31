@@ -34,7 +34,7 @@ if __name__ == "__main__":
 
     "---begin settings---"
 
-    tag         = 'zmax1'
+    tag         = 'zmax1_int'
 
     #type of bispectrum
     kkg         = False
