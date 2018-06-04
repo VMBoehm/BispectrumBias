@@ -49,7 +49,7 @@ filename    = path+'ells/ell_ang_full_Lmin1_Lmax3000_lmin1_lmax8000_lenL100_lenl
 L,l,theta   = pickle.load(open(filename, 'r'))
 print min(theta), max(theta)
 
-tag         ='kkk_fullanalytic_red_dis_lnPs_Bfit_Jias_Simulationzmax1_int_Lmin1-Lmax2999-lmax8000-lenBi1200000_GM_post_born_sum'
+tag         ='kkk_fullanalytic_red_dis_lnPs_Bfit_Jias_Simulationzmax1new_Lmin1-Lmax2999-lmax8000-lenBi1200000_GM_post_born_sum'
 loadfile    = path+'bispectra/'+"bispec_phi_%s"%tag
 
 

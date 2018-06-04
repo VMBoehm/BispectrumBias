@@ -173,7 +173,7 @@ class PostBorn_Bispec():
             w[k<self.kmin]=0
             w[k>=self.kmax]=0
             #take out everything higher than zmaxint in clkappa
-            #w[chis>self.chimaxint]=0
+            w[chis>self.chimaxint]=0
             cl[i] = np.dot(dchis,w*self.PK.P(zs, k, grid=False)*win/k**4)
         if self.cross==False:
             cl*= self.ls**4

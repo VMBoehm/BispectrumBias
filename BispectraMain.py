@@ -34,7 +34,7 @@ if __name__ == "__main__":
 
     "---begin settings---"
 
-    tag         = 'zmax1_int'
+    tag         = 'zmax5new'
 
     #type of bispectrum
     kkg         = False
@@ -64,7 +64,7 @@ if __name__ == "__main__":
 
     #fitting formula (use B_delta fitting formula from Gil-Marin et al. arXiv:1111.4477
     B_fit       = True
-    fit_z_max   = 5.
+    fit_z_max   = 3.
 
     #number of redshift bins
     bin_num     = 100
@@ -134,7 +134,7 @@ if __name__ == "__main__":
 
     print "z_cmb: %f"%z_cmb
 
-    zmax  = 1.#z_cmb-0.0001
+    zmax  = 5.#z_cmb-0.0001
 
 
     if kkk or (LSST==False):

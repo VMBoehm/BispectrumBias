@@ -196,7 +196,7 @@ class Bispectra():
 
         self.set_stage=True
 
-        if max(self.z)>3.:
+        if max(self.z)>=3.:
           z_ = np.exp(np.linspace(np.log(min(self.z)),np.log(1.5),10))
           z_ = np.append(z_,np.linspace(1.5,max(self.z),10)[1::])
 

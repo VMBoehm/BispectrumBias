@@ -18,14 +18,14 @@ field   = 'tt'
 nl      = True
 div     = False
 
-thetaFWHMarcmin = 1.4
-noiseUkArcmin   = 6.
-lmin            = 50
+thetaFWHMarcmin = 1.
+noiseUkArcmin   = 1.
+lmin            = 500
 l_max_T         = 4000
 l_max_P         = 4000
 len_ang         = 800
 len_l           = 5040
-bs_tag          = 'full'
+bs_tag          = 'lowz5new'
 
 
 biaspath='./biasResults/lmin%d_noise%d_theta%d/%s/'%(lmin,noiseUkArcmin,thetaFWHMarcmin*10,bs_tag)
@@ -56,7 +56,6 @@ inputpath='./outputs/ClassCls/'
 
 Ls, bias = pickle.load(open(biaspath+'Totbias_%d_%d.pkl'%(len_ang,len_l)))
 
-
 A_L_file  = ALpath+'%s_N0_%s_%s_%d%d_%s%s.pkl'%(tag,lmax,lmin,10*noiseUkArcmin,10*thetaFWHMarcmin,no_div,nl_)
 
 LA, NL_KK = pickle.load(open(A_L_file,'r'))
@@ -72,7 +71,7 @@ cltt_unl = cl_unl['tt']
 
 clphiphi =np.interp(Ls,ll,clpp)
 
-
+print(Ls)
 pickle.dump([Ls,2.*AL*bias],open(outputpath+'N32bias_%s_%d_%d_%d.pkl'%(bs_tag,thetaFWHMarcmin,noiseUkArcmin,lmin),'w'))
 
 
