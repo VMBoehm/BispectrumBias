@@ -14,27 +14,27 @@ import numpy as np
 
 
 from scipy.integrate import simps
-from scipy.interpolate import interp1d, splev
+from scipy.interpolate import interp1d
 import pickle
 from copy import deepcopy
 
-import matplotlib.pyplot as pl
+#import matplotlib.pyplot as plt
 
 from classy import Class
 import Cosmology as C
-from N32biasIntegrals import I0, I2, skew
+from N32biasIntegrals import skew
 from Constants import LIGHT_SPEED
 
 from Bispectra import Bispectra
 
 
 
-"""---- Choose you settings here ---"""
+"""---- Choose your settings here ---"""
 if __name__ == "__main__":
 
     "---begin settings---"
 
-    tag         = 'zmax5new'
+    tag         = 'test'
 
     #type of bispectrum
     kkg         = False
@@ -44,8 +44,6 @@ if __name__ == "__main__":
     #triangle configuration
     ell_type    ='full'#'equilat','folded'
 
-    #compute beta integrals?
-    integrals   = False
 
     skewness    = False
     FWHMs       = [0.5,1.,2.,3.,4.,5.,8.,10.]
@@ -78,6 +76,7 @@ if __name__ == "__main__":
     #ell range (for L and l)
     L_min       = 1. #set to 2
     L_max       = 3000.
+    len_low_L   = 20
 
     l_min       = L_min
     l_max       = 8000.
@@ -94,8 +93,9 @@ if __name__ == "__main__":
     #k-range2: 0.0105*cparams[1]['h']-49*cparams[1]['h']
 
     #for skewness
-    ll_min      = 2
-    ll_max      = 5000
+    if skewness:
+      ll_min      = 2
+      ll_max      = 5000
 
 
 
@@ -192,12 +192,10 @@ if __name__ == "__main__":
 
     if ell_type=="full":
         #L = |-L|, equally spaced in lin at low L and in log at high L
-        #La      = np.linspace(L_min,100,50)
-        #Lb      = np.exp(np.linspace(np.log(100),np.log(L_max),len_L-49))[1:]
-        L       = np.exp(np.linspace(np.log(L_min),np.log(L_max),len_L))#np.append(La,Lb)
-#        side1a        = np.linspace(L_min+1,50,48,endpoint=False)#np.exp(np.linspace(log_min,log_max,sample1d))
-#        side1b        = np.exp(np.linspace(np.log(50),np.log(L_max),len_L-48))
-#        L             = np.append(side1a,side1b)
+        La      = np.linspace(L_min,100,len_low_L)
+        Lb      = np.exp(np.linspace(np.log(100),np.log(L_max),len_L-len(La)+1))[1:]
+        L       = np.append(La,Lb)
+
         la      = L
         lb      = np.exp(np.linspace(np.log(L_max),np.log(l_max),21))[1:]
         l       = np.append(la,lb)
@@ -314,14 +312,6 @@ if __name__ == "__main__":
     bs()
 
 
-
-    if integrals:
-        Int0 = I0(bs.bi_phi, L, l, theta, len_l, len_L,len_ang)
-
-        Int2 = I2(bs.bi_phi, L, l, theta, len_l, len_L,len_ang)
-
-        pickle.dump([params,L,Int0,Int2],open(path+'integrals/I0I1I2%s.pkl'%(config),'w'))
-        print path+'integrals/I0I1I2%s.pkl'%(config)
     if skewness:
         res=[]
         for FWHM in FWHMs:
@@ -364,13 +354,6 @@ if __name__ == "__main__":
             np.save(bs.filename+"_post_born_sum.npy",bi_post+bs.bi_phi)
             bi_phi = bi_post+bs.bi_phi
 
-        if integrals:
-            Int0 = I0(bi_phi, L, l, theta, len_l, len_L,len_ang)
-
-            Int2 = I2(bi_phi, L, l, theta, len_l, len_L,len_ang)
-
-            pickle.dump([params,L,Int0,Int2],open(path+'integrals/I0I1I2%s.pkl'%(config),'w'))
-            print path+'integrals/I0I1I2%s.pkl'%(config)
         if skewness:
             res=[]
             for FWHM in FWHMs:

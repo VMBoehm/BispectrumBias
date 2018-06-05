@@ -365,7 +365,7 @@ class Bispectra():
         return F2
 
 
-    def compute_Bispectrum_Phi(self):
+    def compute_Bispectrum_Phi(self, kernel):
         """ computes the bispectrum of the lensing potential
         Computes the bispectrum by integration over chi for ever triangle
         """
@@ -392,7 +392,7 @@ class Bispectra():
 
         bi_phi=[]
         for jj in index:
-            integrand   = self.bi_delta[jj]*kernel
+            integrand   = self.bi_delta[jj]*kernel**3/self.chi**4
             bi_phi      +=[simps(integrand,self.chi)]
         self.bi_phi=np.array(bi_phi)
 
