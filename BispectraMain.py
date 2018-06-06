@@ -28,170 +28,12 @@ from Constants import LIGHT_SPEED
 from Bispectra import Bispectra
 
 
+def get_triangles(ell_type,Lmin,Lmax,lmin,lmax,len_L,len_low_L,len_l,len_ang,path,Delta_theta=0):
 
-"""---- Choose your settings here ---"""
-if __name__ == "__main__":
-
-    "---begin settings---"
-
-    tag         = 'test'
-
-    #type of bispectrum
-    kkg         = False
-    kgg         = False
-    kkk         = True
-
-    #triangle configuration
-    ell_type    ='full'#'equilat','folded'
-
-
-    skewness    = False
-    FWHMs       = [0.5,1.,2.,3.,4.,5.,8.,10.]
-
-    #use LSST like redshift bins
-    LSST        = False
-
-    #if kkg or kgg: symmetrize over positions of k/g
-    sym         = False
-
-    #Limber approximation, if true set class_params['l_switch_limber']=100, else 1
-    #Limber      = False
-
-    #post Born (use post Born terms from Pratten & Lewis arXiv:1605.05662)
-    post_born   = True
-
-    #fitting formula (use B_delta fitting formula from Gil-Marin et al. arXiv:1111.4477
-    B_fit       = True
-    fit_z_max   = 3.
-
-    #number of redshift bins
-    bin_num     = 100
-    z_min       = 1e-4
-
-    #sampling in L/l and angle
-    len_L       = 100
-    len_l       = len_L+20
-    len_ang     = len_L
-
-    #ell range (for L and l)
-    L_min       = 1. #set to 2
-    L_max       = 3000.
-    len_low_L   = 20
-
-    l_min       = L_min
-    l_max       = 8000.
-
-
-    Delta_theta = 1e-4
-
-    nl          = True
-    cparams     = C.SimulationCosmology
-
-    k_min       = 1e-4#times three for lens planes
-    k_max       = 50.
-    #k-range1: 0.0105*cparams[1]['h']-42.9*cparams[1]['h']
-    #k-range2: 0.0105*cparams[1]['h']-49*cparams[1]['h']
-
-    #for skewness
-    if skewness:
-      ll_min      = 2
-      ll_max      = 5000
-
-
-
-    #path, where to store results
-    path        = "/home/nessa/Documents/Projects/LensingBispectrum/CMB-nonlinear/outputs/"
-
-
-    if nl==False:
-        spectrum_config='_linPs'
-    else:
-        spectrum_config='_lnPs'
-
-    if ell_type in['equilat','folded']:
-        len_side= 250
-
-
-    "---end settings---"
-
-    assert(kgg+kkk+kkg==1)
-    assert(ell_type in ['folded','full','equilat'])
-
-
-    params  = deepcopy(cparams[1])
-
-    acc = deepcopy(C.acc_1)
-
-    params.update(acc)
-
-    closmo  = Class()
-    closmo.set(params)
-    closmo.compute()
-    z_cmb   = closmo.get_current_derived_parameters(['z_rec'])['z_rec']
-    closmo.struct_cleanup()
-    closmo.empty()
-    del closmo
-
-    print "z_cmb: %f"%z_cmb
-
-    zmax  = 5.#z_cmb-0.0001
-
-
-    if kkk or (LSST==False):
-      z     = np.exp(np.linspace(np.log(z_min),np.log(zmax),bin_num))
-#      z_b     = np.linspace(100.,z_cmb-0.001,20)
-#      za       = np.append(z_a,z_b)
-#      za      = np.exp(np.linspace(np.log(z_min),np.log(0.5),int(bin_num/2)))
-#      zb      = np.linspace(0.5,zmax,int(bin_num/2+1))[1:]
-#      z       = np.append(za,zb)
-      print z
-      assert(len(z)==bin_num)
-
-    if kkg or kgg:
-
-        for red_bin in ['0']:
-
-            if LSST:
-
-                dn_filename = 'dndz_LSST_i27_SN5_3y'
-
-                if red_bin!='None':
-                    bins,big_grid,res   = pickle.load(open(dn_filename+'_extrapolated.pkl','r'))
-                    mbin                = bins[int(red_bin)]
-                    zbin                = big_grid
-                    nbin                = res[int(red_bin)]
-                    dndz    = interp1d(zbin, nbin, kind='linear',bounds_error=False,fill_value=0.)
-                    print 'using z-bin', mbin
-                else:
-                    gz, dgn = pickle.load(open(dn_filename+'tot_extrapolated.pkl','r'))
-                    dndz    = interp1d(gz, dgn, kind='linear',bounds_error=False,fill_value=0.)
-
-                z       = np.linspace(max(mbin[0]-0.3,z_min),mbin[0]+mbin[1]+0.3,bin_num)
-                bias    = z+1.
-                norm    = simps(dndz(z),z)
-
-            else:
-                z0      = 1./3.
-                dndz    = (z/z0)**2*np.exp(-z/z0)
-                dndz    = interp1d(z,dndz,kind='slinear',fill_value=0.,bounds_error=False)
-                bias    = 1.
-                norm    = simps(dndz(z),z)
-
-    else:
-        dndz    = None
-        norm    = None
-        bias    = None
-
-    print 'z-range: ', min(z), max(z)
-    print 'norm: ', norm
-
-        #cosmo dependent functions
-    data    = C.CosmoData(params,z)
-
-    filename=path+"ells/ell_ang_%s_Lmin%d_Lmax%d_lmin%d_lmax%d_lenL%d_lenl%d_lenang%d_%.0e.pkl"%(ell_type,L_min,L_max,l_min,l_max,len_L,len_l,len_ang,Delta_theta)
+    filename=path+"ells/ell_ang_%s_Lmin%d_Lmax%d_lmin%d_lmax%d_lenL%d_lenl%d_lenang%d_%.0e.pkl"%(ell_type,Lmin,Lmax,lmin,lmax,len_L,len_l,len_ang,Delta_theta)
 
     if ell_type=="full":
-        #L = |-L|, equally spaced in lin at low L and in log at high L
+
         La      = np.linspace(L_min,100,len_low_L)
         Lb      = np.exp(np.linspace(np.log(100),np.log(L_max),len_L-len(La)+1))[1:]
         L       = np.append(La,Lb)
@@ -202,11 +44,13 @@ if __name__ == "__main__":
         assert(len(l)==len_l)
 
     elif ell_type=='equilat':
-        assert(len_side>150)
+        assert(len_L>150)
+        len_side=len_L
         L       = np.exp(np.linspace(np.log(L_min),np.log(L_max),len_side))
         l       = None
     elif ell_type=='folded':
-        assert(len_side>150)
+        assert(len_L>150)
+        len_side=len_L
         L       = np.exp(np.linspace(np.log(L_min),np.log(L_max),len_side))
         l       = 0.5*L
 
@@ -231,7 +75,6 @@ if __name__ == "__main__":
     ell3 =[]
 
     sqrt=np.sqrt
-            #all combinations of the two sides and the angles
 
     if ell_type=='equilat':
         for i in range(len_side):
@@ -271,99 +114,142 @@ if __name__ == "__main__":
                     ang12+=[(l3*l3-l1*l1-l2*l2)/(2.*l1*l2)]
                     ang23+=[(l1*l1-l3*l3-l2*l2)/(2.*l3*l2)]
                     angmu+=[theta[j]]
-            #array of length 3*number of triangles
 
-    ang12=np.array(ang12)
-    ang23=np.array(ang23)
-    ang31=np.array(ang31)
-    angmu=np.array(angmu)
-    ell1=np.array(ell1)
-    ell2=np.array(ell2)
-    ell3=np.array(ell3)
+    angs = (np.asarray(ang12),np.asarray(ang23),np.asarray(ang31))
+    angmu = np.array(angmu)
+    ls = (np.asarray(ell1),np.asarray(ell2),np.asarray(ell3))
 
-    if kkg:
-        config = 'kkg_%s'%ell_type
-    elif kgg:
-        config = 'kgg_%s'%ell_type
-    else:
-        config = 'kkk_%s'%ell_type
+    return ls, angs, angmu
 
-    if LSST:
-        config+='LSST_bin_%s_%s'%(red_bin,dn_filename)
-    else:
-        config+='analytic_red_dis'
 
-    if sym:
-        config+='_sym'
+def CMB_lens(chi,z,chicmb,cosmo=None):
+    kernel =(1+z)*chi*(chicmb-chi)/chicmb
+    factor = 1#cosmo.
+    return kernel*factor
 
-    config+=spectrum_config
+##all in kappa
+"""---- Choose your settings here ---"""
+if __name__ == "__main__":
 
-    if B_fit:
-        config+="_Bfit"
+    "---begin settings---"
 
-    config +="_"+cparams[0]['name']
+    tag         = 'test'
 
-    config+=tag
+    ell_type    = 'equilat'#'equilat','folded'
+
+    cparams     = C.SimulationCosmology
+    #post Born (use post Born terms from Pratten & Lewis arXiv:1605.05662)
+    post_born   = False
+
+    #fitting formula (use B_delta fitting formula from Gil-Marin et al. arXiv:1111.4477
+    B_fit       = False
+    fit_z_max   = 3.
+    nl          = True
+    #number of redshift bins
+    bin_num     = 200
+    z_min       = 1e-4
+
+    #sampling in L/l and angle
+    len_L       = 200
+    len_l       = len_L+20
+    len_ang     = len_L
+
+    #ell range (for L and l)
+    L_min       = 1.
+    L_max       = 3000.
+    len_low_L   = 20
+
+    l_min       = L_min
+    l_max       = 8000.
+
+    Delta_theta = 0.
+
+    k_min       = 1e-4#times three for lens planes
+    k_max       = 50.
+    #k-range1: 0.0105*cparams[1]['h']-42.9*cparams[1]['h']
+    #k-range2: 0.0105*cparams[1]['h']-49*cparams[1]['h']
+
+
+    path        = "/home/nessa/Documents/Projects/LensingBispectrum/CMB-nonlinear/outputs/"
+
+    "---end settings---"
+
+    assert(ell_type in ['folded','full','equilat'])
+
+    ls, angs, angmus= get_triangles(ell_type,L_min,L_max,l_min,l_max,len_L,len_low_L,len_l,len_ang,path,Delta_theta=Delta_theta)
+
+    params  = deepcopy(cparams[1])
+    acc = deepcopy(C.acc_1)
+    params.update(acc)
+
+    closmo  = Class()
+    closmo.set(params)
+    closmo.compute()
+    z_cmb   = closmo.get_current_derived_parameters(['z_rec'])['z_rec']
+    closmo.struct_cleanup()
+    closmo.empty()
+    del closmo
+
+    print "z_cmb: %f"%z_cmb
+
+    zmax  = z_cmb-0.0001
+    za    = np.exp(np.linspace(np.log(z_min),np.log(10),int(3*bin_num/4)))
+    zb    = np.linspace(10.,zmax,int(bin_num/4+1))[1::]
+    z     = np.append(za,zb)
+    print(z)
+    assert(len(z)==bin_num)
+
+
+    data    = C.CosmoData(params,z)
+
+    chi     = data.chi(z)
+    chicmb  = data.chi(z_cmb)
+
+    config  = tag+"_"+cparams[0]['name']
+
+    kernels = (CMB_lens(chi,z,chicmb),None,None)
 
     print "config: %s"%config
 
-    bs   = Bispectra(params,data,ell1,ell2,ell3,z,config,ang12,ang23,ang31,path,z_cmb, bias, nl,B_fit,kkg, kgg, kkk,dndz, norm,k_min,k_max,sym,fit_z_max)
+    bs   = Bispectra(params,data,ls[0],ls[1],ls[2],z,chi,kernels,config,angs[0],angs[1],angs[2],path, nl,B_fit,k_min,k_max,fit_z_max,ft='GM')
 
     bs()
 
 
-    if skewness:
-        res=[]
-        for FWHM in FWHMs:
-            res+=[skew(bs.bi_phi, FWHM, L, l, ell2, theta, len_l, len_L,len_ang, ll_min,ll_max,kappa=True)]
-        print res
-        pickle.dump([FWHMs,res],open(path+'/skewness/skewness_%s_lmin%dlmax%d.pkl'%(config,ll_min,ll_max),'w'))
+##TODO: check everything beneath
+#    if post_born:
+#        import CAMB_postborn as postborn
+#        print 'computing post Born corrections...'
+#        assert(kkk or kkg)
+#
+#        config +='_postBorn'
+#
+##        if bs.set_stage==False:
+##            bs.set_up()
+#        k_min   = bs.kmin
+#        k_max   = bs.kmax
+#        PBB     = postborn.PostBorn_Bispec(params,k_min,k_max,kkg,dndz,norm,zmaxint=zmax)
+#
+#
+#        if kkg:
+#            try:
+#                bi_kkg_sum  = np.load(bs.filename+"_post_born_sum.npy")
+#                bi_kkg      = np.load(bs.filename+"_post_born.npy")
+#            except:
+#                prefac      = 16./(3.*data.Omega_m0*data.H_0**2)*LIGHT_SPEED**2
+#                #L is associated wit galaxy leg in bias, in CAMBPostBorn it's L3
+#                bi_kkg      = PBB.bi_born_cross(ell2,ell3,ell1,prefac,sym=bs.sym)
+#                bi_kkg_sum  = bi_kkg+bs.bi_phi
+#                np.save(bs.filename+"_post_born.npy",bi_kkg)
+#                np.save(bs.filename+"_post_born_sum.npy",bi_kkg_sum)
+#
+#            bi_phi = bi_kkg_sum
+#        else:
+#            bi_post  = (PBB.bi_born(ell1,ell2,ell3)*8./(ell1*ell2*ell3)**2)
+#            np.save(bs.filename+"_post_born.npy",bi_post)
+#            np.save(bs.filename+"_post_born_sum.npy",bi_post+bs.bi_phi)
+#            bi_phi = bi_post+bs.bi_phi
 
 
-#TODO: check everything beneath
-    if post_born:
-        import CAMB_postborn as postborn
-        print 'computing post Born corrections...'
-        assert(kkk or kkg)
 
-        config +='_postBorn'
-
-#        if bs.set_stage==False:
-#            bs.set_up()
-        k_min   = bs.kmin
-        k_max   = bs.kmax
-        PBB     = postborn.PostBorn_Bispec(params,k_min,k_max,kkg,dndz,norm,zmaxint=zmax)
-
-
-        if kkg:
-            try:
-                bi_kkg_sum  = np.load(bs.filename+"_post_born_sum.npy")
-                bi_kkg      = np.load(bs.filename+"_post_born.npy")
-            except:
-                prefac      = 16./(3.*data.Omega_m0*data.H_0**2)*LIGHT_SPEED**2
-                #L is associated wit galaxy leg in bias, in CAMBPostBorn it's L3
-                bi_kkg      = PBB.bi_born_cross(ell2,ell3,ell1,prefac,sym=bs.sym)
-                bi_kkg_sum  = bi_kkg+bs.bi_phi
-                np.save(bs.filename+"_post_born.npy",bi_kkg)
-                np.save(bs.filename+"_post_born_sum.npy",bi_kkg_sum)
-
-            bi_phi = bi_kkg_sum
-        else:
-            bi_post  = (PBB.bi_born(ell1,ell2,ell3)*8./(ell1*ell2*ell3)**2)
-            np.save(bs.filename+"_post_born.npy",bi_post)
-            np.save(bs.filename+"_post_born_sum.npy",bi_post+bs.bi_phi)
-            bi_phi = bi_post+bs.bi_phi
-
-        if skewness:
-            res=[]
-            for FWHM in FWHMs:
-                res+=[skew(bi_phi, FWHM, L, l, ell2, theta, len_l, len_L,len_ang, ll_min,ll_max,kappa=True)]
-            print res
-            pickle.dump([FWHMs,res],open(path+'skewness/skewness_%s_lmin%d_lmax%d.pkl'%(config,ll_min,ll_max),'w'))
-
-        del bs
-        try:
-            del bi_phi
-        except:
-            pass
 
