@@ -119,12 +119,22 @@ def get_triangles(ell_type,Lmin,Lmax,lmin,lmax,len_L,len_low_L,len_l,len_ang,pat
     angmu = np.array(angmu)
     ls = (np.asarray(ell1),np.asarray(ell2),np.asarray(ell3))
 
-    return ls, angs, angmu
+    return ls, angs, angmu, filename
 
 
-def CMB_lens(chi,z,chicmb,cosmo=None):
+#def q(chi,chi_lim,n):
+
+
+#def gal_lens(chi,z,chimax,cosmo):
+#    def q(x,xmax):
+#      simps((xmax-x)/xmax)
+#    kernel =(1+z)*chi*q(chi)
+#    factor = cosmo.cmb_prefac
+#    return kernel*factor
+
+def CMB_lens(chi,z,chicmb,cosmo):
     kernel =(1+z)*chi*(chicmb-chi)/chicmb
-    factor = 1#cosmo.
+    factor = cosmo.cmb_prefac
     return kernel*factor
 
 ##all in kappa
@@ -137,16 +147,16 @@ if __name__ == "__main__":
 
     ell_type    = 'equilat'#'equilat','folded'
 
-    cparams     = C.SimulationCosmology
+    cparams     = C.Pratten
     #post Born (use post Born terms from Pratten & Lewis arXiv:1605.05662)
     post_born   = False
 
     #fitting formula (use B_delta fitting formula from Gil-Marin et al. arXiv:1111.4477
     B_fit       = False
-    fit_z_max   = 3.
+    fit_z_max   = 5.
     nl          = True
     #number of redshift bins
-    bin_num     = 200
+    bin_num     = 100
     z_min       = 1e-4
 
     #sampling in L/l and angle
@@ -155,8 +165,8 @@ if __name__ == "__main__":
     len_ang     = len_L
 
     #ell range (for L and l)
-    L_min       = 1.
-    L_max       = 3000.
+    L_min       = 10.
+    L_max       = 10000.
     len_low_L   = 20
 
     l_min       = L_min
@@ -165,7 +175,7 @@ if __name__ == "__main__":
     Delta_theta = 0.
 
     k_min       = 1e-4#times three for lens planes
-    k_max       = 50.
+    k_max       = 100.
     #k-range1: 0.0105*cparams[1]['h']-42.9*cparams[1]['h']
     #k-range2: 0.0105*cparams[1]['h']-49*cparams[1]['h']
 
@@ -176,7 +186,7 @@ if __name__ == "__main__":
 
     assert(ell_type in ['folded','full','equilat'])
 
-    ls, angs, angmus= get_triangles(ell_type,L_min,L_max,l_min,l_max,len_L,len_low_L,len_l,len_ang,path,Delta_theta=Delta_theta)
+    ls, angs, angmus, ellfile= get_triangles(ell_type,L_min,L_max,l_min,l_max,len_L,len_low_L,len_l,len_ang,path,Delta_theta=Delta_theta)
 
     params  = deepcopy(cparams[1])
     acc = deepcopy(C.acc_1)
@@ -193,7 +203,7 @@ if __name__ == "__main__":
     print "z_cmb: %f"%z_cmb
 
     zmax  = z_cmb-0.0001
-    za    = np.exp(np.linspace(np.log(z_min),np.log(10),int(3*bin_num/4)))
+    za    = np.exp(np.linspace(np.log(z_min),np.log(10.),int(3*bin_num/4)))
     zb    = np.linspace(10.,zmax,int(bin_num/4+1))[1::]
     z     = np.append(za,zb)
     print(z)
@@ -205,15 +215,18 @@ if __name__ == "__main__":
     chi     = data.chi(z)
     chicmb  = data.chi(z_cmb)
 
-    config  = tag+"_"+cparams[0]['name']
+    config  = tag+"_"+ell_type+"_"+cparams[0]['name']
 
-    kernels = (CMB_lens(chi,z,chicmb),None,None)
+    kernels = (CMB_lens(chi,z,chicmb,data),None,None)
 
     print "config: %s"%config
 
-    bs   = Bispectra(params,data,ls[0],ls[1],ls[2],z,chi,kernels,config,angs[0],angs[1],angs[2],path, nl,B_fit,k_min,k_max,fit_z_max,ft='GM')
+    bs   = Bispectra(params,data,ls[0],ls[1],ls[2],z,chi,kernels,config,angs[0],angs[1],angs[2],path, nl,B_fit,k_min,k_max,fit_z_max,ft='SC')
 
     bs()
+
+    print(ellfile)
+    print(bs.filename)
 
 
 ##TODO: check everything beneath

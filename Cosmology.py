@@ -292,7 +292,7 @@ class CosmoData():
 
 		self.Omega_m0         = (cosmo_b['(.)rho_cdm'][-1]+cosmo_b['(.)rho_b'][-1])/(cosmo_b['(.)rho_crit'][-1])
 
-		self.prefacs          = self.Poisson_factor()
+		self.cmb_prefac       = self.Poisson_factor()
 
 
 		print closmo.get_current_derived_parameters(['Neff'])
@@ -375,7 +375,7 @@ class CosmoData():
 	def Poisson_factor(self):
 		""" computes the proportionality constant of the Poisson equation """
 
-		alpha= 3.*self.H_0**2.*self.Omega_m0/(const.LIGHT_SPEED**2)
+		alpha= 1.5*self.H_0**2.*self.Omega_m0/(const.LIGHT_SPEED**2)
 
 		return alpha
 

@@ -24,7 +24,7 @@ from scipy.interpolate import RectBivariateSpline
 
 
 class Bispectra():
-    def __init__(self,cosmo,data,l1,l2,l3,z,chi,kernel,config,ang12,ang23,ang31,path,nonlin=False, B_fit=False,k_min=None,k_max=None,fit_z_max=5., ft='GM'):
+    def __init__(self,cosmo,data,l1,l2,l3,z,chi,kernel,config,ang12,ang23,ang31,path,nonlin=False, B_fit=False,k_min=None,k_max=None,fit_z_max=5., ft='SC'):
 
 
         self.cosmo      = copy.deepcopy(cosmo)
@@ -69,6 +69,8 @@ class Bispectra():
 
         if self.B_fit:
             print "using fitting formula", self.ft
+        else:
+          self.ft=''
 
         self.path   = path+'bispectra/'
         self.kmin   = k_min
@@ -103,6 +105,7 @@ class Bispectra():
         self.filename   = self.path+"bispec_phi_%s_Lmin%d-Lmax%d-lmax%d-lenBi%d_%s"%(self.config,self.L_min,self.L_max,self.l_max,self.len_bi,self.ft)
 
         try:
+            assert(False)
             self.bi_phi=np.load(self.filename+'.npy')
             print "loading file %s"%(self.filename+'.npy')
         except:
@@ -153,39 +156,43 @@ class Bispectra():
 
 
         if max(self.z)>=3.:
-          z_ = np.exp(np.linspace(np.log(min(self.z)),np.log(1.5),10))
-          z_ = np.append(z_,np.linspace(1.5,max(self.z),10)[1::])
+          a  = np.linspace(0.9999,(1+max(self.z))**(-1),80)
+          z_ = 1/a-1.
         else:
-          z_ = np.exp(np.linspace(np.log(min(self.z)),np.log(max(self.z)),10))
+          z_ = np.exp(np.linspace(np.log(min(self.z)),np.log(max(self.z)),15))
 
-        k_ = np.exp(np.linspace(np.log(self.kmin),np.log(self.kmax),50))
+        print(z_)
+        k_ = np.exp(np.linspace(np.log(self.kmin),np.log(self.kmax),80))
         spec_=np.zeros((len(z_),len(k_)))
         cosmo_pk = self.closmo.pk
         for jj in xrange(len(z_)):
-            spec_[jj]=np.asarray([cosmo_pk(kk,z_[jj]) for kk in k_])
-        self.pk_int = RectBivariateSpline(k_,z_,np.transpose(spec_))
+            print(z_[jj])
+            spec_[jj] = np.asarray([cosmo_pk(kk,z_[jj]) for kk in k_])
+
+        self.pk_int = RectBivariateSpline(k_,np.log(z_),np.transpose(spec_))
 
         #test plots, keep in for now
-        z2=np.linspace(min(z_),max(z_),len(z_))
+        z2=np.linspace(min(z_),20.,len(z_))
         k2=np.exp(np.linspace(np.log(min(k_)),np.log(max(k_)),100))
         plt.figure()
-        for z in [0.1,0.5,1.]:
-          plt.loglog(k_,spec_[jj])
-          plt.loglog(k_,self.pk_int(k_,z,grid=False),marker='+',ls='',markersize=2)
+        for z in [3.,10.]:
+          print(self.pk_int(k_,z,grid=False))
+          plt.loglog(k_,self.pk_int(k_,np.log(z),grid=False),marker='+',ls='',markersize=3,label='z=%.1f'%z)
+          #plt.legend()
         plt.show()
 
         plt.figure()
-        for jj in np.arange(0,len(z_),2):
-          plt.loglog(k_,self.pk_int(k_,z2[jj],grid=False),marker='+',ls='',markersize=2)
-          plt.loglog(k_,self.pk_int(k_,z_[jj],grid=False),marker='o',ls='',markersize=2)
-          plt.loglog(k_,spec_[jj])
+        for jj in np.arange(0,len(z_),3):
+          plt.loglog(k_,self.pk_int(k_,np.log(z2[jj]),grid=False),marker='+',ls='',markersize=2, label='z_=%.1f'%z2[jj])
+          #plt.legend()
+          #plt.loglog(k_,self.pk_int(k_,z_[jj],grid=False),marker='o',ls='',markersize=2)
         plt.show()
 
         plt.figure()
-        for jj in np.arange(0,len(z_),2):
-          plt.loglog(k_,spec_[jj])
-
-          plt.loglog(k2,self.pk_int(k2,z2[jj],grid=False),marker='+',ls='',markersize=2)
+        for jj in np.arange(0,len(z_)):
+          plt.loglog(k_,spec_[jj],label='z=%.1f'%z_[jj])
+         # plt.legend()
+          #plt.loglog(k2,self.pk_int(k2,z2[jj],grid=False),marker='+',ls='',markersize=2)
         plt.show()
 
 
@@ -224,9 +231,9 @@ class Bispectra():
             ang31   = self.ang31[index]
 
 
-            spec1=self.pk_int(k1,z_i,grid=False)
-            spec2=self.pk_int(k2,z_i,grid=False)
-            spec3=self.pk_int(k3,z_i,grid=False)
+            spec1=self.pk_int(k1,np.log(z_i),grid=False)
+            spec2=self.pk_int(k2,np.log(z_i),grid=False)
+            spec3=self.pk_int(k3,np.log(z_i),grid=False)
 
             specs = [spec1,spec2,spec3]
 
