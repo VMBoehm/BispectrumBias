@@ -399,6 +399,13 @@ class CosmoData():
 
 		return result
 
+	def dzdchi(self,z):
+		""" dDcom/dz """
+
+		result = self.H(z)/const.LIGHT_SPEED
+
+		return result
+
 	def get_Cls(self,tag,nl=False,lmax=6000,path='./outputs/ClassCls/'):
 		params =copy.deepcopy(self.class_params)
 		params['output']='tCl lCl pCl mPk'

@@ -123,24 +123,29 @@ def get_triangles(ell_type,Lmin,Lmax,lmin,lmax,len_L,len_low_L,len_l,len_ang,pat
 
 
 #redshift distribution used in astro-ph/0310125v4
-def p_z(cosmo,z0=0.5, nbar=100):
+def p_z(cosmo,z0=0.5, nbar=100.):
     def p_chi(z):
-      return nbar*z**2/3./z0**3*np.exp(-z/z0)*cosmo.dchidz(z)
+      return nbar*z**2/(2.*z0**3)*np.exp(-z/z0)*cosmo.dzdchi(z)
     return p_chi
 
 
 def gal_lens(zrange,p_chi,cosmo):
+
     chimin, chimax = (cosmo.chi(zrange[0]),cosmo.chi(zrange[1]))
 
     q=[]
-    chi_ = np.linspace(0,chimax,200)
-    for cchi in chi_[:-1]:
-        x_= chi_[chi_>cchi]
-        q+=[simps(p_chi(data.zchi(x_))*(x_-cchi)/x_,x_)]
-    q = interp1d(chi_[:-1],q,bounds_error=True)
+    chi_ = np.linspace(0,chimax,400,endpoint=False)
+    x = np.linspace(0,chimax,800)
 
-    chi_ = np.linspace(chimin,chimax,200)
+    for cchi in chi_:
+        x_= x[x>cchi]
+        q+=[simps(p_chi(data.zchi(x_))*(x_-cchi)/x_,x_)]
+    q = interp1d(chi_,q,bounds_error=True)
+
+    chi_ = np.linspace(chimin,chimax,400)
+
     norm = simps(p_chi(data.zchi(chi_)),chi_)
+
 
     def kernel(x,z):
       res=[]
@@ -148,8 +153,8 @@ def gal_lens(zrange,p_chi,cosmo):
         if x_<chimin or x_>chimax:
           res+=[0.]
         else:
-          res+=[x_*q(x_)*(1+z_)/norm*cosmo.cmb_prefac]
-      return res
+          res+=[x_*q(x_)*(1.+z_)]
+      return np.asarray(res)*cosmo.cmb_prefac/norm
 
     return kernel
 
@@ -178,8 +183,8 @@ if __name__ == "__main__":
     fit_z_max   = 5.
     nl          = False
     #number of redshift bins
-    bin_num     = 200
-    z_min       = 1e-4
+    bin_num     = 400
+    z_min       = 1e-5
 
     #sampling in L/l and angle
     len_L       = 200
@@ -225,8 +230,8 @@ if __name__ == "__main__":
     print "z_cmb: %f"%z_cmb
 
     zmax  = z_cmb-0.0001
-    za    = np.exp(np.linspace(np.log(z_min),np.log(3.),int(7*bin_num/8)))
-    zb    = np.linspace(3.,zmax,int(bin_num/8+1))[1::]
+    za    = np.exp(np.linspace(np.log(z_min),np.log(10.),int(7*bin_num/8)))
+    zb    = np.linspace(10.,zmax,int(bin_num/8+1))[1::]
     z     = np.append(za,zb)
     print(z)
     assert(len(z)==bin_num)
