@@ -19,6 +19,10 @@ import pickle
 from copy import deepcopy
 
 #import matplotlib.pyplot as plt
+import warnings
+
+
+
 
 from classy import Class
 import Cosmology as C
@@ -129,27 +133,42 @@ def p_z(cosmo,z0=0.5, nbar=100.):
     return p_chi
 
 
+#def p_delta(cosmo,z_s):
+#    def p_chi(z):
+#      res = np.len()
+#      if np.allclose(z,z_s):
+#      res = cosmo.dzdchi(z)
+#
+#    return p_chi
+
+
+
 def gal_lens(zrange,p_chi,cosmo):
 
     chimin, chimax = (cosmo.chi(zrange[0]),cosmo.chi(zrange[1]))
     q = []
-    chi_ = np.linspace(0.,chimax,800)
+    chi_ = np.linspace(0,chimax,800)
 
     for cchi in chi_:
-        x_= np.linspace(cchi,chimax,2000)
-        integrand = p_chi(data.zchi(x_))*(x_-cchi)/x_
+
+        x_= np.linspace(max(chimin,cchi),chimax,1000)
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            integrand = p_chi(data.zchi(x_))*(x_-cchi)/x_
         integrand[x_==0.]=0.
         q+=[simps(integrand,x_)]
 
+    q[-1]=0.
     q = interp1d(chi_,q,bounds_error=True)
 
     chi_ = np.linspace(chimin,chimax,400)
     norm = simps(p_chi(data.zchi(chi_)),chi_)
+    print(norm)
 
     def kernel(x,z):
       res=[]
       for x_, z_ in zip(x,z):
-        if x_<chimin or x_>chimax:
+        if x_>chimax:
           res+=[0.]
         else:
           res+=[x_*q(x_)*(1.+z_)]
@@ -169,7 +188,7 @@ if __name__ == "__main__":
 
     "---begin settings---"
 
-    tag         = 'testgal'
+    tag         = '122'
 
     ell_type    = 'equilat'#'equilat','folded'
 
@@ -228,10 +247,11 @@ if __name__ == "__main__":
 
     print "z_cmb: %f"%z_cmb
 
-    zmax  = z_cmb-0.0001
-    za    = np.exp(np.linspace(np.log(z_min),np.log(10.),int(7*bin_num/8)))
-    zb    = np.linspace(10.,zmax,int(bin_num/8+1))[1::]
-    z     = np.append(za,zb)
+    zmax  = z_cmb-1e-4
+    a     = np.linspace(1./(1.+z_min),1./(1.+zmax),bin_num)
+#    za    = np.exp(np.linspace(z_min,np.log(10.),int(7*bin_num/8)))
+#    zb    = np.linspace(10.,zmax,int(bin_num/8+1))[1::]
+    z     = 1./a-1.
 
     assert(len(z)==bin_num)
 
@@ -243,7 +263,8 @@ if __name__ == "__main__":
 
     config  = tag+"_"+ell_type+"_"+cparams[0]['name']
 
-    kernels = (gal_lens((0.,1.3),p_z(data),data),None,None)
+
+    kernels = (gal_lens((0,1.3),p_z(data),data),gal_lens((1.3,10.),p_z(data),data),gal_lens((1.3,10.),p_z(data),data))
 
     print "config: %s"%config
 
@@ -253,6 +274,7 @@ if __name__ == "__main__":
 
     print(ellfile)
     print(bs.filename)
+    print(bs.filenameCL)
 
 
 ##TODO: check everything beneath

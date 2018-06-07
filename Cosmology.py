@@ -475,12 +475,17 @@ class CosmoData():
 
 		pl.figure()
 		pl.semilogy(z_,self.k_NL)
+		pl.xlabel('z')
+		pl.ylabel('$k_{NL}$')
 		pl.show()
 		print "sigma8:", sigma8
 
 		self.sigma8_z 		= splrep(z_,sigma8*(self.LJ_D_z(z_))) #sigma_8 today rescaled to other redshifts
 		pl.figure()
+
 		pl.plot(z_,splev(z_,self.sigma8_z))
+		pl.xlabel('z')
+		pl.ylabel('$\sigma_8$')
 		pl.show()
 
 		if get_n:
@@ -493,7 +498,7 @@ class CosmoData():
 				plk=[closmo.pk(kk,z_)for kk in k_]
 				pl.loglog(k_/h,np.asarray(plk)*h**3,label='z=%f'%z_)
 		pl.xlabel(r'$k [h/Mpc]$')
-		pl.xlim(1e-4,1.)
+		pl.xlim(min(k_/h),max(k_/h))
 		pl.ylabel(r'$P(k) [Mpc/h]^3$')
 		pl.ylim(0.1,100000)
 		pl.legend(loc='best')
@@ -504,10 +509,11 @@ class CosmoData():
 		if test:
 			#plots D_+/a, compare e.g. Cosmology script Matthias
 			pl.figure()
-			pl.plot(self.z,self.D_z(self.z)*(1.+self.z), label="class interpolated", marker="o")
-			pl.xlim(min(self.z),max(self.z))
-			pl.xlabel("z")
-			pl.ylabel("Growth Function D_+/a")
+			pl.plot((self.z+1)**(-1),self.D_z(self.z), label="class interpolated", marker="o")
+			pl.plot((self.z+1)**(-1),(1.+self.z)**(-1), label="a", marker="o")
+			pl.xlim((min(self.z)+1)**(-1),(max(self.z)+1)**(-1))
+			pl.xlabel("a")
+			pl.ylabel("Growth Function D_+")
 			pl.legend()
 			pl.show()
 

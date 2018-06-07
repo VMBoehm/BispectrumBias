@@ -72,7 +72,7 @@ class Bispectra():
         else:
           self.ft=''
 
-        self.path   = path+'bispectra/'
+        self.path   = path
         self.kmin   = k_min
         self.kmax   = k_max
 
@@ -102,18 +102,18 @@ class Bispectra():
         computes the lensing bispectrum
         """
 
-        self.filename   = self.path+"bispec_phi_%s_Lmin%d-Lmax%d-lmax%d-lenBi%d_%s"%(self.config,self.L_min,self.L_max,self.l_max,self.len_bi,self.ft)
+        self.set_up()
+        self.compute_bispectrum_delta()
+        self.compute_bispectrum(kernel1=self.kernel[0], kernel2=self.kernel[1], kernel3=self.kernel[2])
+        self.compute_power_spectrum(kernel1=self.kernel[0],kernel2=self.kernel[1])
 
-        try:
-            assert(False)
-            self.bi_phi=np.load(self.filename+'.npy')
-            print "loading file %s"%(self.filename+'.npy')
-        except:
-            print "%s not found \n Computing Bispectrum of overdensity..."%self.filename
-            self.set_up()
-            self.compute_Bispectrum_delta()
-            self.compute_Bispectrum_Phi(kernel1=self.kernel[0], kernel2=self.kernel[1], kernel3=self.kernel[2])
-            np.save(self.filename+'.npy',self.bi_phi)
+        self.filename   = self.path+"bispectra/bispec_%s_Lmin%d-Lmax%d-lmax%d_%s_%s"%(self.config,self.L_min,self.L_max,self.l_max,self.cosmo['non linear'],self.ft)
+
+        self.filenameCL   = self.path+"power_spectra/CL_%s_Lmin%d-Lmax%d_%s"%(self.config,self.L_min,self.L_max,self.cosmo['non linear'])
+
+        np.save(self.filename+'.npy',self.bi_phi)
+        np.save(self.filenameCL+'.npy',self.CL)
+
 
         try:
             self.closmo.struct_cleanup()
@@ -155,13 +155,21 @@ class Bispectra():
             self.bi_delta_func    = self.bispectrum_delta
 
 
-        if max(self.z)>=3.:
-          a  = np.linspace(0.9999,(1+max(self.z))**(-1),80)
-          z_ = 1/a-1.
-        else:
-          z_ = np.exp(np.linspace(np.log(min(self.z)),np.log(max(self.z)),15))
+        a  = np.linspace((1+min(self.z))**(-1),(1+max(self.z))**(-1),120)
+        z_ = 1/a-1.
 
-        print(z_)
+        plt.figure()
+        plt.semilogx(z_,a, ls='', marker='+')
+        plt.xlabel('z')
+        plt.ylabel('a')
+        plt.show()
+
+        plt.figure()
+        plt.semilogx(a,self.data.chi(z_), ls='', marker='+')
+        plt.xlabel('a')
+        plt.ylabel('$\chi$')
+        plt.show()
+
         k_ = np.exp(np.linspace(np.log(self.kmin),np.log(self.kmax),80))
         spec_=np.zeros((len(z_),len(k_)))
         cosmo_pk = self.closmo.pk
@@ -171,26 +179,26 @@ class Bispectra():
         self.pk_int = RectBivariateSpline(k_,np.log(z_),np.transpose(spec_))
 
 
-#        #test plots, keep in for now
-#        z2=np.linspace(min(z_),20.,len(z_))
-#        plt.figure()
-#        for z in [3.,10.]:
-#          plt.loglog(k_,self.pk_int(k_,np.log(z),grid=False),marker='+',ls='',markersize=3,label='z=%.1f'%z)
-#        plt.show()
-#
-#        plt.figure()
-#        for jj in np.arange(0,len(z_),3):
-#          plt.loglog(k_,self.pk_int(k_,np.log(z2[jj]),grid=False),marker='+',ls='',markersize=2, label='z_=%.1f'%z2[jj])
-#        plt.show()
-#
-#        plt.figure()
-#        for jj in np.arange(0,len(z_)):
-#          plt.loglog(k_,spec_[jj],label='z=%.1f'%z_[jj])
-#        plt.show()
+        #test plots, keep in for now
+        z2=np.linspace(min(z_),20.,len(z_))
+        plt.figure()
+        for z in [3.,10.]:
+          plt.loglog(k_,self.pk_int(k_,np.log(z),grid=False),marker='+',ls='',markersize=3,label='z=%.1f'%z)
+        plt.show()
+
+        plt.figure()
+        for jj in np.arange(0,len(z_),3):
+          plt.loglog(k_,self.pk_int(k_,np.log(z2[jj]),grid=False),marker='+',ls='',markersize=2, label='z_=%.1f'%z2[jj])
+        plt.show()
+
+        plt.figure()
+        for jj in np.arange(0,len(z_)):
+          plt.loglog(k_,spec_[jj],label='z=%.1f'%z_[jj])
+        plt.show()
 
 
 
-    def compute_Bispectrum_delta(self):
+    def compute_bispectrum_delta(self):
         """
         computes the bispectrum for each chi bin
         -> only use after self.set_up() has been called!
@@ -202,9 +210,10 @@ class Bispectra():
 
         for ii in np.arange(0,len(self.z)):
             z_i     = self.z[ii]
-#            print 'progress in percent ', ii/len(self.z)*100.
-#            print 'time in min', (time.time()-beg)/60.
-#            print 'z: ', z_i
+            print 'progress in percent ', ii/len(self.z)*100.
+            print 'time in min', (time.time()-beg)/60.
+            print 'z: ', z_i
+
 
             spec1   =[]
             spec2   =[]
@@ -212,7 +221,6 @@ class Bispectra():
             k1      = (self.l1+0.5)/self.chi[ii]
             k2      = (self.l2+0.5)/self.chi[ii]
             k3      = (self.l3+0.5)/self.chi[ii]
-
 
             index = np.all([k1>=self.kmin,k2>=self.kmin,k3>=self.kmin,k1<=self.kmax,k2<=self.kmax,k3<=self.kmax],axis=0)
 
@@ -291,7 +299,7 @@ class Bispectra():
         return F2
 
 
-    def compute_Bispectrum_Phi(self, kernel1, kernel2=None, kernel3=None):
+    def compute_bispectrum(self, kernel1, kernel2=None, kernel3=None):
         """ computes the bispectrum of the lensing potential
         Computes the bispectrum by integration over chi for ever triangle
         """
@@ -319,7 +327,35 @@ class Bispectra():
 
 
 
+    def compute_power_spectrum(self, kernel1, kernel2=None):
+        """ computes the bispectrum of the lensing potential
+        Computes the bispectrum by integration over chi for ever triangle
+        """
+        L = np.unique(self.l1)
+        spec=np.zeros((len(self.z),len(L)))
+        for ii in range(len(self.z)):
+            k = (np.unique(self.l1)+0.5)/self.chi[ii]
 
+            spec[ii]=self.pk_int(k,np.log(self.z[ii]),grid=False)
+
+        spec = np.transpose(spec)
+
+
+        kernel1 = kernel1(self.chi,self.z)
+
+        if kernel2==None:
+            kernel2=kernel1
+        else:
+          kernel2=kernel2(self.chi,self.z)
+
+
+        self.CL = np.zeros(len(L))
+
+        for jj in xrange(len(L)):
+            integrand       = spec[jj]*kernel1*kernel2/self.chi**2
+            self.CL[jj]     = simps(integrand,self.chi)
+
+        return True
 
 
 
