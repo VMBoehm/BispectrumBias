@@ -122,20 +122,42 @@ def get_triangles(ell_type,Lmin,Lmax,lmin,lmax,len_L,len_low_L,len_l,len_ang,pat
     return ls, angs, angmu, filename
 
 
-#def q(chi,chi_lim,n):
+#redshift distribution used in astro-ph/0310125v4
+def p_z(cosmo,z0=0.5, nbar=100):
+    def p_chi(z):
+      return nbar*z**2/3./z0**3*np.exp(-z/z0)*cosmo.dchidz(z)
+    return p_chi
 
 
-#def gal_lens(chi,z,chimax,cosmo):
-#    def q(x,xmax):
-#      simps((xmax-x)/xmax)
-#    kernel =(1+z)*chi*q(chi)
-#    factor = cosmo.cmb_prefac
-#    return kernel*factor
+def gal_lens(zrange,p_chi,cosmo):
+    chimin, chimax = (cosmo.chi(zrange[0]),cosmo.chi(zrange[1]))
 
-def CMB_lens(chi,z,chicmb,cosmo):
-    kernel =(1+z)*chi*(chicmb-chi)/chicmb
-    factor = cosmo.cmb_prefac
-    return kernel*factor
+    q=[]
+    chi_ = np.linspace(0,chimax,200)
+    for cchi in chi_[:-1]:
+        x_= chi_[chi_>cchi]
+        q+=[simps(p_chi(data.zchi(x_))*(x_-cchi)/x_,x_)]
+    q = interp1d(chi_[:-1],q,bounds_error=True)
+
+    chi_ = np.linspace(chimin,chimax,200)
+    norm = simps(p_chi(data.zchi(chi_)),chi_)
+
+    def kernel(x,z):
+      res=[]
+      for x_, z_ in zip(x,z):
+        if x_<chimin or x_>chimax:
+          res+=[0.]
+        else:
+          res+=[x_*q(x_)*(1+z_)/norm*cosmo.cmb_prefac]
+      return res
+
+    return kernel
+
+
+def CMB_lens(chicmb,cosmo):
+    def kernel(x,z):
+      return (1+z)*x*(chicmb-x)/chicmb*cosmo.cmb_prefac
+    return kernel
 
 ##all in kappa
 """---- Choose your settings here ---"""
@@ -143,20 +165,20 @@ if __name__ == "__main__":
 
     "---begin settings---"
 
-    tag         = 'test'
+    tag         = 'testgal'
 
     ell_type    = 'equilat'#'equilat','folded'
 
-    cparams     = C.Pratten
+    cparams     = C.Takada
     #post Born (use post Born terms from Pratten & Lewis arXiv:1605.05662)
     post_born   = False
 
     #fitting formula (use B_delta fitting formula from Gil-Marin et al. arXiv:1111.4477
     B_fit       = False
     fit_z_max   = 5.
-    nl          = True
+    nl          = False
     #number of redshift bins
-    bin_num     = 100
+    bin_num     = 200
     z_min       = 1e-4
 
     #sampling in L/l and angle
@@ -166,7 +188,7 @@ if __name__ == "__main__":
 
     #ell range (for L and l)
     L_min       = 10.
-    L_max       = 10000.
+    L_max       = 3000.
     len_low_L   = 20
 
     l_min       = L_min
@@ -203,8 +225,8 @@ if __name__ == "__main__":
     print "z_cmb: %f"%z_cmb
 
     zmax  = z_cmb-0.0001
-    za    = np.exp(np.linspace(np.log(z_min),np.log(10.),int(3*bin_num/4)))
-    zb    = np.linspace(10.,zmax,int(bin_num/4+1))[1::]
+    za    = np.exp(np.linspace(np.log(z_min),np.log(3.),int(7*bin_num/8)))
+    zb    = np.linspace(3.,zmax,int(bin_num/8+1))[1::]
     z     = np.append(za,zb)
     print(z)
     assert(len(z)==bin_num)
@@ -217,7 +239,7 @@ if __name__ == "__main__":
 
     config  = tag+"_"+ell_type+"_"+cparams[0]['name']
 
-    kernels = (CMB_lens(chi,z,chicmb,data),None,None)
+    kernels = (gal_lens((0.,1.3),p_z(data),data),None,None)
 
     print "config: %s"%config
 

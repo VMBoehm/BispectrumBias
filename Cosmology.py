@@ -201,6 +201,18 @@ SimulationCosmology=[{'name':"Jias_Simulation"},{
 'accurate_lensing':1}]
 
 
+""" Takada & Jain paper """
+Takada=[{'name':"Takada"},{
+'T_cmb':2.725,
+'omega_cdm':0.3*0.72**2,
+'omega_b':0.05*0.72**2,
+'h':0.720,
+'n_s':1.,
+'A_s':1.84*1e-9,
+'Omega_k':0.0}]
+
+
+
 acc_1={
 "k_min_tau0":0.002,
 "k_max_tau0_over_l_max":5.,
@@ -274,6 +286,7 @@ class CosmoData():
 		self.D_z              = ius(class_z,class_D)
 
 		self.chi              = ius(class_z,class_chi)
+		self.zchi             = ius(class_chi,class_z)
 
 		derivParams           = closmo.get_current_derived_parameters(['z_rec'])
 

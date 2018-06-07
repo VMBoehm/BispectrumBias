@@ -166,34 +166,27 @@ class Bispectra():
         spec_=np.zeros((len(z_),len(k_)))
         cosmo_pk = self.closmo.pk
         for jj in xrange(len(z_)):
-            print(z_[jj])
             spec_[jj] = np.asarray([cosmo_pk(kk,z_[jj]) for kk in k_])
 
         self.pk_int = RectBivariateSpline(k_,np.log(z_),np.transpose(spec_))
 
-        #test plots, keep in for now
-        z2=np.linspace(min(z_),20.,len(z_))
-        k2=np.exp(np.linspace(np.log(min(k_)),np.log(max(k_)),100))
-        plt.figure()
-        for z in [3.,10.]:
-          print(self.pk_int(k_,z,grid=False))
-          plt.loglog(k_,self.pk_int(k_,np.log(z),grid=False),marker='+',ls='',markersize=3,label='z=%.1f'%z)
-          #plt.legend()
-        plt.show()
 
-        plt.figure()
-        for jj in np.arange(0,len(z_),3):
-          plt.loglog(k_,self.pk_int(k_,np.log(z2[jj]),grid=False),marker='+',ls='',markersize=2, label='z_=%.1f'%z2[jj])
-          #plt.legend()
-          #plt.loglog(k_,self.pk_int(k_,z_[jj],grid=False),marker='o',ls='',markersize=2)
-        plt.show()
-
-        plt.figure()
-        for jj in np.arange(0,len(z_)):
-          plt.loglog(k_,spec_[jj],label='z=%.1f'%z_[jj])
-         # plt.legend()
-          #plt.loglog(k2,self.pk_int(k2,z2[jj],grid=False),marker='+',ls='',markersize=2)
-        plt.show()
+#        #test plots, keep in for now
+#        z2=np.linspace(min(z_),20.,len(z_))
+#        plt.figure()
+#        for z in [3.,10.]:
+#          plt.loglog(k_,self.pk_int(k_,np.log(z),grid=False),marker='+',ls='',markersize=3,label='z=%.1f'%z)
+#        plt.show()
+#
+#        plt.figure()
+#        for jj in np.arange(0,len(z_),3):
+#          plt.loglog(k_,self.pk_int(k_,np.log(z2[jj]),grid=False),marker='+',ls='',markersize=2, label='z_=%.1f'%z2[jj])
+#        plt.show()
+#
+#        plt.figure()
+#        for jj in np.arange(0,len(z_)):
+#          plt.loglog(k_,spec_[jj],label='z=%.1f'%z_[jj])
+#        plt.show()
 
 
 
@@ -303,10 +296,17 @@ class Bispectra():
         Computes the bispectrum by integration over chi for ever triangle
         """
 
+        kernel1=kernel1(self.chi,self.z)
+
         if kernel2==None:
             kernel2=kernel1
+        else:
+          kernel2=kernel2(self.chi,self.z)
+
         if kernel3==None:
             kernel3=kernel1
+        else:
+          kernel3=kernel3(self.chi,self.z)
 
         self.bi_phi = np.zeros(self.len_bi)
 
