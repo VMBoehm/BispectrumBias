@@ -132,20 +132,19 @@ def p_z(cosmo,z0=0.5, nbar=100.):
 def gal_lens(zrange,p_chi,cosmo):
 
     chimin, chimax = (cosmo.chi(zrange[0]),cosmo.chi(zrange[1]))
-
-    q=[]
-    chi_ = np.linspace(0,chimax,400,endpoint=False)
-    x = np.linspace(0,chimax,800)
+    q = []
+    chi_ = np.linspace(0.,chimax,800)
 
     for cchi in chi_:
-        x_= x[x>cchi]
-        q+=[simps(p_chi(data.zchi(x_))*(x_-cchi)/x_,x_)]
+        x_= np.linspace(cchi,chimax,2000)
+        integrand = p_chi(data.zchi(x_))*(x_-cchi)/x_
+        integrand[x_==0.]=0.
+        q+=[simps(integrand,x_)]
+
     q = interp1d(chi_,q,bounds_error=True)
 
     chi_ = np.linspace(chimin,chimax,400)
-
     norm = simps(p_chi(data.zchi(chi_)),chi_)
-
 
     def kernel(x,z):
       res=[]
@@ -179,12 +178,12 @@ if __name__ == "__main__":
     post_born   = False
 
     #fitting formula (use B_delta fitting formula from Gil-Marin et al. arXiv:1111.4477
-    B_fit       = False
+    B_fit       = True
     fit_z_max   = 5.
-    nl          = False
+    nl          = True
     #number of redshift bins
     bin_num     = 400
-    z_min       = 1e-5
+    z_min       = 1e-4
 
     #sampling in L/l and angle
     len_L       = 200
@@ -233,7 +232,7 @@ if __name__ == "__main__":
     za    = np.exp(np.linspace(np.log(z_min),np.log(10.),int(7*bin_num/8)))
     zb    = np.linspace(10.,zmax,int(bin_num/8+1))[1::]
     z     = np.append(za,zb)
-    print(z)
+
     assert(len(z)==bin_num)
 
 

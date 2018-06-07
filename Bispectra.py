@@ -202,9 +202,9 @@ class Bispectra():
 
         for ii in np.arange(0,len(self.z)):
             z_i     = self.z[ii]
-            print 'progress in percent ', ii/len(self.z)*100.
-            print 'time in min', (time.time()-beg)/60.
-            print 'z: ', z_i
+#            print 'progress in percent ', ii/len(self.z)*100.
+#            print 'time in min', (time.time()-beg)/60.
+#            print 'z: ', z_i
 
             spec1   =[]
             spec2   =[]
