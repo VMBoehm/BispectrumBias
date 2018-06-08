@@ -238,7 +238,9 @@ acc_1={
 'k_per_decade_for_pk': 20,
 'perturb_sampling_stepsize':0.01,
 'tol_perturb_integration':1.e-6,
-'halofit_k_per_decade': 3000.
+'halofit_k_per_decade': 3000.,
+'l_switch_limber_for_nc_local_over_z':1,
+'l_switch_limber_for_nc_los_over_z':1
 }
 
 

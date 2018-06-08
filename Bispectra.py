@@ -155,7 +155,7 @@ class Bispectra():
             self.bi_delta_func    = self.bispectrum_delta
 
 
-        a  = np.linspace((1+min(self.z))**(-1),(1+max(self.z))**(-1),200)
+        a  = np.linspace((1+min(self.z))**(-1),(1+max(self.z))**(-1),100)
         z_ = 1/a-1.
 
         plt.figure()
@@ -170,25 +170,25 @@ class Bispectra():
         plt.ylabel('$\chi$')
         plt.show()
 
-        k_ = np.exp(np.linspace(np.log(self.kmin),np.log(self.kmax),200))
+        k_ = np.exp(np.linspace(np.log(self.kmin),np.log(self.kmax),80))
         spec_=np.zeros((len(z_),len(k_)))
         cosmo_pk = self.closmo.pk
         for jj in xrange(len(z_)):
             spec_[jj] = np.asarray([cosmo_pk(kk,z_[jj]) for kk in k_])
 
-        self.pk_int = RectBivariateSpline(k_,z_,np.transpose(spec_))
+        self.pk_int = RectBivariateSpline(k_,np.log(z_),np.transpose(spec_))
 
 
         #test plots, keep in for now
         z2=np.linspace(min(z_),20.,len(z_))
         plt.figure()
         for z in [0.5, 1.,2.,3.,5.,10.]:
-          plt.loglog(k_,self.pk_int(k_,z,grid=False),marker='+',ls='',markersize=3,label='z=%.1f'%z)
+          plt.loglog(k_,self.pk_int(k_,np.log(z),grid=False),marker='+',ls='',markersize=3,label='z=%.1f'%z)
         plt.show()
 
         plt.figure()
         for jj in np.arange(0,len(z_),3):
-          plt.loglog(k_,self.pk_int(k_,z2[jj],grid=False),marker='+',ls='',markersize=2, label='z_=%.1f'%z2[jj])
+          plt.loglog(k_,self.pk_int(k_,np.log(z2[jj]),grid=False),marker='+',ls='',markersize=2, label='z_=%.1f'%z2[jj])
         plt.show()
 
         plt.figure()
@@ -337,7 +337,7 @@ class Bispectra():
             k = (np.unique(self.l1))/self.chi[ii]
             index = np.all([k>=self.kmin,k<=self.kmax],axis=0)
 
-            spec[ii][index]=self.pk_int(k[index],self.z[ii],grid=False)
+            spec[ii][index]=self.pk_int(k[index],np.log(self.z[ii]),grid=False)
 
         spec = np.transpose(spec)
 

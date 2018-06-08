@@ -148,11 +148,11 @@ def gal_lens(zrange,cosmo, p_chi=None):
 
     chimin, chimax = (cosmo.chi(zrange[0]),cosmo.chi(zrange[1]))
     q = []
-    chi_ = np.linspace(0,chimax,int(chimax)*10)
+    chi_ = np.linspace(0,chimax,int(chimax)*20)
     print(len(chi_))
 
     for cchi in chi_:
-        x_= np.linspace(max(chimin,cchi),chimax,max(int(chimax-max(chimin,cchi))*10,100))
+        x_= np.linspace(max(chimin,cchi),chimax,max(int(chimax-max(chimin,cchi))*10,200))
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
             integrand = p_chi(data.zchi(x_))*(x_-cchi)/x_
@@ -175,7 +175,6 @@ def gal_lens(zrange,cosmo, p_chi=None):
         else:
           res+=[x_*q(x_)*(1.+z_)]
       res=np.asarray(res)
-      #res[x==0.]=0.
       return res*cosmo.cmb_prefac/norm
 
     return kernel
@@ -203,10 +202,10 @@ if __name__ == "__main__":
     #fitting formula (use B_delta fitting formula from Gil-Marin et al. arXiv:1111.4477
     B_fit       = False
     fit_z_max   = 5.
-    nl          = True
+    nl          = False
     #number of redshift bins
-    bin_num     = 1000
-    z_min       = 0.
+    bin_num     = 200
+    z_min       = 1e-4
 
     #sampling in L/l and angle
     len_L       = 200
@@ -223,8 +222,8 @@ if __name__ == "__main__":
 
     Delta_theta = 0.
 
-    k_min       = 1e-6#times three for lens planes
-    k_max       = 200.
+    k_min       = 1e-4#times three for lens planes
+    k_max       = 100.
     #k-range1: 0.0105*cparams[1]['h']-42.9*cparams[1]['h']
     #k-range2: 0.0105*cparams[1]['h']-49*cparams[1]['h']
 
@@ -251,11 +250,11 @@ if __name__ == "__main__":
 
     print "z_cmb: %f"%z_cmb
 
-    zmax  = 0.5#z_cmb-1e-4
+    zmax  = z_cmb-1e-4
     a     = np.linspace(1./(1.+z_min),1./(1.+zmax),bin_num)
 #    za    = np.exp(np.linspace(z_min,np.log(10.),int(7*bin_num/8)))
 #    zb    = np.linspace(10.,zmax,int(bin_num/8+1))[1::]
-    z     = np.linspace(z_min,zmax,bin_num)#1./a-1.
+    z     = 1./a-1.
 
     assert(len(z)==bin_num)
 
@@ -284,9 +283,8 @@ if __name__ == "__main__":
     'selection':'dirac',
     'selection_mean': '0.5',
 #     'selection_width' :'0.2,0.2',
-    'l_switch_limber':1,
-    'l_max_lss':5000,
-    'non linear':'halofit'}
+    'l_switch_limber':1.,
+    'l_max_lss':5000}
     print(params)
     params.update(lens)
     closmo  = Class()
