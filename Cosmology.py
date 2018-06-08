@@ -57,9 +57,25 @@ ToshiyaComparison=[{
 'A_s'   :2.13e-9,
 'n_s'   :0.965,
 'k_pivot' : 0.05,
-'tau_reio':0.0630,
 
 }]
+
+Jia=[{
+'name':"JiaGalaxyLens"},{
+'h': 0.7,
+'omega_b':0.0223,
+'omega_cdm':0.12470,
+'Omega_k':0.0,
+'A_s'   :2.1000e-9,
+'n_s'   :0.97,
+'k_pivot' : 0.05
+}]
+
+JiaNu={
+'N_eff':0.046,
+'N_ncdm' : 3,
+'m_ncdm' : str(0.022)+','+str(0.023)+','+str(0.055)}
+
 
 Namikawa=[{
 'name':"Namikawa_Paper"},{

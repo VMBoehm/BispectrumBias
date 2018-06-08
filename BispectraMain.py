@@ -127,52 +127,56 @@ def get_triangles(ell_type,Lmin,Lmax,lmin,lmax,len_L,len_low_L,len_l,len_ang,pat
 
 
 #redshift distribution used in astro-ph/0310125v4
-def p_z(cosmo,z0=0.5, nbar=100.):
+def p_z(cosmo,z0=0.5, nbar=100., z_s=None):
     def p_chi(z):
       return nbar*z**2/(2.*z0**3)*np.exp(-z/z0)*cosmo.dzdchi(z)
     return p_chi
 
 
-#def p_delta(cosmo,z_s):
-#    def p_chi(z):
-#      res = np.len()
-#      if np.allclose(z,z_s):
-#      res = cosmo.dzdchi(z)
-#
-#    return p_chi
+def p_delta(cosmo,z_s):
+    def p_chi(z):
+      w = np.zeros(len(z))
+      w[np.isclose(z,z_s)]=cosmo.dzdchi(z_s)
+      assert(np.any(w is not 0.))
+      return w
+
+    return p_chi
 
 
 
-def gal_lens(zrange,p_chi,cosmo):
+def gal_lens(zrange,cosmo, p_chi=None):
 
     chimin, chimax = (cosmo.chi(zrange[0]),cosmo.chi(zrange[1]))
     q = []
-    chi_ = np.linspace(0,chimax,800)
+    chi_ = np.linspace(0,chimax,int(chimax)*10)
+    print(len(chi_))
 
     for cchi in chi_:
-
-        x_= np.linspace(max(chimin,cchi),chimax,1000)
+        x_= np.linspace(max(chimin,cchi),chimax,max(int(chimax-max(chimin,cchi))*10,100))
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
             integrand = p_chi(data.zchi(x_))*(x_-cchi)/x_
         integrand[x_==0.]=0.
         q+=[simps(integrand,x_)]
-
     q[-1]=0.
+    print(q)
     q = interp1d(chi_,q,bounds_error=True)
 
-    chi_ = np.linspace(chimin,chimax,400)
+    chi_ = np.linspace(chimin,chimax,int(chimax-chimin)*10)
     norm = simps(p_chi(data.zchi(chi_)),chi_)
     print(norm)
+
 
     def kernel(x,z):
       res=[]
       for x_, z_ in zip(x,z):
-        if x_>chimax:
+        if x_>chimax or x_ is 0.:
           res+=[0.]
         else:
           res+=[x_*q(x_)*(1.+z_)]
-      return np.asarray(res)*cosmo.cmb_prefac/norm
+      res=np.asarray(res)
+      #res[x==0.]=0.
+      return res*cosmo.cmb_prefac/norm
 
     return kernel
 
@@ -188,7 +192,7 @@ if __name__ == "__main__":
 
     "---begin settings---"
 
-    tag         = '122'
+    tag         = 'deltatest'
 
     ell_type    = 'equilat'#'equilat','folded'
 
@@ -197,12 +201,12 @@ if __name__ == "__main__":
     post_born   = False
 
     #fitting formula (use B_delta fitting formula from Gil-Marin et al. arXiv:1111.4477
-    B_fit       = True
+    B_fit       = False
     fit_z_max   = 5.
     nl          = True
     #number of redshift bins
-    bin_num     = 400
-    z_min       = 1e-4
+    bin_num     = 1000
+    z_min       = 0.
 
     #sampling in L/l and angle
     len_L       = 200
@@ -219,8 +223,8 @@ if __name__ == "__main__":
 
     Delta_theta = 0.
 
-    k_min       = 1e-4#times three for lens planes
-    k_max       = 100.
+    k_min       = 1e-6#times three for lens planes
+    k_max       = 200.
     #k-range1: 0.0105*cparams[1]['h']-42.9*cparams[1]['h']
     #k-range2: 0.0105*cparams[1]['h']-49*cparams[1]['h']
 
@@ -247,11 +251,11 @@ if __name__ == "__main__":
 
     print "z_cmb: %f"%z_cmb
 
-    zmax  = z_cmb-1e-4
+    zmax  = 0.5#z_cmb-1e-4
     a     = np.linspace(1./(1.+z_min),1./(1.+zmax),bin_num)
 #    za    = np.exp(np.linspace(z_min,np.log(10.),int(7*bin_num/8)))
 #    zb    = np.linspace(10.,zmax,int(bin_num/8+1))[1::]
-    z     = 1./a-1.
+    z     = np.linspace(z_min,zmax,bin_num)#1./a-1.
 
     assert(len(z)==bin_num)
 
@@ -264,7 +268,7 @@ if __name__ == "__main__":
     config  = tag+"_"+ell_type+"_"+cparams[0]['name']
 
 
-    kernels = (gal_lens((0,1.3),p_z(data),data),gal_lens((1.3,10.),p_z(data),data),gal_lens((1.3,10.),p_z(data),data))
+    kernels = (gal_lens((0.,0.5),data, p_delta(data, z_s=0.5)),None,None)
 
     print "config: %s"%config
 
@@ -275,6 +279,25 @@ if __name__ == "__main__":
     print(ellfile)
     print(bs.filename)
     print(bs.filenameCL)
+
+    lens={'output':'tCl sCl, mPk',
+    'selection':'dirac',
+    'selection_mean': '0.5',
+#     'selection_width' :'0.2,0.2',
+    'l_switch_limber':1,
+    'l_max_lss':5000,
+    'non linear':'halofit'}
+    print(params)
+    params.update(lens)
+    closmo  = Class()
+    closmo.set(params)
+    closmo.compute()
+    cll= closmo.density_cl()
+    ll = cll['ell']
+    cls0=(1./4.)*(ll+2.)*(ll+1.)*(ll)*(ll-1.)*cll['ll'][0]
+    cls0_=(1./4.)*ll**4*cll['ll'][0]
+
+    np.save(bs.filenameCL+'_CLASS'+'.npy',[ll,cls0,cls0_])
 
 
 ##TODO: check everything beneath

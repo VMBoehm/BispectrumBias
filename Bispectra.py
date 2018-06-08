@@ -103,15 +103,15 @@ class Bispectra():
         """
 
         self.set_up()
-        self.compute_bispectrum_delta()
-        self.compute_bispectrum(kernel1=self.kernel[0], kernel2=self.kernel[1], kernel3=self.kernel[2])
+        #self.compute_bispectrum_delta()
+        #self.compute_bispectrum(kernel1=self.kernel[0], kernel2=self.kernel[1], kernel3=self.kernel[2])
         self.compute_power_spectrum(kernel1=self.kernel[0],kernel2=self.kernel[1])
 
         self.filename   = self.path+"bispectra/bispec_%s_Lmin%d-Lmax%d-lmax%d_%s_%s"%(self.config,self.L_min,self.L_max,self.l_max,self.cosmo['non linear'],self.ft)
 
         self.filenameCL   = self.path+"power_spectra/CL_%s_Lmin%d-Lmax%d_%s"%(self.config,self.L_min,self.L_max,self.cosmo['non linear'])
 
-        np.save(self.filename+'.npy',self.bi_phi)
+        #np.save(self.filename+'.npy',self.bi_phi)
         np.save(self.filenameCL+'.npy',self.CL)
 
 
@@ -155,7 +155,7 @@ class Bispectra():
             self.bi_delta_func    = self.bispectrum_delta
 
 
-        a  = np.linspace((1+min(self.z))**(-1),(1+max(self.z))**(-1),120)
+        a  = np.linspace((1+min(self.z))**(-1),(1+max(self.z))**(-1),200)
         z_ = 1/a-1.
 
         plt.figure()
@@ -170,25 +170,25 @@ class Bispectra():
         plt.ylabel('$\chi$')
         plt.show()
 
-        k_ = np.exp(np.linspace(np.log(self.kmin),np.log(self.kmax),80))
+        k_ = np.exp(np.linspace(np.log(self.kmin),np.log(self.kmax),200))
         spec_=np.zeros((len(z_),len(k_)))
         cosmo_pk = self.closmo.pk
         for jj in xrange(len(z_)):
             spec_[jj] = np.asarray([cosmo_pk(kk,z_[jj]) for kk in k_])
 
-        self.pk_int = RectBivariateSpline(k_,np.log(z_),np.transpose(spec_))
+        self.pk_int = RectBivariateSpline(k_,z_,np.transpose(spec_))
 
 
         #test plots, keep in for now
         z2=np.linspace(min(z_),20.,len(z_))
         plt.figure()
-        for z in [3.,10.]:
-          plt.loglog(k_,self.pk_int(k_,np.log(z),grid=False),marker='+',ls='',markersize=3,label='z=%.1f'%z)
+        for z in [0.5, 1.,2.,3.,5.,10.]:
+          plt.loglog(k_,self.pk_int(k_,z,grid=False),marker='+',ls='',markersize=3,label='z=%.1f'%z)
         plt.show()
 
         plt.figure()
         for jj in np.arange(0,len(z_),3):
-          plt.loglog(k_,self.pk_int(k_,np.log(z2[jj]),grid=False),marker='+',ls='',markersize=2, label='z_=%.1f'%z2[jj])
+          plt.loglog(k_,self.pk_int(k_,z2[jj],grid=False),marker='+',ls='',markersize=2, label='z_=%.1f'%z2[jj])
         plt.show()
 
         plt.figure()
@@ -334,9 +334,10 @@ class Bispectra():
         L = np.unique(self.l1)
         spec=np.zeros((len(self.z),len(L)))
         for ii in range(len(self.z)):
-            k = (np.unique(self.l1)+0.5)/self.chi[ii]
+            k = (np.unique(self.l1))/self.chi[ii]
+            index = np.all([k>=self.kmin,k<=self.kmax],axis=0)
 
-            spec[ii]=self.pk_int(k,np.log(self.z[ii]),grid=False)
+            spec[ii][index]=self.pk_int(k[index],self.z[ii],grid=False)
 
         spec = np.transpose(spec)
 
@@ -353,6 +354,7 @@ class Bispectra():
 
         for jj in xrange(len(L)):
             integrand       = spec[jj]*kernel1*kernel2/self.chi**2
+            integrand[self.chi==0.]=0.
             self.CL[jj]     = simps(integrand,self.chi)
 
         return True
