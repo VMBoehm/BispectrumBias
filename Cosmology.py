@@ -72,9 +72,46 @@ Jia=[{
 }]
 
 JiaNu={
-'N_eff':0.046,
+'omega_cdm': 0.12362,
+'N_ur':0.00641,
 'N_ncdm' : 3,
-'m_ncdm' : str(0.022)+','+str(0.023)+','+str(0.055)}
+'m_ncdm' : str(0.021880597824)+','+str(0.02352325212)+','+str(0.055187350056),
+'P_k_max_1/Mpc': 10.,
+'k_min_tau0':0.002,
+'k_max_tau0_over_l_max':3.,
+'k_step_sub':0.015,
+'k_step_super':0.0001,
+'k_step_super_reduction':0.1,
+#'ncdm_fluid_approximation': 1,
+#'ncdm_fluid_trigger_tau_over_tau_k':51.,
+#'tol_ncdm_synchronous':1.e-10,
+#'tol_ncdm_bg':1.e-10,
+#'l_max_ncdm':51,
+#'ur_fluid_approximation': 2,
+#'ur_fluid_trigger_tau_over_tau_k': 50.,
+#'tol_ncdm_newtonian' : 1.e-10,
+'tau_reio':0.09
+}
+
+# getting 9965 difference with this
+{'A_s': 2.1e-09,
+ 'N_ncdm': 3,
+ 'N_ur': 0.00641,
+ 'Omega_k': 0.0,
+ 'P_k_max_1/Mpc': 10.0,
+ 'h': 0.7,
+ 'k_max_tau0_over_l_max': 3.0,
+ 'k_min_tau0': 0.002,
+ 'k_pivot': 0.05,
+ 'k_step_sub': 0.015,
+ 'k_step_super': 0.0001,
+ 'k_step_super_reduction': 0.1,
+ 'm_ncdm': '0.021880597824,0.02352325212,0.055187350056',
+ 'n_s': 0.97,
+ 'ncdm_fluid_approximation': 1,
+ 'omega_b': 0.0223,
+ 'omega_cdm': 0.12362,
+ 'output': 'tCl mPk'}
 
 
 Namikawa=[{
@@ -90,7 +127,7 @@ Namikawa=[{
 'N_ur':1.0196,
 #'m_ncdm': "0.05, 0.01",
 'k_pivot' : 0.05,
-'tau_reio':0.0630,
+'tau_reio':0.0630
 #'ncdm_fluid_approximation': 2,
 #'ncdm_fluid_trigger_tau_over_tau_k':51.,
 #'tol_ncdm_synchronous':1.e-10,
@@ -328,6 +365,8 @@ class CosmoData():
 
 		print closmo.get_current_derived_parameters(['Neff'])
 		print closmo.get_current_derived_parameters(['h'])
+		print closmo.get_current_derived_parameters(['m_ncdm_tot'])
+		print closmo.get_current_derived_parameters(['omega_m'])
 
 		closmo.struct_cleanup()
 		closmo.empty()

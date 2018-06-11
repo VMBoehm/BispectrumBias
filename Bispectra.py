@@ -135,7 +135,7 @@ class Bispectra():
             self.data.get_abc(k4n,self.z[np.where(self.z<=self.fit_z_max)],self.fit_z_max,fit_type=self.ft)
 
         self.cosmo['output']='tCl, mPk'
-        self.cosmo['P_k_max_1/Mpc']= self.kmax
+        self.cosmo['P_k_max_1/Mpc']= self.kmax+1
         self.cosmo['z_max_pk']     = max(max(self.z),1.5)
         if self.nl:
             self.cosmo['non linear'] = "halofit"
@@ -155,8 +155,13 @@ class Bispectra():
             self.bi_delta_func    = self.bispectrum_delta
 
 
-        a  = np.linspace((1+min(self.z))**(-1),(1+max(self.z))**(-1),100)
+        a  = np.linspace((1.+min(self.z))**(-1),(1.+max(self.z))**(-1),100)
         z_ = 1/a-1.
+        #to prevent fuzzy high ks in interpolated power spectrum at high k
+        z2 = np.linspace(min(self.z),max(self.z),100)
+        z_=np.append(z_,z2)
+        z_=np.unique(np.sort(z_))
+        a = (1+z_)**-1
 
         plt.figure()
         plt.semilogx(z_,a, ls='', marker='+')
