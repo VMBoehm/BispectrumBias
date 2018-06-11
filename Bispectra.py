@@ -103,15 +103,15 @@ class Bispectra():
         """
 
         self.set_up()
-        #self.compute_bispectrum_delta()
-        #self.compute_bispectrum(kernel1=self.kernel[0], kernel2=self.kernel[1], kernel3=self.kernel[2])
+        self.compute_bispectrum_delta()
+        self.compute_bispectrum(kernel1=self.kernel[0], kernel2=self.kernel[1], kernel3=self.kernel[2])
         self.compute_power_spectrum(kernel1=self.kernel[0],kernel2=self.kernel[1])
 
         self.filename   = self.path+"bispectra/bispec_%s_Lmin%d-Lmax%d-lmax%d_%s_%s"%(self.config,self.L_min,self.L_max,self.l_max,self.cosmo['non linear'],self.ft)
 
         self.filenameCL   = self.path+"power_spectra/CL_%s_Lmin%d-Lmax%d_%s"%(self.config,self.L_min,self.L_max,self.cosmo['non linear'])
 
-        #np.save(self.filename+'.npy',self.bi_phi)
+        np.save(self.filename+'.npy',self.bi_phi)
         np.save(self.filenameCL+'.npy',self.CL)
 
 
@@ -236,7 +236,6 @@ class Bispectra():
             ang23   = self.ang23[index]
             ang31   = self.ang31[index]
 
-
             spec1=self.pk_int(k1,np.log(z_i),grid=False)
             spec2=self.pk_int(k2,np.log(z_i),grid=False)
             spec3=self.pk_int(k3,np.log(z_i),grid=False)
@@ -285,7 +284,7 @@ class Bispectra():
 
 
     def get_F2_kernel_fit(self,k1,k2,cos,i):
-
+        print(k1)
         ak1=splev(k1, self.data.a_nk[i],ext=0)
         ak2=splev(k2, self.data.a_nk[i],ext=0)
 

@@ -155,8 +155,8 @@ def gal_lens(zrange,cosmo, p_chi=None):
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
             integrand = p_chi(data.zchi(x_))*(x_-cchi)/x_
-        integrand[x_==0.]=0.
-        q+=[simps(integrand,x_)]
+            integrand[x_==0.]=0.
+            q+=[simps(integrand,x_)]
     q[-1]=0.
     q = interp1d(chi_,q,bounds_error=True)
 
@@ -189,7 +189,7 @@ if __name__ == "__main__":
 
     "---begin settings---"
 
-    tag         = 'CLtestcross'
+    tag         = '111retest'
 
     ell_type    = 'equilat'#'equilat','folded'
 
@@ -198,12 +198,12 @@ if __name__ == "__main__":
     post_born   = False
 
     #fitting formula (use B_delta fitting formula from Gil-Marin et al. arXiv:1111.4477
-    B_fit       = False
+    B_fit       = True
     fit_z_max   = 5.
     nl          = True
     #number of redshift bins
     bin_num     = 200
-    z_min       = 1e-5
+    z_min       = 1e-4
 
     #sampling in L/l and angle
     len_L       = 200
@@ -265,7 +265,7 @@ if __name__ == "__main__":
     config  = tag+"_"+ell_type+"_"+cparams[0]['name']
 
 
-    kernels = (gal_lens((0.,0.5),data, p_delta(data, z_s=0.5)),gal_lens((0.,2.5),data, p_delta(data, z_s=2.5)),None)
+    kernels = (gal_lens((0.,1.3),data, p_z(data)),None,None)
 
     print "config: %s"%config
 
@@ -277,30 +277,31 @@ if __name__ == "__main__":
     print(bs.filename)
     print(bs.filenameCL)
 
-    lens={'output':'tCl sCl, mPk',
-    'selection':'dirac',
-    'selection_mean': '0.5, 2.5',
-#     'selection_width' :'0.2,0.2',
-    'l_switch_limber':1.,
-    'l_max_lss':6000,
-    'P_k_max_1/Mpc': k_max,
-    'z_max_pk': max(z),
-    'non_diagonal':1}
-
-    if nl==True:
-      lens['non linear']='halofit'
-
-    print(params)
-    params.update(lens)
-    closmo  = Class()
-    closmo.set(params)
-    closmo.compute()
-    cll= closmo.density_cl()
-    ll = cll['ell']
-    cls0=(1./4.)*(ll+2.)*(ll+1.)*(ll)*(ll-1.)*cll['ll'][1]
-    cls0_=(1./4.)*ll**4*cll['ll'][1]
+#    lens={'output':'tCl sCl, mPk',
+#    'selection':'dirac',
+#    'selection_mean': '0.5, 2.5',
+##     'selection_width' :'0.2,0.2',
+#    'l_switch_limber':1.,
+#    #can be lower for linear Pk
+#    'l_max_lss':6000,
+#    'P_k_max_1/Mpc': k_max,
+#    'z_max_pk': max(z),
+#    'non_diagonal':1}
 #
-    np.save(bs.filenameCL+'_CLASS'+'.npy',[ll,cls0,cls0_])
+#    if nl==True:
+#      lens['non linear']='halofit'
+#
+#    print(params)
+#    params.update(lens)
+#    closmo  = Class()
+#    closmo.set(params)
+#    closmo.compute()
+#    cll= closmo.density_cl()
+#    ll = cll['ell']
+#    cls0=(1./4.)*(ll+2.)*(ll+1.)*(ll)*(ll-1.)*cll['ll'][0]
+#    cls0_=(1./4.)*ll**4*cll['ll'][0]
+#
+#    np.save(bs.filenameCL+'_CLASS'+'.npy',[ll,cls0,cls0_])
 
 
 ##TODO: check everything beneath
