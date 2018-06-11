@@ -77,20 +77,11 @@ JiaNu={
 'N_ncdm' : 3,
 'm_ncdm' : str(0.02188)+','+str(0.02352)+','+str(0.05519),
 'P_k_max_1/Mpc': 10.,
-#'k_min_tau0':0.002,
-#'k_max_tau0_over_l_max':3.,
-#'k_step_sub':0.015,
-#'k_step_super':0.0001,
-#'k_step_super_reduction':0.1,
-'ncdm_fluid_approximation': 1,
-'ncdm_fluid_trigger_tau_over_tau_k':51.,
-##'tol_ncdm_synchronous':1.e-10,
-##'tol_ncdm_bg':1.e-10,
-##'l_max_ncdm':51,
-##'ur_fluid_approximation': 2,
-##'ur_fluid_trigger_tau_over_tau_k': 50.,
-##'tol_ncdm_newtonian' : 1.e-10,
-#'tau_reio':0.09
+'ncdm_fluid_approximation': 3,
+'deg_ncdm' : '1.0, 1.0, 1.0',
+'l_max_ncdm' : 100,
+'tol_ncdm_bg':1e-10,
+'tol_ncdm_synchronous':1.e-5,
 }
 
 # getting 9965 difference with this

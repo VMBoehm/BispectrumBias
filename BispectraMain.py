@@ -189,11 +189,11 @@ if __name__ == "__main__":
 
     "---begin settings---"
 
-    tag         = '111retest'
+    tag         = '111'
 
     ell_type    = 'equilat'#'equilat','folded'
 
-    cparams     = C.Takada
+    cparams     = C.Jia
     #post Born (use post Born terms from Pratten & Lewis arXiv:1605.05662)
     post_born   = False
 
@@ -265,7 +265,7 @@ if __name__ == "__main__":
     config  = tag+"_"+ell_type+"_"+cparams[0]['name']
 
 
-    kernels = (gal_lens((0.,1.3),data, p_z(data)),None,None)
+    kernels = (gal_lens((0.,0.5),data, p_delta(data,z_s=0.5)),None,None)
 
     print "config: %s"%config
 
@@ -277,31 +277,31 @@ if __name__ == "__main__":
     print(bs.filename)
     print(bs.filenameCL)
 
-#    lens={'output':'tCl sCl, mPk',
-#    'selection':'dirac',
-#    'selection_mean': '0.5, 2.5',
-##     'selection_width' :'0.2,0.2',
-#    'l_switch_limber':1.,
-#    #can be lower for linear Pk
-#    'l_max_lss':6000,
-#    'P_k_max_1/Mpc': k_max,
-#    'z_max_pk': max(z),
-#    'non_diagonal':1}
-#
-#    if nl==True:
-#      lens['non linear']='halofit'
-#
-#    print(params)
-#    params.update(lens)
-#    closmo  = Class()
-#    closmo.set(params)
-#    closmo.compute()
-#    cll= closmo.density_cl()
-#    ll = cll['ell']
-#    cls0=(1./4.)*(ll+2.)*(ll+1.)*(ll)*(ll-1.)*cll['ll'][0]
-#    cls0_=(1./4.)*ll**4*cll['ll'][0]
-#
-#    np.save(bs.filenameCL+'_CLASS'+'.npy',[ll,cls0,cls0_])
+    lens={'output':'tCl sCl, mPk',
+    'selection':'dirac',
+    'selection_mean': '0.5,1.5,2.5',
+#     'selection_width' :'0.2,0.2',
+    'l_switch_limber':1.,
+    #can be lower for linear Pk
+    'l_max_lss':6000,
+    'P_k_max_1/Mpc': k_max,
+    'z_max_pk': max(z),
+    'non_diagonal':2}
+
+    if nl==True:
+      lens['non linear']='halofit'
+
+    print(params)
+    params.update(lens)
+    closmo  = Class()
+    closmo.set(params)
+    closmo.compute()
+    cll= closmo.density_cl()
+    ll = cll['ell']
+    cls0=(1./4.)*(ll+2.)*(ll+1.)*(ll)*(ll-1.)*cll['ll'][0]
+    cls0_=(1./4.)*ll**4*cll['ll'][0]
+
+    np.save(bs.filenameCL+'_CLASS'+'.npy',[ll,cls0,cls0_])
 
 
 ##TODO: check everything beneath
