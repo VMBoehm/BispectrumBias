@@ -71,6 +71,8 @@ Jia=[{
 'k_pivot' : 0.05
 }]
 
+
+#simple settings for plot
 JiaNu={
 'omega_cdm': 0.12362,
 'N_ur':0.00641,
@@ -257,19 +259,17 @@ Takada=[{'name':"Takada"},{
 'Omega_k':0.0}]
 
 
-
+#corresponding to pk_ref
 acc_1={
 "k_min_tau0":0.002,
-"k_max_tau0_over_l_max":5.,
+"k_max_tau0_over_l_max":3.,
 "k_step_sub":0.015,
 "k_step_super":0.0001,
 "k_step_super_reduction":0.1,
 'k_per_decade_for_pk': 20,
 'perturb_sampling_stepsize':0.01,
 'tol_perturb_integration':1.e-6,
-'halofit_k_per_decade': 3000.,
-'l_switch_limber_for_nc_local_over_z':1,
-'l_switch_limber_for_nc_los_over_z':1
+'halofit_k_per_decade': 3000.
 }
 
 

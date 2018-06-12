@@ -19,6 +19,7 @@ import matplotlib.pyplot as plt
 from classy import Class
 import copy
 import time
+import pickle
 
 from scipy.interpolate import RectBivariateSpline
 
@@ -183,9 +184,11 @@ class Bispectra():
 
         self.pk_int = RectBivariateSpline(k_,np.log(z_),np.transpose(spec_))
 
+        #pickle.dump(self.pk_int,open(self.path+"Pk/pk_interp_%s.pkl"%self.config,'w'))
 
         #test plots, keep in for now
-        z2=np.linspace(min(z_),20.,len(z_))
+        z2 = np.linspace(min(z_),20.,len(z_))
+
         plt.figure()
         for z in [0.5, 1.,2.,3.,5.,10.]:
           plt.loglog(k_,self.pk_int(k_,np.log(z),grid=False),marker='+',ls='',markersize=3,label='z=%.1f'%z)
