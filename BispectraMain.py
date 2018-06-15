@@ -37,7 +37,6 @@ def get_triangles(ell_type,Lmin,Lmax,lmin,lmax,len_L,len_low_L,len_l,len_ang,pat
     filename=path+"ells/ell_ang_%s_Lmin%d_Lmax%d_lmin%d_lmax%d_lenL%d_lenl%d_lenang%d_%.0e.pkl"%(ell_type,Lmin,Lmax,lmin,lmax,len_L,len_l,len_ang,Delta_theta)
 
     if ell_type=="full":
-
         La      = np.linspace(L_min,100,len_low_L)
         Lb      = np.exp(np.linspace(np.log(100),np.log(L_max),len_L-len(La)+1))[1:]
         L       = np.append(La,Lb)
@@ -48,6 +47,11 @@ def get_triangles(ell_type,Lmin,Lmax,lmin,lmax,len_L,len_low_L,len_l,len_ang,pat
         assert(len(l)==len_l)
 
     elif ell_type=='equilat':
+        assert(len_L>150)
+        len_side=len_L
+        L       = np.exp(np.linspace(np.log(L_min),np.log(L_max),len_side))
+        l       = None
+    elif ell_type=='squeezed':
         assert(len_L>150)
         len_side=len_L
         L       = np.exp(np.linspace(np.log(L_min),np.log(L_max),len_side))
@@ -64,6 +68,8 @@ def get_triangles(ell_type,Lmin,Lmax,lmin,lmax,len_L,len_low_L,len_l,len_ang,pat
         theta   = np.asarray([np.pi/3.]*len_side)
     if ell_type=='folded':
         theta   = np.asarray([0.]*len_side)
+    if ell_type=='squeezed':
+        theta   = np.asarray([2.*np.pi-Delta_theta]*len_side)
 
     print filename
     pickle.dump([L,l,theta],open(filename, 'w'))
@@ -103,6 +109,22 @@ def get_triangles(ell_type,Lmin,Lmax,lmin,lmax,len_L,len_low_L,len_l,len_ang,pat
             ang31+=[-cosmu[i]]
             ang12+=[(l3*l3-l1*l1-l2*l2)/(2.*l1*l2)]
             ang23+=[(l1*l1-l3*l3-l2*l2)/(2.*l3*l2)]
+            angmu+=[theta[i]]
+    elif ell_type=='squeezed':
+        ell_type+='_ang%s'%str(Delta_theta)
+        for i in range(len_side):
+            l1= L[i]
+            l3= L[i]
+            #l2= 0. #l
+            l2 = sqrt(l1*l1+l3*l3-2.*l1*l3*cosmu[i])
+            ell1+=[l1]
+            ell2+=[l2]
+            ell3+=[l3]
+            ang31+=[-cosmu[i]]
+            ang12+=[(l3*l3-l1*l1-l2*l2)/(2.*l1*l2)]
+            ang23+=[(l1*l1-l3*l3-l2*l2)/(2.*l3*l2)]
+#            ang12+=[0.]
+#            ang23+=[0.]
             angmu+=[theta[i]]
     elif ell_type=='full':
         for i in range(len_L):
@@ -183,19 +205,32 @@ def CMB_lens(chicmb,cosmo):
       return (1+z)*x*(chicmb-x)/chicmb*cosmo.cmb_prefac
     return kernel
 
+def simple_bias(z):
+    return 1.+z
+
+def dNdz_LSST(Nbin):
+  return None
+
+def gal_clus(p_z,b,cosmo):
+    def kernel(x,z):
+      return b(z)*p_z(z)*cosmo.dzdchi(z)
+    return kernel
+
 ##all in kappa
 """---- Choose your settings here ---"""
 if __name__ == "__main__":
 
     "---begin settings---"
 
-    tag         = '111retest'
+    tag         = '333'
 
     ell_type    = 'equilat'#'equilat','folded'
 
-    cparams     = C.Takada
+    cparams     = C.Jia
     #post Born (use post Born terms from Pratten & Lewis arXiv:1605.05662)
     post_born   = False
+
+    neutrinos   = True
 
     #fitting formula (use B_delta fitting formula from Gil-Marin et al. arXiv:1111.4477
     B_fit       = True
@@ -203,7 +238,7 @@ if __name__ == "__main__":
     nl          = True
     #number of redshift bins
     bin_num     = 200
-    z_min       = 1e-4
+    z_min       = 1e-4#1e-6 for squeezed
 
     #sampling in L/l and angle
     len_L       = 200
@@ -218,7 +253,7 @@ if __name__ == "__main__":
     l_min       = L_min
     l_max       = 8000.
 
-    Delta_theta = 0.
+    Delta_theta = 1e-3
 
     k_min       = 1e-4#times three for lens planes
     k_max       = 50.
@@ -230,13 +265,19 @@ if __name__ == "__main__":
 
     "---end settings---"
 
-    assert(ell_type in ['folded','full','equilat'])
+    assert(ell_type in ['folded','full','equilat','squeezed'])
+
+
 
     ls, angs, angmus, ellfile= get_triangles(ell_type,L_min,L_max,l_min,l_max,len_L,len_low_L,len_l,len_ang,path,Delta_theta=Delta_theta)
 
     params  = deepcopy(cparams[1])
     acc = deepcopy(C.acc_1)
     params.update(acc)
+
+    if neutrinos:
+      params.update(C.JiaNu)
+      tag+='_massive_nus'
 
     closmo  = Class()
     closmo.set(params)
@@ -263,9 +304,10 @@ if __name__ == "__main__":
     chicmb  = data.chi(z_cmb)
 
     config  = tag+"_"+ell_type+"_"+cparams[0]['name']
+    if ell_type=='squeezed':
+        config  = tag+"_"+ell_type+"_ang"+str(Delta_theta)+"_"+cparams[0]['name']
 
-
-    kernels = (gal_lens((0.,1.3),data, p_z(data)),None,None)
+    kernels = (gal_lens((0.,2.5),data, p_delta(data,z_s=2.5)),None,None)
 
     print "config: %s"%config
 

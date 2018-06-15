@@ -78,7 +78,7 @@ JiaNu={
 'N_ur':0.00641,
 'N_ncdm' : 3,
 'm_ncdm' : str(0.02188)+','+str(0.02352)+','+str(0.05519),
-'P_k_max_1/Mpc': 10.,
+#'P_k_max_1/Mpc': 10.,
 'ncdm_fluid_approximation': 1,
 'deg_ncdm' : '1.0, 1.0, 1.0',
 #'l_max_ncdm' : 100,
