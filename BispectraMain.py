@@ -210,14 +210,18 @@ def simple_bias(z):
 
 
 
-def dNdz_LSST(filename):
-    z, dn = pickle.load(open(filename+'tot_extrapolated.pkl','r'))
-    norm  = simps(dn ,z)
-    interp_dn = interp1d(z, dn/norm, kind='linear')
-    return interp_dn
+def dNdz_LSST(bin_num,dn_filename = 'dndz_LSST_i27_SN5_3y'):
+    bins,big_grid,res   = pickle.load(open(dn_filename+'_extrapolated.pkl','r'))
+    mbin                = bins[bin_num]
+    zbin                = big_grid
+    nbin                = res[bin_num]
+    norm                = simps(nbin,zbin)
+    dndz                = interp1d(zbin, nbin/norm, kind='linear',bounds_error=False,fill_value=0.)
+    print 'using z-bin', mbin
+    return dndz
 
-def gal_clus(p_z,b,cosmo,filename):
-    p_z=p_z(filename)
+def gal_clus(dNdz,b,cosmo,bin_num):
+    p_z=dNdz(bin_num)
     def kernel(x,z):
       return b(z)*p_z(z)*cosmo.dzdchi(z)
     return kernel
@@ -228,18 +232,18 @@ if __name__ == "__main__":
 
     "---begin settings---"
 
-    tag         = '333'
+    tag         = 'kappatest'
 
     ell_type    = 'equilat'#'equilat','folded'
 
-    cparams     = C.Jia
+    cparams     = C.Planck2015_TTlowPlensing
     #post Born (use post Born terms from Pratten & Lewis arXiv:1605.05662)
     post_born   = False
 
-    neutrinos   = True
+    neutrinos   = False
 
     #fitting formula (use B_delta fitting formula from Gil-Marin et al. arXiv:1111.4477
-    B_fit       = True
+    B_fit       = False
     fit_z_max   = 5.
     nl          = True
     #number of redshift bins
@@ -267,7 +271,7 @@ if __name__ == "__main__":
     #k-range2: 0.0105*cparams[1]['h']-49*cparams[1]['h']
 
 
-    filename='dndz_LSST_i27_SN5_3y'
+    LSST_bin    = None#4
 
 
     path        = "/home/nessa/Documents/Projects/LensingBispectrum/CMB-nonlinear/outputs/"
@@ -300,8 +304,6 @@ if __name__ == "__main__":
 
     zmax  = z_cmb-1e-4
     a     = np.linspace(1./(1.+z_min),1./(1.+zmax),bin_num)
-#    za    = np.exp(np.linspace(z_min,np.log(10.),int(7*bin_num/8)))
-#    zb    = np.linspace(10.,zmax,int(bin_num/8+1))[1::]
     z     = 1./a-1.
 
     assert(len(z)==bin_num)
@@ -312,11 +314,16 @@ if __name__ == "__main__":
     chi     = data.chi(z)
     chicmb  = data.chi(z_cmb)
 
+    if LSST_bin is not None:
+        tag = tag+"_"+"LSSTbin"+str(LSST_bin)
+
     config  = tag+"_"+ell_type+"_"+cparams[0]['name']
     if ell_type=='squeezed':
         config  = tag+"_"+ell_type+"_ang"+str(Delta_theta)+"_"+cparams[0]['name']
 
-    kernels = (gal_lens((0.,2.5),data, p_delta(data,z_s=2.5)),None,None)
+
+    #gal_clus(dNdz_LSST,simple_bias,data,LSST_bin)
+    kernels = (CMB_lens(chicmb,data),None,None)
 
     print "config: %s"%config
 
