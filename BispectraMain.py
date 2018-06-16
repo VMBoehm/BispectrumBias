@@ -208,10 +208,16 @@ def CMB_lens(chicmb,cosmo):
 def simple_bias(z):
     return 1.+z
 
-def dNdz_LSST(Nbin):
-  return None
 
-def gal_clus(p_z,b,cosmo):
+
+def dNdz_LSST(filename):
+    z, dn = pickle.load(open(filename+'tot_extrapolated.pkl','r'))
+    norm  = simps(dn ,z)
+    interp_dn = interp1d(z, dn/norm, kind='linear')
+    return interp_dn
+
+def gal_clus(p_z,b,cosmo,filename):
+    p_z=p_z(filename)
     def kernel(x,z):
       return b(z)*p_z(z)*cosmo.dzdchi(z)
     return kernel
@@ -259,6 +265,9 @@ if __name__ == "__main__":
     k_max       = 50.
     #k-range1: 0.0105*cparams[1]['h']-42.9*cparams[1]['h']
     #k-range2: 0.0105*cparams[1]['h']-49*cparams[1]['h']
+
+
+    filename='dndz_LSST_i27_SN5_3y'
 
 
     path        = "/home/nessa/Documents/Projects/LensingBispectrum/CMB-nonlinear/outputs/"
