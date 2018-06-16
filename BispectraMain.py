@@ -232,7 +232,7 @@ if __name__ == "__main__":
 
     "---begin settings---"
 
-    tag         = 'kappatest'
+    tag         = 'LSSTcrosstest'
 
     ell_type    = 'equilat'#'equilat','folded'
 
@@ -271,7 +271,7 @@ if __name__ == "__main__":
     #k-range2: 0.0105*cparams[1]['h']-49*cparams[1]['h']
 
 
-    LSST_bin    = None#4
+    LSST_bin    = 4
 
 
     path        = "/home/nessa/Documents/Projects/LensingBispectrum/CMB-nonlinear/outputs/"
@@ -322,8 +322,7 @@ if __name__ == "__main__":
         config  = tag+"_"+ell_type+"_ang"+str(Delta_theta)+"_"+cparams[0]['name']
 
 
-    #gal_clus(dNdz_LSST,simple_bias,data,LSST_bin)
-    kernels = (CMB_lens(chicmb,data),None,None)
+    kernels = (CMB_lens(chicmb,data),gal_clus(dNdz_LSST,simple_bias,data,LSST_bin),gal_clus(dNdz_LSST,simple_bias,data,LSST_bin))
 
     print "config: %s"%config
 
