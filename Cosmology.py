@@ -78,34 +78,38 @@ JiaNu={
 'N_ur':0.00641,
 'N_ncdm' : 3,
 'm_ncdm' : str(0.02188)+','+str(0.02352)+','+str(0.05519),
-#'P_k_max_1/Mpc': 10.,
 'ncdm_fluid_approximation': 1,
 'deg_ncdm' : '1.0, 1.0, 1.0',
-#'l_max_ncdm' : 100,
-#'tol_ncdm_bg':1e-10,
-#'tol_ncdm_synchronous':1.e-5,
+'k_max_tau0_over_l_max': 3.0,
+'k_min_tau0': 0.002,
+'k_pivot': 0.05,
+'k_step_sub': 0.015,
+'k_step_super': 0.0001,
+'k_step_super_reduction': 0.1,
+'ncdm_fluid_approximation': 1,
+'ncdm_fluid_trigger_tau_over_tau_k':51.,
 }
 
 # getting 9965 difference with this
-{'A_s': 2.1e-09,
- 'N_ncdm': 3,
- 'N_ur': 0.00641,
- 'Omega_k': 0.0,
- 'P_k_max_1/Mpc': 10.0,
- 'h': 0.7,
- 'k_max_tau0_over_l_max': 3.0,
- 'k_min_tau0': 0.002,
- 'k_pivot': 0.05,
- 'k_step_sub': 0.015,
- 'k_step_super': 0.0001,
- 'k_step_super_reduction': 0.1,
- 'm_ncdm': '0.021880597824,0.02352325212,0.055187350056',
- 'n_s': 0.97,
- 'ncdm_fluid_approximation': 1,
- 'ncdm_fluid_trigger_tau_over_tau_k':51.,
- 'omega_b': 0.0223,
- 'omega_cdm': 0.12362,
- 'output': 'tCl mPk'}
+#{'A_s': 2.1e-09,
+# 'N_ncdm': 3,
+# 'N_ur': 0.00641,
+# 'Omega_k': 0.0,
+# 'P_k_max_1/Mpc': 10.0,
+# 'h': 0.7,
+# 'k_max_tau0_over_l_max': 3.0,
+# 'k_min_tau0': 0.002,
+# 'k_pivot': 0.05,
+# 'k_step_sub': 0.015,
+# 'k_step_super': 0.0001,
+# 'k_step_super_reduction': 0.1,
+# 'm_ncdm': '0.021880597824,0.02352325212,0.055187350056',
+# 'n_s': 0.97,
+# 'ncdm_fluid_approximation': 1,
+# 'ncdm_fluid_trigger_tau_over_tau_k':51.,
+# 'omega_b': 0.0223,
+# 'omega_cdm': 0.12362,
+# 'output': 'tCl mPk'}
 
 
 Namikawa=[{
@@ -264,6 +268,7 @@ class CosmoData():
 		self.D_chi            = ius(class_chi,class_D)
 		self.D_z              = ius(class_z,class_D)
 
+
 		self.chi              = ius(class_z,class_chi)
 		self.zchi             = ius(class_chi,class_z)
 
@@ -284,7 +289,7 @@ class CosmoData():
 
 		self.Omega_m0         = (cosmo_b['(.)rho_cdm'][-1]+cosmo_b['(.)rho_b'][-1])/(cosmo_b['(.)rho_crit'][-1])
 
-		self.cmb_prefac       = self.Poisson_factor()
+		self.lens_prefac       = self.Poisson_factor()
 
 
 		print closmo.get_current_derived_parameters(['Neff'])

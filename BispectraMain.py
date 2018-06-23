@@ -188,21 +188,22 @@ def gal_lens(zrange,cosmo, p_chi=None):
 
 
     def kernel(x,z):
-      res=[]
-      for x_, z_ in zip(x,z):
-        if x_>chimax or x_ is 0.:
-          res+=[0.]
-        else:
-          res+=[x_*q(x_)*(1.+z_)]
-      res=np.asarray(res)
-      return res*cosmo.cmb_prefac/norm
+
+      w = np.ones(x.shape)
+      w[x>chimax] =0.
+      w[x==0.] =0.
+      res = w*x*q(x)*(1.+z)
+
+      return res*cosmo.lens_prefac/norm
 
     return kernel
 
 
 def CMB_lens(chicmb,cosmo):
     def kernel(x,z):
-      return (1+z)*x*(chicmb-x)/chicmb*cosmo.cmb_prefac
+      w = np.ones(x.shape)
+      w[x>chicmb]==0.
+      return (1+z)*x*w*(chicmb-x)/chicmb*cosmo.lens_prefac
     return kernel
 
 def simple_bias(z):
