@@ -25,7 +25,7 @@ from scipy.interpolate import RectBivariateSpline
 
 
 class Bispectra():
-    def __init__(self,cosmo,data,l1,l2,l3,z,chi,kernel,config,ang12,ang23,ang31,path,nonlin=False, B_fit=False,k_min=None,k_max=None,fit_z_max=5., ft='SC'):
+    def __init__(self,cosmo,data,l1,l2,l3,z,chi,kernel,config,ang12,ang23,ang31,path,nonlin=False, B_fit=False,k_min=None,k_max=None,fit_z_max=5., ft='SC', verbose=False):
 
 
         self.cosmo      = copy.deepcopy(cosmo)
@@ -77,6 +77,7 @@ class Bispectra():
         self.kmin   = k_min
         self.kmax   = k_max
 
+        self.verbose = verbose
 
 
     def get_kbounds(self):
@@ -218,9 +219,11 @@ class Bispectra():
 
         for ii in np.arange(0,len(self.z)):
             z_i     = self.z[ii]
-            print 'progress in percent ', ii/len(self.z)*100.
-            print 'time in min', (time.time()-beg)/60.
-            print 'z: ', z_i
+
+            if self.verbose:
+              print 'progress in percent ', ii/len(self.z)*100.
+              print 'time in min', (time.time()-beg)/60.
+              print 'z: ', z_i
 
 
             spec1   =[]

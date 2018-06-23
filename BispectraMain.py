@@ -180,7 +180,7 @@ def gal_lens(zrange,cosmo, p_chi=None):
             integrand[x_==0.]=0.
             q+=[simps(integrand,x_)]
     q[-1]=0.
-    q = interp1d(chi_,q,bounds_error=True)
+    q = interp1d(chi_,q,bounds_error=False, fill_value=0.)
 
     chi_ = np.linspace(chimin,chimax,int(chimax-chimin)*10)
     norm = simps(p_chi(data.zchi(chi_)),chi_)
@@ -200,15 +200,17 @@ def gal_lens(zrange,cosmo, p_chi=None):
 
 
 def CMB_lens(chicmb,cosmo):
-    def kernel(x,z):
+    def kernel(x,z,chimax=None):
+      if chimax is None:
+        chimax=chicmb
       w = np.ones(x.shape)
       w[x>chicmb]==0.
-      return (1+z)*x*w*(chicmb-x)/chicmb*cosmo.lens_prefac
+      return (1+z)*x*w*(chimax-x)/chimax*cosmo.lens_prefac
     return kernel
+
 
 def simple_bias(z):
     return 1.+z
-
 
 
 def dNdz_LSST(bin_num,dn_filename = 'dndz_LSST_i27_SN5_3y'):
@@ -221,11 +223,15 @@ def dNdz_LSST(bin_num,dn_filename = 'dndz_LSST_i27_SN5_3y'):
     print 'using z-bin', mbin
     return dndz
 
+
+
 def gal_clus(dNdz,b,cosmo,bin_num):
     p_z=dNdz(bin_num)
     def kernel(x,z):
       return b(z)*p_z(z)*cosmo.dzdchi(z)
     return kernel
+
+
 
 ##all in kappa
 """---- Choose your settings here ---"""
@@ -233,23 +239,23 @@ if __name__ == "__main__":
 
     "---begin settings---"
 
-    tag         = 'LSSTcrosstest'
+    tag         = 'CMBpostBornTest'
 
     ell_type    = 'equilat'#'equilat','folded'
 
-    cparams     = C.Planck2015_TTlowPlensing
+    cparams     = C.Pratten
     #post Born (use post Born terms from Pratten & Lewis arXiv:1605.05662)
-    post_born   = False
+    post_born   = True
 
     neutrinos   = False
 
     #fitting formula (use B_delta fitting formula from Gil-Marin et al. arXiv:1111.4477
-    B_fit       = False
+    B_fit       = True
     fit_z_max   = 5.
     nl          = True
     #number of redshift bins
     bin_num     = 200
-    z_min       = 1e-4#1e-6 for squeezed
+    z_min       = 1e-4#1e-6 for squeezed galaxy lens
 
     #sampling in L/l and angle
     len_L       = 200
@@ -258,29 +264,26 @@ if __name__ == "__main__":
 
     #ell range (for L and l)
     L_min       = 10.
-    L_max       = 3000.
+    L_max       = 10000.
     len_low_L   = 20
 
     l_min       = L_min
     l_max       = 8000.
 
-    Delta_theta = 1e-3
+    Delta_theta = 0.#1e-3
 
-    k_min       = 1e-4#times three for lens planes
+    k_min       = 1e-4
     k_max       = 50.
-    #k-range1: 0.0105*cparams[1]['h']-42.9*cparams[1]['h']
-    #k-range2: 0.0105*cparams[1]['h']-49*cparams[1]['h']
 
+    LSST_bin    = None
 
-    LSST_bin    = 4
-
+    CLASS_Cls   = False
 
     path        = "/home/nessa/Documents/Projects/LensingBispectrum/CMB-nonlinear/outputs/"
 
     "---end settings---"
 
     assert(ell_type in ['folded','full','equilat','squeezed'])
-
 
 
     ls, angs, angmus, ellfile= get_triangles(ell_type,L_min,L_max,l_min,l_max,len_L,len_low_L,len_l,len_ang,path,Delta_theta=Delta_theta)
@@ -290,6 +293,7 @@ if __name__ == "__main__":
     params.update(acc)
 
     if neutrinos:
+      assert(cparams[0]['name'] is "JiaGalaxyLens")
       params.update(C.JiaNu)
       tag+='_massive_nus'
 
@@ -322,8 +326,8 @@ if __name__ == "__main__":
     if ell_type=='squeezed':
         config  = tag+"_"+ell_type+"_ang"+str(Delta_theta)+"_"+cparams[0]['name']
 
-
-    kernels = (CMB_lens(chicmb,data),gal_clus(dNdz_LSST,simple_bias,data,LSST_bin),gal_clus(dNdz_LSST,simple_bias,data,LSST_bin))
+#### kernels ####
+    kernels = (CMB_lens(chicmb,data),None, None)
 
     print "config: %s"%config
 
@@ -335,66 +339,48 @@ if __name__ == "__main__":
     print(bs.filename)
     print(bs.filenameCL)
 
-#    lens={'output':'tCl sCl, mPk',
-#    'selection':'dirac',
-#    'selection_mean': '2.5',
-##     'selection_width' :'0.2,0.2',
-#    'l_switch_limber':1.,
-#    #can be lower for linear Pk
-#    'l_max_lss':6000,
-#    'P_k_max_1/Mpc': k_max,
-#    'z_max_pk': max(z)}#,
-#    #'non_diagonal':2}
-#
-#    if nl==True:
-#      lens['non linear']='halofit'
-#
-#    print(params)
-#    params.update(lens)
-#    closmo  = Class()
-#    closmo.set(params)
-#    closmo.compute()
-#    cll= closmo.density_cl()
-#    ll = cll['ell']
-#    cls0=(1./4.)*(ll+2.)*(ll+1.)*(ll)*(ll-1.)*cll['ll'][0]
-#    cls0_=(1./4.)*ll**4*cll['ll'][0]
-#
-#    np.save(bs.filenameCL+'_CLASS'+'.npy',[ll,cls0,cls0_])
+    if CLASS_Cls:
+      lens={'output':'tCl sCl, mPk',
+      'selection':'dirac',
+      'selection_mean': '2.5',
+  #     'selection_width' :'0.2,0.2',
+      'l_switch_limber':1.,
+      #can be lower for linear Pk
+      'l_max_lss':6000,
+      'P_k_max_1/Mpc': k_max,
+      'z_max_pk': max(z)}#,
+      #'non_diagonal':2}
+
+      if nl==True:
+        lens['non linear']='halofit'
+
+      print(params)
+      params.update(lens)
+      closmo  = Class()
+      closmo.set(params)
+      closmo.compute()
+      cll= closmo.density_cl()
+      ll = cll['ell']
+      cls0=(1./4.)*(ll+2.)*(ll+1.)*(ll)*(ll-1.)*cll['ll'][0]
+      cls0_=(1./4.)*ll**4*cll['ll'][0]
+
+      np.save(bs.filenameCL+'_CLASS'+'.npy',[ll,cls0,cls0_])
 
 
-##TODO: check everything beneath
-#    if post_born:
-#        import CAMB_postborn as postborn
-#        print 'computing post Born corrections...'
-#        assert(kkk or kkg)
-#
-#        config +='_postBorn'
-#
-##        if bs.set_stage==False:
-##            bs.set_up()
-#        k_min   = bs.kmin
-#        k_max   = bs.kmax
-#        PBB     = postborn.PostBorn_Bispec(params,k_min,k_max,kkg,dndz,norm,zmaxint=zmax)
-#
-#
-#        if kkg:
-#            try:
-#                bi_kkg_sum  = np.load(bs.filename+"_post_born_sum.npy")
-#                bi_kkg      = np.load(bs.filename+"_post_born.npy")
-#            except:
-#                prefac      = 16./(3.*data.Omega_m0*data.H_0**2)*LIGHT_SPEED**2
-#                #L is associated wit galaxy leg in bias, in CAMBPostBorn it's L3
-#                bi_kkg      = PBB.bi_born_cross(ell2,ell3,ell1,prefac,sym=bs.sym)
-#                bi_kkg_sum  = bi_kkg+bs.bi_phi
-#                np.save(bs.filename+"_post_born.npy",bi_kkg)
-#                np.save(bs.filename+"_post_born_sum.npy",bi_kkg_sum)
-#
-#            bi_phi = bi_kkg_sum
-#        else:
-#            bi_post  = (PBB.bi_born(ell1,ell2,ell3)*8./(ell1*ell2*ell3)**2)
-#            np.save(bs.filename+"_post_born.npy",bi_post)
-#            np.save(bs.filename+"_post_born_sum.npy",bi_post+bs.bi_phi)
-#            bi_phi = bi_post+bs.bi_phi
+
+    if post_born:
+        import CAMB_postborn as postborn
+        print 'computing post Born corrections...'
+
+        PBB     = postborn.PostBorn_Bispec(params, z_min,zmax,spec_int=bs.pk_int,kernels=kernels,k_min=k_min, k_max=k_max, data=data)
+
+        bi_post = PBB.bi_born(ls[0],ls[1],ls[2])
+
+        np.save(bs.filename+"_post_born.npy",bi_post)
+        np.save(bs.filename+"_post_born_sum.npy",bi_post+bs.bi_phi)
+
+        print(bs.filename+"_post_born.npy")
+
 
 
 

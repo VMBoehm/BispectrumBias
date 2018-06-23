@@ -21,7 +21,7 @@ from Constants import LIGHT_SPEED
 
 class PostBorn_Bispec():
 
-    def __init__(self,cosmo,zmin, zmax, spec_int=None,kernels=(None,None,None), k_min=1e-4,k_max=100, lmax=None, acc=4):
+    def __init__(self,cosmo,zmin, zmax, spec_int=None,kernels=(None,None,None), k_min=1e-4,k_max=100, lmax=None, acc=4,data=None):
 
         self.kmax  = k_max
         self.kmin  = k_min
@@ -30,9 +30,20 @@ class PostBorn_Bispec():
         self.zmax  = zmax
 
         self.cosmo = copy.deepcopy(cosmo)
-        self.data  = C.CosmoData(self.cosmo)
+
+        if data is None:
+          data = C.CosmoData(self.cosmo,z=1./np.linspace((1.+zmin)**(-1),(1.+zmax)**(-1),100)-1.)
+
+        self.data  = data
+
 
         self.kernel1, self.kernel2, self.kernel3 = kernels
+
+        if self.kernel2 is None:
+          self.kernel2 = self.kernel1
+
+        if self.kernel3 is None:
+          self.kernel3 = self.kernel1
 
         if lmax==None:
             lmax=20000
@@ -47,9 +58,9 @@ class PostBorn_Bispec():
         self.lmax   = lmax
 
         if spec_int is None:
-          self.set_spec_int
+          self.get_spec_int()
         else:
-          self.spec_int=spec_int
+          self.pk_int=spec_int
 
         self.chimax = self.data.chi(self.zmax)
         self.chimin = self.data.chi(self.zmin)
@@ -70,7 +81,7 @@ class PostBorn_Bispec():
 
         #Get M_*(l,l') matrix
         chis    = np.linspace(self.chimin,self.chimax,self.nz, dtype=np.float64)
-        zs      = self.data.z_chi(chis)
+        zs      = self.data.zchi(chis)
         dchis   = (chis[2:]-chis[:-2])/2
         chis    = chis[1:-1]
         zs      = zs[1:-1]
@@ -86,7 +97,7 @@ class PostBorn_Bispec():
             #should take care of everything
             w[k>=self.kmax]=0
             w[k<=self.kmin]=0
-            cl = np.dot(dchis*w*self.spec_int(k,np.log(zs),grid=False)*win,cchi)
+            cl = np.dot(dchis*w*self.pk_int(k,np.log(zs),grid=False)*win,cchi)
             Mstar[i,:] = cl
 
         self.Mstarsp = RectBivariateSpline(self.ls,self.ls,Mstar)
@@ -111,10 +122,10 @@ class PostBorn_Bispec():
         print 'sigma8 ', self.closmo.sigma8()
 
 
-        a  = np.linspace((1.+self.zmin)**(-1),(1.+max(self.z))**(-1),100)
+        a  = np.linspace((1.+self.zmin)**(-1),(1.+self.zmax)**(-1),100)
         z_ = 1/a-1.
         #to prevent fuzzy high ks in interpolated power spectrum at high k
-        z2 = np.linspace(min(self.z),max(self.z),100)
+        z2 = np.linspace(self.zmin,self.zmax,100)
         z_ = np.append(z_,z2)
         z_ = np.unique(np.sort(z_))
         a  = (1+z_)**-1
@@ -131,15 +142,13 @@ class PostBorn_Bispec():
 
     def cl_kappa(self, chimax, kernel1, kernel2=None):
 
-        if kernel2 is None:
-          kernel2 = kernel1
 
         chis    = np.linspace(self.chimin,chimax,self.nz, dtype=np.float64)
-        zs      = self.data.z_chi(chis)
+        zs      = self.data.zchi(chis)
         dchis   = (chis[2:]-chis[:-2])/2
         chis    = chis[1:-1]
         zs      = zs[1:-1]
-        win     = kernel1(chis,chimax)*kernel2(chis,chimax)/chis**2
+        win     = kernel1(chis,zs,chimax)*kernel2(chis,zs)/chis**2
         cl      = np.zeros(self.ls.shape)
         w       = np.ones(chis.shape)
 
@@ -156,15 +165,15 @@ class PostBorn_Bispec():
 
     def bi_born(self,l1,l2,l3):
 
-        fac= -2./self.data.lens_prefac #check for cross
+        fac= 2.#check for cross
 
         cos12 = (l3**2-l1**2-l2**2)/2./l1/l2
         cos23 = (l1**2-l2**2-l3**2)/2./l2/l3
         cos31 = (l2**2-l3**2-l1**2)/2./l3/l1
 
-        res = cos31*cos12/l3/l2*l1**2*(self.Mstarsp(l3,l2,grid=False) +self.Mstarsp(l2,l3,grid=False)) + \
-              cos23*cos12/l3/l1*l2**2*(self.Mstarsp(l3,l1,grid=False) +self.Mstarsp(l1,l3,grid=False)) + \
-              cos31*cos23/l1/l2*l3**2*(self.Mstarsp(l1,l2,grid=False) +self.Mstarsp(l2,l1,grid=False))
+        res = cos23/l2/l3*l1*(l3*cos31*self.Mstarsp(l3,l2,grid=False) +l2*cos12*self.Mstarsp(l2,l3,grid=False)) + \
+              cos31/l1/l3*l2*(l3*cos23*self.Mstarsp(l3,l1,grid=False) +l1*cos12*self.Mstarsp(l1,l3,grid=False)) + \
+              cos12/l2/l1*l3*(l1*cos31*self.Mstarsp(l1,l2,grid=False) +l2*cos23*self.Mstarsp(l2,l1,grid=False))
 
         return res*fac
 
@@ -179,10 +188,4 @@ class PostBorn_Bispec():
             cl[i] = bi(l1,l2,l3)
         return cl
 
-
-
-
-
-if __name__ == "__main__":
-    params=deepcopy(C.SimulationCosmology[1])
 
