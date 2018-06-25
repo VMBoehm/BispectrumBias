@@ -239,15 +239,15 @@ if __name__ == "__main__":
 
     "---begin settings---"
 
-    tag         = 'CMBpostBornTest'
+    tag         = '333'
 
     ell_type    = 'equilat'#'equilat','folded'
 
-    cparams     = C.Pratten
+    cparams     = C.Jia
     #post Born (use post Born terms from Pratten & Lewis arXiv:1605.05662)
     post_born   = True
 
-    neutrinos   = False
+    neutrinos   = True
 
     #fitting formula (use B_delta fitting formula from Gil-Marin et al. arXiv:1111.4477
     B_fit       = True
@@ -327,7 +327,7 @@ if __name__ == "__main__":
         config  = tag+"_"+ell_type+"_ang"+str(Delta_theta)+"_"+cparams[0]['name']
 
 #### kernels ####
-    kernels = (CMB_lens(chicmb,data),None, None)
+    kernels = (gal_lens((0.,0.5),data, p_delta(data,z_s=0.5)),None, None)
 
     print "config: %s"%config
 
@@ -372,7 +372,7 @@ if __name__ == "__main__":
         import CAMB_postborn as postborn
         print 'computing post Born corrections...'
 
-        PBB     = postborn.PostBorn_Bispec(params, z_min,zmax,spec_int=bs.pk_int,kernels=kernels,k_min=k_min, k_max=k_max, data=data)
+        PBB     = postborn.PostBorn_Bispec(params, z_min,zmax,spec_int=bs.pk_int,kernels=kernels, simple_kernel = CMB_lens(None,data), k_min=k_min, k_max=k_max, data=data)
 
         bi_post = PBB.bi_born(ls[0],ls[1],ls[2])
 

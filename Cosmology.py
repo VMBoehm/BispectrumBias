@@ -198,7 +198,7 @@ Takada=[{'name':"Takada"},{
 #corresponding to pk_ref
 acc_1={
 "k_min_tau0":0.002,
-"k_max_tau0_over_l_max":3.,
+"k_max_tau0_over_l_max":5.,
 "k_step_sub":0.015,
 "k_step_super":0.0001,
 "k_step_super_reduction":0.1,

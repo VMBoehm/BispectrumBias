@@ -21,7 +21,7 @@ from Constants import LIGHT_SPEED
 
 class PostBorn_Bispec():
 
-    def __init__(self,cosmo,zmin, zmax, spec_int=None,kernels=(None,None,None), k_min=1e-4,k_max=100, lmax=None, acc=4,data=None):
+    def __init__(self,cosmo,zmin, zmax, spec_int=None,kernels=(None,None,None), simple_kernel=None, k_min=1e-4,k_max=100, lmax=None, acc=4,data=None):
 
         self.kmax  = k_max
         self.kmin  = k_min
@@ -44,6 +44,15 @@ class PostBorn_Bispec():
 
         if self.kernel3 is None:
           self.kernel3 = self.kernel1
+
+        if simple_kernel is None:
+          simple_kernel = self.kernel1
+
+        self.simple_kernel = simple_kernel
+
+
+
+
 
         if lmax==None:
             lmax=20000
@@ -72,7 +81,7 @@ class PostBorn_Bispec():
 
 
         for i, chimax in enumerate(chimaxs[1:]):
-            cl = self.cl_kappa(chimax,self.kernel1,self.kernel3)
+            cl = self.cl_kappa(chimax,self.simple_kernel,self.kernel3)
             cls[i+1,:] = cl
         cls[0,:]=0
         cl_chi_chistar = RectBivariateSpline(chimaxs,self.ls,cls)
@@ -140,7 +149,7 @@ class PostBorn_Bispec():
         self.pk_int = RectBivariateSpline(k_,np.log(z_),np.transpose(spec_))
 
 
-    def cl_kappa(self, chimax, kernel1, kernel2=None):
+    def cl_kappa(self, chimax, simple_kernel, kernel2=None):
 
 
         chis    = np.linspace(self.chimin,chimax,self.nz, dtype=np.float64)
@@ -148,7 +157,7 @@ class PostBorn_Bispec():
         dchis   = (chis[2:]-chis[:-2])/2
         chis    = chis[1:-1]
         zs      = zs[1:-1]
-        win     = kernel1(chis,zs,chimax)*kernel2(chis,zs)/chis**2
+        win     = simple_kernel(chis,zs,chimax)*kernel2(chis,zs)/chis**2
         cl      = np.zeros(self.ls.shape)
         w       = np.ones(chis.shape)
 
