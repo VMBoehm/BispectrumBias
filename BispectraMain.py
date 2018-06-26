@@ -239,7 +239,7 @@ if __name__ == "__main__":
 
     "---begin settings---"
 
-    tag         = '333retest'
+    tag         = '333'
 
     ell_type    = 'squeezed'#'equilat','folded'
 
@@ -247,7 +247,7 @@ if __name__ == "__main__":
     #post Born (use post Born terms from Pratten & Lewis arXiv:1605.05662)
     post_born   = True
 
-    neutrinos   = False
+    neutrinos   = True
 
     #fitting formula (use B_delta fitting formula from Gil-Marin et al. arXiv:1111.4477
     B_fit       = True
@@ -255,7 +255,7 @@ if __name__ == "__main__":
     nl          = True
     #number of redshift bins
     bin_num     = 200
-    z_min       = 1e-5 #for squeezed galaxy lens
+    z_min       = 1e-4 #for squeezed galaxy lens
 
     #sampling in L/l and angle
     len_L       = 200
@@ -263,7 +263,7 @@ if __name__ == "__main__":
     len_ang     = len_L
 
     #ell range (for L and l)
-    L_min       = 1.
+    L_min       = 10.
     L_max       = 3000.
     len_low_L   = 20
 
@@ -272,8 +272,8 @@ if __name__ == "__main__":
 
     Delta_theta = 1e-3
 
-    k_min       = 1e-5
-    k_max       = 100.
+    k_min       = 1e-4
+    k_max       = 50.
 
     LSST_bin    = None
 
