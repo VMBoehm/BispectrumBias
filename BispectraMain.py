@@ -239,15 +239,15 @@ if __name__ == "__main__":
 
     "---begin settings---"
 
-    tag         = '333'
+    tag         = '111'
 
-    ell_type    = 'squeezed'#'equilat','folded'
+    ell_type    = 'equilat'#'equilat','folded'
 
     cparams     = C.Jia
     #post Born (use post Born terms from Pratten & Lewis arXiv:1605.05662)
     post_born   = True
 
-    neutrinos   = True
+    neutrinos   = False
 
     #fitting formula (use B_delta fitting formula from Gil-Marin et al. arXiv:1111.4477
     B_fit       = True
@@ -270,7 +270,7 @@ if __name__ == "__main__":
     l_min       = L_min
     l_max       = 8000.
 
-    Delta_theta = 1e-3
+    Delta_theta = 0.#1e-3
 
     k_min       = 1e-4
     k_max       = 50.
@@ -327,7 +327,7 @@ if __name__ == "__main__":
         config  = tag+"_"+ell_type+"_ang"+str(Delta_theta)+"_"+cparams[0]['name']
 
 #### kernels ####
-    kernels = (gal_lens((0.,2.5),data, p_delta(data,z_s=2.5)),None, None)
+    kernels = (gal_lens((0.,0.5),data, p_delta(data,z_s=0.5)),None, None)
 
     print "config: %s"%config
 
