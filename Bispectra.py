@@ -25,7 +25,7 @@ from scipy.interpolate import RectBivariateSpline
 
 
 class Bispectra():
-    def __init__(self,cosmo,data,l1,l2,l3,z,chi,kernel,config,ang12,ang23,ang31,path,nonlin=False, B_fit=False,k_min=None,k_max=None,fit_z_max=5., ft='SC', verbose=False):
+    def __init__(self,cosmo,data,l1,l2,l3,z,chi,kernel,config,ang12,ang23,ang31,path,nonlin=False, B_fit=False,k_min=None,k_max=None,fit_z_max=5., ft='SC', verbose=True):
 
 
         self.cosmo      = copy.deepcopy(cosmo)
@@ -94,6 +94,9 @@ class Bispectra():
 
         self.kmax = min(kmax,self.kmax)
         self.kmin = max(kmin,self.kmin)
+
+        if self.kmax < 10.:
+          self.kmax=50.
 
         print "kmin and kmax used in calculation", self.kmin, self.kmax
 
@@ -238,6 +241,7 @@ class Bispectra():
             k1      = k1[index]
             k2      = k2[index]
             k3      = k3[index]
+
             ang12   = self.ang12[index]
             ang23   = self.ang23[index]
             ang31   = self.ang31[index]
