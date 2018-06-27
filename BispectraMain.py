@@ -239,11 +239,11 @@ if __name__ == "__main__":
 
     "---begin settings---"
 
-    tag         = '111'
+    tag         = 'Pratten_retestcmb'
 
     ell_type    = 'equilat'#'equilat','folded'
 
-    cparams     = C.Jia
+    cparams     = C.Pratten
     #post Born (use post Born terms from Pratten & Lewis arXiv:1605.05662)
     post_born   = True
 
@@ -264,7 +264,7 @@ if __name__ == "__main__":
 
     #ell range (for L and l)
     L_min       = 10.
-    L_max       = 3000.
+    L_max       = 10000.
     len_low_L   = 20
 
     l_min       = L_min
@@ -327,7 +327,7 @@ if __name__ == "__main__":
         config  = tag+"_"+ell_type+"_ang"+str(Delta_theta)+"_"+cparams[0]['name']
 
 #### kernels ####
-    kernels = (gal_lens((0.,0.5),data, p_delta(data,z_s=0.5)),None, None)
+    kernels = (gal_lens((0.,z_cmb),data, p_delta(data,z_s=z_cmb)),None, None)
 
     print "config: %s"%config
 
@@ -375,6 +375,17 @@ if __name__ == "__main__":
         PBB     = postborn.PostBorn_Bispec(params, z_min,zmax,spec_int=bs.pk_int,kernels=kernels, simple_kernel = CMB_lens(None,data), k_min=k_min, k_max=k_max, data=data)
 
         bi_post = PBB.bi_born(ls[0],ls[1],ls[2])
+
+#        #pseudo-code
+#        kernels1=(cmb,cmb,gal)
+#        kernels2=(cmb,gal,cmb)
+#
+#        PBB1     = postborn.PostBorn_Bispec(params, z_min,zmax,spec_int=bs.pk_int,kernels=kernels1, simple_kernel = CMB_lens(None,data), k_min=k_min, k_max=k_max, data=data)
+#        PBB2     = postborn.PostBorn_Bispec(params, z_min,zmax,spec_int=bs.pk_int,kernels=kernels2, simple_kernel = CMB_lens(None,data), k_min=k_min, k_max=k_max, data=data)
+#
+#        bi_post1 = PBB1.bi_born_cross1(ls[0],ls[1],ls[2])
+#        bi_post2 = PBB2.bi_born_cross2(ls[0],ls[1],ls[2])
+#        bi_post  = bi_post1 + bi_post2
 
         np.save(bs.filename+"_post_born.npy",bi_post)
         np.save(bs.filename+"_post_born_sum.npy",bi_post+bs.bi_phi)

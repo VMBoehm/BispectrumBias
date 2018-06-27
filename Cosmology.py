@@ -156,6 +156,20 @@ Planck2015_TTlowPlensing=[{
 'n_s'    : 0.9677,
 'k_pivot' : 0.05}]
 
+
+""" Planck 2015 Cosmological parameters from different combinations of constraints"""
+Planck2015=[{
+'name':"Planck2015"},{
+'h': 0.68,
+'omega_b' : 0.0223,
+'omega_cdm': 0.119,
+'Omega_k' : 0.0,
+#'tau_reio' : 0.066,
+'ln10^{10}A_s':3.062,
+'n_s'    : 0.97,
+'k_pivot' : 0.05}]
+#print derived sigma_8
+
 Planck2015_TTTEEElowPlensing=[{
 'name':"Planck2015_TTTEEElowPlensing"},{
 'h': 0.6751,

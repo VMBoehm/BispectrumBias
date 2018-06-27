@@ -42,6 +42,7 @@ class PostBorn_Bispec():
         if self.kernel2 is None:
           self.kernel2 = self.kernel1
 
+        #goes together with simple_kernel
         if self.kernel3 is None:
           self.kernel3 = self.kernel1
 
@@ -184,6 +185,31 @@ class PostBorn_Bispec():
               cos31/l1/l3*l2*(l3*cos23*self.Mstarsp(l3,l1,grid=False) +l1*cos12*self.Mstarsp(l1,l3,grid=False)) + \
               cos12/l2/l1*l3*(l1*cos31*self.Mstarsp(l1,l2,grid=False) +l2*cos23*self.Mstarsp(l2,l1,grid=False))
 
+        return res*fac
+
+
+    def bi_born_cross1(self,l1,l2,l3):
+
+        fac= 2.#check for cross
+
+        #cos12 = (l3**2-l1**2-l2**2)/2./l1/l2
+        cos23 = (l1**2-l2**2-l3**2)/2./l2/l3
+        cos31 = (l2**2-l3**2-l1**2)/2./l3/l1
+
+        res = cos31*l1/l2*cos23*self.Mstarsp(l2,l3,grid=False) \
+            + cos23*l2/l1*cos31*self.Mstarsp(l1,l3,grid=False)
+        return res*fac
+
+    def bi_born_cross2(self,l1,l2,l3):
+
+        fac= 2.#check for cross
+
+        cos12 = (l3**2-l1**2-l2**2)/2./l1/l2
+        cos23 = (l1**2-l2**2-l3**2)/2./l2/l3
+        cos31 = (l2**2-l3**2-l1**2)/2./l3/l1
+
+        res = cos12*l1/l3*cos23*self.Mstarsp(l3,l2,grid=False) \
+            + cos12*l2/l3*cos31*self.Mstarsp(l3,l1,grid=False)
         return res*fac
 
 
