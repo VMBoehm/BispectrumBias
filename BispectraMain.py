@@ -239,9 +239,9 @@ if __name__ == "__main__":
 
     "---begin settings---"
 
-    tag         = 'CMBpostBornTest_2'
+    tag         = 'Pratten_retest_1b'
 
-    ell_type    = 'folded'#'equilat','folded'
+    ell_type    = 'equilat'#'equilat','folded'
 
     cparams     = C.Pratten
     #post Born (use post Born terms from Pratten & Lewis arXiv:1605.05662)
@@ -302,7 +302,7 @@ if __name__ == "__main__":
     closmo  = Class()
     closmo.set(params)
     closmo.compute()
-    z_cmb   = closmo.get_current_derived_parameters(['z_rec'])['z_rec']
+    z_cmb   = 1.#closmo.get_current_derived_parameters(['z_rec'])['z_rec']
     closmo.struct_cleanup()
     closmo.empty()
     del closmo

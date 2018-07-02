@@ -302,8 +302,6 @@ class Bispectra():
         if len(cos)==0:
           cos=np.array([0])
 
-        print(k1,k2,cos)
-
 
         ak1=splev(k1, self.data.a_nk[i],ext=0)
         ak2=splev(k2, self.data.a_nk[i],ext=0)
