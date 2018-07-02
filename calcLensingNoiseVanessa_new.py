@@ -216,7 +216,7 @@ def get_lensing_noise(ells, cl_len, cl_unlen, nl, fields,lmin,lmax):
 print 'Evaluating reconstruction noise for fields %s, noise level %f muK/arcmin and %s arcmin sq beam'%(str(fields),noiseUkArcmin,thetaFWHMarcmin)
 
 if l_max_T!=l_max_P:
-    lmax='mixedlmax'
+    lmax='mixedlmax_%d_%d'%(l_max_T,l_max_P)
 else:
     lmax=str(l_max_T)
 

@@ -295,6 +295,16 @@ class Bispectra():
 
     def get_F2_kernel_fit(self,k1,k2,cos,i):
 
+        if len(k1)==0:
+          k1=np.array([0])
+        if len(k2)==0:
+          k2=np.array([0])
+        if len(cos)==0:
+          cos=np.array([0])
+
+        print(k1,k2,cos)
+
+
         ak1=splev(k1, self.data.a_nk[i],ext=0)
         ak2=splev(k2, self.data.a_nk[i],ext=0)
 

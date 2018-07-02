@@ -204,7 +204,7 @@ def CMB_lens(chicmb,cosmo):
       if chimax is None:
         chimax=chicmb
       w = np.ones(x.shape)
-      w[x>chicmb]==0.
+      w[x>chimax]==0.
       return (1+z)*x*w*(chimax-x)/chimax*cosmo.lens_prefac
     return kernel
 
@@ -239,15 +239,17 @@ if __name__ == "__main__":
 
     "---begin settings---"
 
-    tag         = 'Pratten_retestcmb'
+    tag         = 'CMBpostBornTest_2'
 
-    ell_type    = 'equilat'#'equilat','folded'
+    ell_type    = 'folded'#'equilat','folded'
 
     cparams     = C.Pratten
     #post Born (use post Born terms from Pratten & Lewis arXiv:1605.05662)
     post_born   = True
 
     neutrinos   = False
+
+    cross_bias  = False
 
     #fitting formula (use B_delta fitting formula from Gil-Marin et al. arXiv:1111.4477
     B_fit       = True
@@ -327,7 +329,7 @@ if __name__ == "__main__":
         config  = tag+"_"+ell_type+"_ang"+str(Delta_theta)+"_"+cparams[0]['name']
 
 #### kernels ####
-    kernels = (gal_lens((0.,z_cmb),data, p_delta(data,z_s=z_cmb)),None, None)
+    kernels = (CMB_lens(chicmb,data),CMB_lens(chicmb,data), CMB_lens(chicmb,data))
 
     print "config: %s"%config
 
@@ -376,16 +378,19 @@ if __name__ == "__main__":
 
         bi_post = PBB.bi_born(ls[0],ls[1],ls[2])
 
-#        #pseudo-code
-#        kernels1=(cmb,cmb,gal)
-#        kernels2=(cmb,gal,cmb)
-#
-#        PBB1     = postborn.PostBorn_Bispec(params, z_min,zmax,spec_int=bs.pk_int,kernels=kernels1, simple_kernel = CMB_lens(None,data), k_min=k_min, k_max=k_max, data=data)
-#        PBB2     = postborn.PostBorn_Bispec(params, z_min,zmax,spec_int=bs.pk_int,kernels=kernels2, simple_kernel = CMB_lens(None,data), k_min=k_min, k_max=k_max, data=data)
-#
-#        bi_post1 = PBB1.bi_born_cross1(ls[0],ls[1],ls[2])
-#        bi_post2 = PBB2.bi_born_cross2(ls[0],ls[1],ls[2])
-#        bi_post  = bi_post1 + bi_post2
+        """ for bias only, general post Born for cross is not yet implemented """
+        if cross_bias:
+            #pseudo-code
+            kernels1=kernels#(gal,cmb,cmb)
+            kernels2=(kernels[1],kernels[0],kernels[2])#(cmb,gal,cmb)
+
+            PBB1     = postborn.PostBorn_Bispec(params, z_min,zmax,spec_int=bs.pk_int,kernels=kernels1, simple_kernel = CMB_lens(None,data), k_min=k_min, k_max=k_max, data=data)
+            PBB2     = postborn.PostBorn_Bispec(params, z_min,zmax,spec_int=bs.pk_int,kernels=kernels2, simple_kernel = CMB_lens(None,data), k_min=k_min, k_max=k_max, data=data)
+
+            bi_post1 = PBB1.bi_born_cross1(ls[0],ls[1],ls[2])#l1 is associated with galaxy leg
+            bi_post2 = PBB2.bi_born_cross2(ls[0],ls[1],ls[2])#l1 is associated with galaxy leg
+            #kernel1 is associated with galaxy leg
+            bi_post  = bi_post1 + bi_post2
 
         np.save(bs.filename+"_post_born.npy",bi_post)
         np.save(bs.filename+"_post_born_sum.npy",bi_post+bs.bi_phi)
