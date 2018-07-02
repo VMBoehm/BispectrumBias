@@ -239,17 +239,17 @@ if __name__ == "__main__":
 
     "---begin settings---"
 
-    tag         = 'Pratten_retest_1b'
+    tag         = 'cross_bias_bin0'
 
-    ell_type    = 'equilat'#'equilat','folded'
+    ell_type    = 'full'#'equilat','folded'
 
-    cparams     = C.Pratten
+    cparams     = C.Planck2015
     #post Born (use post Born terms from Pratten & Lewis arXiv:1605.05662)
     post_born   = True
 
     neutrinos   = False
 
-    cross_bias  = False
+    cross_bias  = True
 
     #fitting formula (use B_delta fitting formula from Gil-Marin et al. arXiv:1111.4477
     B_fit       = True
@@ -265,19 +265,19 @@ if __name__ == "__main__":
     len_ang     = len_L
 
     #ell range (for L and l)
-    L_min       = 10.
-    L_max       = 10000.
+    L_min       = 1.
+    L_max       = 3000.
     len_low_L   = 20
 
     l_min       = L_min
     l_max       = 8000.
 
-    Delta_theta = 0.#1e-3
+    Delta_theta = 1e-4
 
     k_min       = 1e-4
     k_max       = 50.
 
-    LSST_bin    = None
+    LSST_bin    = 0
 
     CLASS_Cls   = False
 
@@ -302,7 +302,7 @@ if __name__ == "__main__":
     closmo  = Class()
     closmo.set(params)
     closmo.compute()
-    z_cmb   = 1.#closmo.get_current_derived_parameters(['z_rec'])['z_rec']
+    z_cmb   = closmo.get_current_derived_parameters(['z_rec'])['z_rec']
     closmo.struct_cleanup()
     closmo.empty()
     del closmo
@@ -329,7 +329,7 @@ if __name__ == "__main__":
         config  = tag+"_"+ell_type+"_ang"+str(Delta_theta)+"_"+cparams[0]['name']
 
 #### kernels ####
-    kernels = (CMB_lens(chicmb,data),CMB_lens(chicmb,data), CMB_lens(chicmb,data))
+    kernels = (gal_clus(dNdz_LSST,simple_bias,data,LSST_bin),CMB_lens(chicmb,data), CMB_lens(chicmb,data))
 
     print "config: %s"%config
 
