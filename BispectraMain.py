@@ -256,11 +256,11 @@ if __name__ == "__main__":
     fit_z_max   = 5.
     nl          = True
     #number of redshift bins
-    bin_num     = 200
+    bin_num     = 100
     z_min       = 1e-4 #for squeezed galaxy lens
 
     #sampling in L/l and angle
-    len_L       = 200
+    len_L       = 100
     len_l       = len_L+20
     len_ang     = len_L
 
