@@ -239,9 +239,9 @@ if __name__ == "__main__":
 
     "---begin settings---"
 
-    tag         = 'cross_bias_bin0'
+    tag         = 'postBorn_test2'
 
-    ell_type    = 'full'#'equilat','folded'
+    ell_type    = 'equilat'#'equilat','folded'
 
     cparams     = C.Planck2015
     #post Born (use post Born terms from Pratten & Lewis arXiv:1605.05662)
@@ -260,7 +260,7 @@ if __name__ == "__main__":
     z_min       = 1e-4 #for squeezed galaxy lens
 
     #sampling in L/l and angle
-    len_L       = 100
+    len_L       = 160
     len_l       = len_L+20
     len_ang     = len_L
 
@@ -277,7 +277,7 @@ if __name__ == "__main__":
     k_min       = 1e-4
     k_max       = 50.
 
-    LSST_bin    = 0
+    LSST_bin    = 4
 
     CLASS_Cls   = False
 
@@ -391,6 +391,8 @@ if __name__ == "__main__":
             bi_post2 = PBB2.bi_born_cross2(ls[0],ls[1],ls[2])#l1 is associated with galaxy leg
             #kernel1 is associated with galaxy leg
             bi_post  = bi_post1 + bi_post2
+            np.save(bs.filename+"_post_born1.npy",bi_post1)
+            np.save(bs.filename+"_post_born2.npy",bi_post2)
 
         np.save(bs.filename+"_post_born.npy",bi_post)
         np.save(bs.filename+"_post_born_sum.npy",bi_post+bs.bi_phi)
