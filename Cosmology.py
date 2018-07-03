@@ -165,7 +165,7 @@ Planck2015=[{
 'omega_cdm': 0.119,
 'Omega_k' : 0.0,
 #'tau_reio' : 0.066,
-'ln10^{10}A_s':3.062,
+'ln10^{10}A_s':3.062,#sigma8:  0.829472350106
 'n_s'    : 0.97,
 'k_pivot' : 0.05}]
 #print derived sigma_8
