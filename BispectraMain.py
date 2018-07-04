@@ -277,7 +277,7 @@ if __name__ == "__main__":
     k_min       = 1e-4
     k_max       = 50.
 
-    LSST_bin    = 0
+    LSST_bin    = 4
 
     CLASS_Cls   = False
 
