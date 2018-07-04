@@ -32,11 +32,11 @@ thetaFWHMarcmin = 1. #beam FWHM
 noiseUkArcmin   = 1. #eval(sys.argv[1]) #Noise level in uKarcmin
 l_max_T         = 3000
 l_max_P         = 5000
-l_min           = 10
+l_min           = 50
 L_max           = 6000 #for l integration
 L_min           = 1
 TCMB            = 2.7255e6
-div             = True #divide EB by factor of 2.5
+div             = False #divide EB by factor of 2.5
 
 if nl:
   nl_='_nl'
