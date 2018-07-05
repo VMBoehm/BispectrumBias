@@ -28,7 +28,8 @@ def bispec_interp(bispec, Ls, ls, mu, plot=True):
         spec=np.reshape(spec,(len(l),len(mu)))
         result2=[]
         for jj in range(len(l)):
-            res=splrep(mu, spec[jj], k=1)
+            Ll  = np.sqrt(L[ii]**2+l[jj]**2-2.*L[ii]*l[jj]*np.cos(mu))
+            res = splrep(mu, spec[jj]/l[jj]**2/Ll**2*4., k=1) #convert kkg to ppg
             result2+=[res]
         result+=[result2]
 
@@ -36,9 +37,10 @@ def bispec_interp(bispec, Ls, ls, mu, plot=True):
           for kk in [20,40,90]:
              plt.figure()
              x=np.linspace(min(mu),max(mu),200)
+             Ll  = np.sqrt(L[ii]**2+l[kk]**2-2.*L[ii]*l[kk]*np.cos(mu))
              spec_i=splev(x ,result[ii][kk], ext=0) #ext=2: error if value outside of interpolation range
              plt.plot(x,spec_i,"ro")
-             plt.plot(mu,spec[kk])
+             plt.plot(mu,spec[kk]/l[kk]**2/Ll**2*4.)
              plt.show()
 
     return result
@@ -49,7 +51,7 @@ filename    = path+'ells/ell_ang_full_Lmin1_Lmax3000_lmin1_lmax8000_lenL120_lenl
 L,l,theta   = pickle.load(open(filename, 'r'))
 print min(theta), max(theta)
 
-tag         = 'cross_bias_gal_LSSTbin0_full_Planck2015_Lmin1-Lmax2999-lmax8000_halofit_SC_post_born_sum'
+tag         = 'cross_bias_gal_LSSTbin4_full_Planck2015_Lmin1-Lmax2999-lmax8000_halofit_SC_post_born_sum'
 loadfile    = path+'bispectra/'+"bispec_%s"%tag
 
 

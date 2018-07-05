@@ -28,10 +28,10 @@ fields      = ['tt','te','ee','eb','bb','tb']
 nl          = True
 out_path    ='/home/nessa/Documents/Projects/LensingBispectrum/CMB-nonlinear/outputs/N0files/'
 
-thetaFWHMarcmin = 1. #beam FWHM
-noiseUkArcmin   = 1. #eval(sys.argv[1]) #Noise level in uKarcmin
+thetaFWHMarcmin = 1.4 #beam FWHM
+noiseUkArcmin   = 6. #eval(sys.argv[1]) #Noise level in uKarcmin
 l_max_T         = 3000
-l_max_P         = 5000
+l_max_P         = 3000
 l_min           = 50
 L_max           = 6000 #for l integration
 L_min           = 1
@@ -271,6 +271,7 @@ print out_path+'%s_N0_%s_%d_%d%d_%s%s.pkl'%(tag,lmax,l_min,10*noiseUkArcmin,10*t
 
 pickle.dump([Ls,NL_KK],open(filename,'w'))
 
+plotpath='/home/nessa/Documents/Projects/LensingBispectrum/CMB-nonlinear/Tests/N0/'
 
 
 #bla=np.loadtxt(path+'noise_vanessa-_bw_10_dT_10.txt',delimiter=' ',comments='#' )
@@ -308,13 +309,13 @@ plt.tick_params(axis='y', which='both', labelleft='off', labelright='on')
 #plt.loglog(Ls, 1./4.*(Ls + 1.)**2.*Ls**2.* MV_noise,'k-',lw=2,label='MV unlen')
 #plt.loglog(Ls, 1./4.*(Ls + 1.)**2.*Ls**2.* MV_noise2,'k--',lw=2,label='MV len')
 ##plt.loglog(Ls, 1./4.*(Ls + 1.)**2.*Ls**2.* N0_lim ,label='lim')
-plt.xlim(2, 2000)
+plt.xlim(2, 4000)
 plt.ylim(3.e-9,5.e-6)
 plt.grid()
 plt.legend(loc='best',ncol=4,frameon=False, columnspacing=0.8)
 plt.xlabel(r'$L$')
 plt.ylabel(r'$N_L^{\kappa\kappa}$')
-plt.savefig('noise_kk'+str(int(noiseUkArcmin*10))+str(int(thetaFWHMarcmin*10))+'_%s.pdf'%tag)
+plt.savefig(plotpath+'noise_kk_%s_%s_%d_%d%d_%s%s.pdf'%(tag,lmax,l_min,10*noiseUkArcmin,10*thetaFWHMarcmin,no_div,nl_))
 #
 #
 #N02015={}
