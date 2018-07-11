@@ -214,13 +214,18 @@ def simple_bias(z):
 
 
 def dNdz_LSST(bin_num,dn_filename = 'dndz_LSST_i27_SN5_3y'):
-    bins,big_grid,res   = pickle.load(open(dn_filename+'_extrapolated.pkl','r'))
-    mbin                = bins[bin_num]
-    zbin                = big_grid
-    nbin                = res[bin_num]
-    norm                = simps(nbin,zbin)
+    if bin_num is "all":
+      zbin, nbin = pickle.load(open(dn_filename+'tot_extrapolated.pkl','r'))
+      norm                = simps(nbin,zbin)
+      mbin                = 'None'
+    else:
+      bins,big_grid,res   = pickle.load(open(dn_filename+'_extrapolated.pkl','r'))
+      mbin                = bins[bin_num]
+      zbin                = big_grid
+      nbin                = res[bin_num]
+      norm                = simps(nbin,zbin)
     dndz                = interp1d(zbin, nbin/norm, kind='linear',bounds_error=False,fill_value=0.)
-    print 'using z-bin', mbin
+    print 'using z-bin', mbin, 'norm', norm
     return dndz
 
 
@@ -239,7 +244,7 @@ if __name__ == "__main__":
 
     "---begin settings---"
 
-    tag         = 'kg'
+    tag         = 'gg'
 
     ell_type    = 'full'#'equilat','folded'
 
@@ -277,7 +282,7 @@ if __name__ == "__main__":
     k_min       = 1e-4
     k_max       = 50.
 
-    LSST_bin    = 4
+    LSST_bin    = 'all'
 
     CLASS_Cls   = False
 
@@ -329,7 +334,7 @@ if __name__ == "__main__":
         config  = tag+"_"+ell_type+"_ang"+str(Delta_theta)+"_"+cparams[0]['name']
 
 #### kernels ####
-    kernels = (CMB_lens(chicmb,data),gal_clus(dNdz_LSST,simple_bias,data,LSST_bin), None)
+    kernels = (gal_clus(dNdz_LSST,simple_bias,data,LSST_bin), None, None)
 
     print "config: %s"%config
 
