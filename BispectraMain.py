@@ -17,18 +17,11 @@ from scipy.integrate import simps
 from scipy.interpolate import interp1d
 import pickle
 from copy import deepcopy
-
-#import matplotlib.pyplot as plt
 import warnings
-
-
-
 
 from classy import Class
 import Cosmology as C
-from N32biasIntegrals import skew
 from Constants import LIGHT_SPEED
-
 from Bispectra import Bispectra
 
 
@@ -156,6 +149,10 @@ def p_z(cosmo,z0=0.5, nbar=100., z_s=None):
 
 
 def p_delta(cosmo,z_s):
+    """
+    cosmo: instance of CosmoData
+    z_s: source redshift
+    """
     def p_chi(z):
       w = np.zeros(len(z))
       w[np.isclose(z,z_s)]=cosmo.dzdchi(z_s)
@@ -167,7 +164,11 @@ def p_delta(cosmo,z_s):
 
 
 def gal_lens(zrange,cosmo, p_chi=None):
-
+    """
+    z-range: tuple (zmin,zmax)
+    cosmo: instance of CosmoData
+    p_chi: source distribution function
+    """
     chimin, chimax = (cosmo.chi(zrange[0]),cosmo.chi(zrange[1]))
     q = []
     chi_ = np.linspace(0,chimax,int(chimax)*20)
@@ -213,6 +214,8 @@ def simple_bias(z):
     return 1.+z
 
 
+""" I'm sending you these files, too, so that you can compare to LSST redshift distributions, if you want. I got them from Marcel Schmittfull, so we might want to acknowledge him"""
+
 def dNdz_LSST(bin_num,dn_filename = 'dndz_LSST_i27_SN5_3y'):
     if bin_num is "all":
       zbin, nbin = pickle.load(open(dn_filename+'tot_extrapolated.pkl','r'))
@@ -244,17 +247,15 @@ if __name__ == "__main__":
 
     "---begin settings---"
 
-    tag         = 'gg'
+    tag         = 'test'
 
-    ell_type    = 'full'#'equilat','folded'
+    ell_type    = 'equilat'#'equilat','folded'
 
     cparams     = C.Planck2015
     #post Born (use post Born terms from Pratten & Lewis arXiv:1605.05662)
     post_born   = True
 
     neutrinos   = False
-
-    cross_bias  = True
 
     #fitting formula (use B_delta fitting formula from Gil-Marin et al. arXiv:1111.4477
     B_fit       = True
@@ -265,7 +266,7 @@ if __name__ == "__main__":
     z_min       = 1e-4 #for squeezed galaxy lens
 
     #sampling in L/l and angle
-    len_L       = 120
+    len_L       = 160
     len_l       = len_L+20
     len_ang     = len_L
 
@@ -282,11 +283,11 @@ if __name__ == "__main__":
     k_min       = 1e-4
     k_max       = 50.
 
-    LSST_bin    = 'all'
+    LSST_bin    = None
 
     CLASS_Cls   = False
 
-    path        = "/home/nessa/Documents/Projects/LensingBispectrum/CMB-nonlinear/outputs/"
+    path        = "./"
 
     "---end settings---"
 
@@ -333,8 +334,9 @@ if __name__ == "__main__":
     if ell_type=='squeezed':
         config  = tag+"_"+ell_type+"_ang"+str(Delta_theta)+"_"+cparams[0]['name']
 
-#### kernels ####
-    kernels = (gal_clus(dNdz_LSST,simple_bias,data,LSST_bin), None, None)
+    """ kernels, only thing you should need to change below the settings section"""
+    kernels = (gal_lens((0.,2.),data, p_chi=p_delta(data,2.)), None, None)
+    """ -------------------------------------------------------------------- """
 
     print "config: %s"%config
 
@@ -346,6 +348,8 @@ if __name__ == "__main__":
     print(bs.filename)
     print(bs.filenameCL)
 
+
+    # if you want to compare your cls with class...
     if CLASS_Cls:
       lens={'output':'tCl sCl, mPk',
       'selection':'dirac',
@@ -374,7 +378,7 @@ if __name__ == "__main__":
       np.save(bs.filenameCL+'_CLASS'+'.npy',[ll,cls0,cls0_])
 
 
-
+    # add post born corrections
     if post_born:
         import CAMB_postborn as postborn
         print 'computing post Born corrections...'
@@ -384,20 +388,6 @@ if __name__ == "__main__":
         bi_post = PBB.bi_born(ls[0],ls[1],ls[2])
 
         """ for bias only, general post Born for cross is not yet implemented """
-        if cross_bias:
-            #pseudo-code
-            kernels1=kernels#(gal,cmb,cmb)
-            kernels2=(kernels[1],kernels[0],kernels[2])#(cmb,gal,cmb)
-
-            PBB1     = postborn.PostBorn_Bispec(params, z_min,zmax,spec_int=bs.pk_int,kernels=kernels1, simple_kernel = CMB_lens(None,data), k_min=k_min, k_max=k_max, data=data)
-            PBB2     = postborn.PostBorn_Bispec(params, z_min,zmax,spec_int=bs.pk_int,kernels=kernels2, simple_kernel = CMB_lens(None,data), k_min=k_min, k_max=k_max, data=data)
-
-            bi_post1 = PBB1.bi_born_cross1(ls[0],ls[1],ls[2])#l1 is associated with galaxy leg
-            bi_post2 = PBB2.bi_born_cross2(ls[0],ls[1],ls[2])#l1 is associated with galaxy leg
-            #kernel1 is associated with galaxy leg
-            bi_post  = bi_post1 + bi_post2
-#            np.save(bs.filename+"_post_born1.npy",bi_post1)
-#            np.save(bs.filename+"_post_born2.npy",bi_post2)
 
         np.save(bs.filename+"_post_born.npy",bi_post)
         np.save(bs.filename+"_post_born_sum.npy",bi_post+bs.bi_phi)

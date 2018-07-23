@@ -95,6 +95,7 @@ class Bispectra():
         self.kmax = min(kmax,self.kmax)
         self.kmin = max(kmin,self.kmin)
 
+        #dont remember why I put this, might be okay to remove
         if self.kmax < 10.:
           self.kmax=50.
 
@@ -159,14 +160,15 @@ class Bispectra():
         else:
             self.bi_delta_func    = self.bispectrum_delta
 
-
+        """you can play around with this sampling, but I think it's good enough for most redshift ranges"""
         a  = np.linspace((1.+min(self.z))**(-1),(1.+max(self.z))**(-1),100)
         z_ = 1/a-1.
         #to prevent fuzzy high ks in interpolated power spectrum at high k
         z2 = np.linspace(min(self.z),max(self.z),100)
-        z_=np.append(z_,z2)
-        z_=np.unique(np.sort(z_))
-        a = (1+z_)**-1
+        z_ = np.append(z_,z2)
+        z_ = np.unique(np.sort(z_))
+        a  = (1+z_)**-1
+        """you can play around with this sampling"""
 
         plt.figure()
         plt.semilogx(z_,a, ls='', marker='+')
@@ -188,9 +190,7 @@ class Bispectra():
 
         self.pk_int = RectBivariateSpline(k_,np.log(z_),np.transpose(spec_))
 
-        #pickle.dump(self.pk_int,open(self.path+"Pk/pk_interp_%s.pkl"%self.config,'w'))
-
-        #test plots, keep in for now
+        """test plots, to verify that interpolation is under control"""
         z2 = np.linspace(min(z_),20.,len(z_))
 
         plt.figure()
@@ -207,7 +207,7 @@ class Bispectra():
         for jj in np.arange(0,len(z_)):
           plt.loglog(k_,spec_[jj],label='z=%.1f'%z_[jj])
         plt.show()
-
+        """test plots, to verify that interpolation is under control"""
 
 
     def compute_bispectrum_delta(self):
@@ -263,10 +263,7 @@ class Bispectra():
 
 
     def bispectrum_delta(self,spectra,k1,k2,k3, ang12, ang23, ang31,ii=None):
-        """ returns the bispectrum of the fractional overdensity today (a=1) i.e. B^0, the lowest order in non-lin PT
-        *spectrum:   power spectrum for all ks in k_aux
-        *k_spec:     array of ks where for which power spectrum is passed
-        *k:          array of k's that form the triangles for which the bispectrum is computed
+        """ returns the bispectrum of the fractional overdensity today (a=1) at SPT tree-level
         """
         B =2.*hf.get_F2_kernel(k1,k2,ang12)*spectra[0]*spectra[1]
         B+=2.*hf.get_F2_kernel(k2,k3,ang23)*spectra[1]*spectra[2]
@@ -276,10 +273,7 @@ class Bispectra():
 
 
     def bispectrum_delta_fit(self,spectra,k1,k2,k3, ang12, ang23, ang31,i):
-        """ returns the bispectrum of the fractional overdensity today (a=1) i.e. B^0, the lowest order in non-lin PT
-        *spectrum:   power spectrum for all ks in k_aux
-        *k_spec:      array of ks where for which power spectrum is passed
-        *k:          array of k's that form the triangles for which the bispectrum is computed
+        """ returns the bispectrum of the fractional overdensity today (a=1) for fitting formula SC or GM
         """
         if self.z[i]<self.fit_z_max:
           B= 2.*self.get_F2_kernel_fit(k1,k2,ang12,i)*spectra[0]*spectra[1]
@@ -322,9 +316,7 @@ class Bispectra():
 
 
     def compute_bispectrum(self, kernel1, kernel2=None, kernel3=None):
-        """ computes the bispectrum of the lensing potential
-        Computes the bispectrum by integration over chi for ever triangle
-        """
+        """ computes the bispectrum by integration over chi for every triangle """
 
         kernel1=kernel1(self.chi,self.z)
 
@@ -350,9 +342,7 @@ class Bispectra():
 
 
     def compute_power_spectrum(self, kernel1, kernel2=None):
-        """ computes the bispectrum of the lensing potential
-        Computes the bispectrum by integration over chi for ever triangle
-        """
+        """ computes the power spectrum by integration over chi """
         L = np.unique(self.l1)
         spec=np.zeros((len(self.z),len(L)))
         for ii in range(len(self.z)):
