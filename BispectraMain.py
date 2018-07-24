@@ -26,6 +26,7 @@ from Bispectra import Bispectra
 
 
 def get_triangles(ell_type,Lmin,Lmax,lmin,lmax,len_L,len_low_L,len_l,len_ang,path,Delta_theta=0):
+    ''' triangles are defined by two sides and enclosed angle, all other angles and length are computed'''
 
     filename=path+"ells/ell_ang_%s_Lmin%d_Lmax%d_lmin%d_lmax%d_lenL%d_lenl%d_lenang%d_%.0e.pkl"%(ell_type,Lmin,Lmax,lmin,lmax,len_L,len_l,len_ang,Delta_theta)
 
@@ -247,18 +248,18 @@ if __name__ == "__main__":
 
     "---begin settings---"
 
-    tag         = 'test'
+    tag         = 'test1'
 
     ell_type    = 'equilat'#'equilat','folded'
 
-    cparams     = C.Planck2015
+    cparams     = C.Jia
     #post Born (use post Born terms from Pratten & Lewis arXiv:1605.05662)
-    post_born   = True
+    post_born   = False
 
     neutrinos   = False
 
     #fitting formula (use B_delta fitting formula from Gil-Marin et al. arXiv:1111.4477
-    B_fit       = True
+    B_fit       = False
     fit_z_max   = 5.
     nl          = True
     #number of redshift bins
@@ -285,9 +286,9 @@ if __name__ == "__main__":
 
     LSST_bin    = None
 
-    CLASS_Cls   = False
+    CLASS_Cls   = True
 
-    path        = "./"
+    path        = "/home/nessa/Documents/Projects/LensingBispectrum/CMB-nonlinear/outputs/"
 
     "---end settings---"
 
@@ -335,7 +336,7 @@ if __name__ == "__main__":
         config  = tag+"_"+ell_type+"_ang"+str(Delta_theta)+"_"+cparams[0]['name']
 
     """ kernels, only thing you should need to change below the settings section"""
-    kernels = (gal_lens((0.,2.),data, p_chi=p_delta(data,2.)), None, None)
+    kernels = (gal_lens((0.,2.5),data, p_chi=p_delta(data,2.5)), None, None)
     """ -------------------------------------------------------------------- """
 
     print "config: %s"%config

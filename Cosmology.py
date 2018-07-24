@@ -72,7 +72,7 @@ Jia=[{
 }]
 
 
-#simple settings for plot
+#could change accuracy here
 JiaNu={
 'omega_cdm': 0.12362,
 'N_ur':0.00641,
@@ -90,7 +90,7 @@ JiaNu={
 'ncdm_fluid_trigger_tau_over_tau_k':51.,
 }
 
-# getting 9965 difference with this
+# getting 0.9965 difference
 #{'A_s': 2.1e-09,
 # 'N_ncdm': 3,
 # 'N_ur': 0.00641,

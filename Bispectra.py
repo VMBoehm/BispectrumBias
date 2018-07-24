@@ -117,6 +117,8 @@ class Bispectra():
 
         self.filenameCL   = self.path+"power_spectra/CL_%s_Lmin%d-Lmax%d_%s"%(self.config,self.L_min,self.L_max,self.cosmo['non linear'])
 
+
+
         np.save(self.filename+'.npy',self.bi_phi)
         np.save(self.filenameCL+'.npy',self.CL)
 
@@ -187,6 +189,9 @@ class Bispectra():
         cosmo_pk = self.closmo.pk
         for jj in xrange(len(z_)):
             spec_[jj] = np.asarray([cosmo_pk(kk,z_[jj]) for kk in k_])
+
+        self.filenamePk   = self.path+"power_spectra/Pk_%s_%s.pkl"%(self.config,self.cosmo['non linear'])
+        pickle.dump([k_,spec_[0]],open(self.filenamePk,'w'))
 
         self.pk_int = RectBivariateSpline(k_,np.log(z_),np.transpose(spec_))
 
