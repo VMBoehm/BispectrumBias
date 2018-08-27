@@ -1,0 +1,8 @@
+This folder contains the CLEFT output files provided by Zvonimir. 
+The main files are ps00_hh_RunPB_46_z%03d.dat that are used by pk_pregen.py
+
+The files ps00_zel_hh_RunPB_46_z%03d.dat is the data for HaloZeldovich model
+used in appendix.
+
+Folder ps_reponse has the same files evaluated by changing the sigma_8
+of the class_output power spectrum by 3, 5%.

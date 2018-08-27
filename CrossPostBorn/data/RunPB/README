@@ -1,0 +1,38 @@
+N-body data from the "PB" simulation suite.
+The cosmology is OmM=0.292, Lambda=0.708, h=0.69, ns=0.965
+omegaB.h^2=0.022 and sig8=0.82.
+Each simulation employed 2048^3 particles in a cubic box
+of side 1380Mpc/h = 2Gpc.
+
+The linear power spectrum used as input (computed from CAMB)
+is given, redshifted to the appropriate redshift, in the
+files pklin_z*.txt.  So pklin_z025.txt is for z=0.25.  There
+are two columns, k [in h/Mpc] and P(k) [in h/Mpc cubed] with
+k spaced evenly in log.
+
+The "galaxy" files are made from an HOD with a step function
+at 1e12Msun/h for the centrals and a linear satellite term
+of the form Poisson[ (Mhalo-1e12)/10**(13.5) ].  This leads to
+a 5% satellite fraction at z=2.  Satellites are placed coincident
+with the centrals, i.e. we just upweight the halo, since we are
+focused on large scales.
+
+The hh/hm_fine_*.txt files contain the data as 
+hh/hm*z*.pkr files, but with shot noise subtracted for
+hh files using the value from nbar.txt. The data is also
+more finely sampled, evenly in log and extrapolated to k=0.01 
+using linear bias (different/corresponding to hh and hm) 
+using matter spectra from class_output. 
+The files contain 2 columns - k[in h/Mpc] and P(k).
+The code to calculate these files in python directory
+python/datafine.py
+
+
+What's in halofit -- which of these halofit files is "wrong"
+and which should we use?  Have these been superceded?
+
+
+What's in class_output?
+
+
+What's in the joint_fit_results* files and how are they made?

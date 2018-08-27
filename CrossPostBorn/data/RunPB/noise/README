@@ -1,0 +1,26 @@
+This folder has the files containing the noise in Cl_kk power spectrum, 
+for different combinations of experimental beam size (bw) and thermal noise level(dT).
+The files contain 
+    Cl_kk from the class output (it must be same in all files)
+    Cl_kk(lensed) from the class output that gives the lensed spectrum (same in all files)
+    column for TT, TE, EB and EE noises, that can be used to calculate minimum variance noise. 
+    Instrumental noise for T, E and B (E=B=2*T)
+
+The files *ext* differ from the other files in that these are newer, go to higher ell and 
+have TE and EE contributions in addition to TT and EB
+*ext2* files have EE and EB going to l = 5000 instead of l = 3000. TT still goes to l = 3000 but Cl (unlenesed) files
+only go to \ell = 4500
+*ext3* files have EE and EB going to l = 5000 instead of l = 3000. TT still goes to l = 3000 but Cl (unlenesed) files 
+only go to \ell = 5500
+*ext4* files have EE and EB going to l = 5000 instead of l = 3000. TT still goes to l = 3000 but Cl (unlenesed) files 
+only go to \ell = 6500
+
+The files are calculated using noise.py in python folder.
+The script to run that file is script_noise.py.
+(One job on debug queue takes ~23 minutes)
+
+The files are used in -
+LensingZ.py to calculate the noise in Cl_kk and Cl_kg
+mcmc_tools.py to calculate the covariance matrix for MCMC chains and all operations dependent on it.
+
+

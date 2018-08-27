@@ -1,0 +1,30 @@
+This folder has table of Cl_kk, Cl_gg, Cl_kg spectra as well as the noise (error for kg) in that spectrum
+
+The files are created from "LensingZ.py" file in python directory. 
+
+The name of the files is of the form
+PS_Survey_redshiftXX_beamXX_tempXX.txt
+where PS is the power spectrum used (runpb or halofit)
+and Survey is the survey used to provide dN/dz.
+
+The files are used as input plotting/kappa_galaxy_plot.py code to create
+three panel figures showing signals and noise/error, which is Fig. 1 in the paper. 
+
+**Ignore the bias evolution in the headers, bias evolution needs to be included in the PS being provided to LensingZ**
+The P(k, z) or P(k, zeff) in the column names refers to whether the power spectrum
+was kept fixed or varying over the redshift slice to calculate Cl_gg and Cl_kg. 
+Var_kg(Halofit) is a type, it should be Vary_kg(Zeff) like Cl_gg and Cl_kg
+
+
+(The subfolder wrong_gg, which may be in your local repo has the incorrect data from 
+the previous time when Cl_gg power spectrum was evaluated using incorrect normalization
+for tracer kernel)
+(The subfolder wrong_cl, which may be in your local repo has the incorrect data from 
+the previous time when noise was calculated incorrectly by nothandling the double integral k-rnages
+appropriately, as later pointed out by Simone)
+(I no longer remember what is in subfolder new, best avoid it). 
+
+The final files are the one in the current folder. 
+runpb & runpb2 differ from the Cl-noise that was used to estimate the error. 
+runpb2 are the final files that used the full minimum variance noise with polarization going to 
+lmax = 5000 and T going to lmax = 3000.
