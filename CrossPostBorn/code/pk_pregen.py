@@ -171,7 +171,7 @@ class PkZCLEFT():
         elif len(par) == 7:
             zz, b1, b2, bs2, bn, alpha, sn = par[0], par[1], par[2], par[3], par[4], par[5], par[6]
         else:
-            print(par)
+            print('Length of par not recognized. par = ', par)
 
         if self.z0 is None:
             ##Interpolate with scipy interpolate
@@ -391,7 +391,6 @@ class PkZCLEFT():
         If z0 is fixed, order in which params are attributed is b1, b2, bs2, bn, alpha, sn
 
         """
-        print(par)
         if self.z0 is not None: par = [self.z0] + par
         if len(par) == 1:
             zz, b1, b2, bs2, bn, alpha, sn = par[0], 0, 0, 0, 0, 0, 0
