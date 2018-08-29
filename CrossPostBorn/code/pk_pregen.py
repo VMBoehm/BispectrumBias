@@ -175,13 +175,13 @@ class PkZCLEFT():
 
         if self.z0 is None:
             ##Interpolate with scipy interpolate
-            #rsp = np.zeros_like(self.intpf, dtype = 'f8')
-            #for foo in range(rsp.shape[1]):
-            #    rsp[:, foo] = np.array([f(zz) for f in self.intpf[:, foo]])
+            rsp = np.zeros_like(self.intpf, dtype = 'f8')
+            for foo in range(rsp.shape[1]):
+                rsp[:, foo] = np.array([f(zz) for f in self.intpf[:, foo]])
 
             ##Interpolate with lagrange method
-            wts = tools.lagrange2(zz, self.iz)
-            rsp = (wts.reshape(-1, 1, 1)*self.rsp).sum(axis = 0)
+            #wts = tools.lagrange2(zz, self.iz)
+            #rsp = (wts.reshape(-1, 1, 1)*self.rsp).sum(axis = 0)
         else:
             rsp = self.rspz0
         p = [b1, b2, bs2, bn, alpha, sn, auto]
@@ -214,7 +214,7 @@ class PkZCLEFT():
 
 
     def _interp(self):
-        '''Create interpolation function array to go from sigma8 to reponse array'''
+        '''Create interpolation function array to go from redshifts to reponse array'''
         intpf = []
         rsp = self.rsp
         for foo in range(rsp.shape[1]):
@@ -354,108 +354,109 @@ class Pk8CLEFT(PkCLEFT):
 
 
 
-class PkZCLEFT():
-    #### DOES NOT SUPPORT bn ####
-    '''Given a pat h (db), redshift(z), varioation(vary) and CLEFT fit params(p)
-    interpolate over sigma8 assuming the fodler tree-
-    db/ps_response/response_files
-    where the template of file names is -
-    basefile = "db/ps00_hh_RunPB_46_z%03d.dat"%iz
-    responsefile = "db/ps_response/ps00_hh_RunPB_46_z%03d_rp+%02d.dat"%(iz, vary)
-    '''
-    
-
-    def __init__(self, zmin, zmax, z0=None, db="../../data/data-generated/pkcleft/"):
-        '''
-        '''
-        self.db = db
-        self.zmin, self.zmax = zmin, zmax
-        self.iz = np.arange(np.round(zmin, 1), np.round(zmax, 1), 0.1)
-        self.fn = self.db +"pkcleft_zz%03d.dat"
-
-        self.rsp = self._readfiles()
-        self.intpf = self._interp()
-
-        self.z0 = z0
-        if self.z0 is not None:
-            print('Fixed at z = %0.2f'%self.z0)
-            wts = tools.lagrange2(self.z0, self.iz)
-            self.rspz0 = (wts.reshape(-1, 1, 1)*self.rsp).sum(axis = 0)
-        
-        #self.pardict = {'zz':-1, 'b1':0, 'b2':1, 'bs2':2, 'bn':3, 'alpha':4, 'sn':5}
-
-    def __call__(self, par ,auto=False):
-        """  
-        Returns P(k) given the parameters.
-        Order in which params are attributed is zz, b1, b2, bs2, bn, alpha, sn
-        If z0 is fixed, order in which params are attributed is b1, b2, bs2, bn, alpha, sn
-
-        """
-        if self.z0 is not None: par = [self.z0] + par
-        if len(par) == 1:
-            zz, b1, b2, bs2, bn, alpha, sn = par[0], 0, 0, 0, 0, 0, 0
-        elif len(par) == 2:
-            zz, b1, b2, bs2, bn, alpha, sn = par[0], par[1], 0, 0, 0, 0, 0
-        elif len(par) == 3:
-            zz, b1, b2, bs2, bn, alpha, sn = par[0], par[1], par[2], 0, 0, 0, 0
-        elif len(par) == 4:
-            zz, b1, b2, bs2, bn, alpha, sn = par[0], par[1], par[2], par[3], 0, 0, 0
-        elif len(par) == 5:
-            zz, b1, b2, bs2, bn, alpha, sn = par[0], par[1], par[2], par[3], par[4], 0, 0
-        elif len(par) == 6:
-            zz, b1, b2, bs2, bn, alpha, sn = par[0], par[1], par[2], par[3], par[4], par[5], 0
-        elif len(par) == 7:
-            zz, b1, b2, bs2, bn, alpha, sn = par[0], par[1], par[2], par[3], par[4], par[5], par[6]
-        else:
-            print(par)
-
-        if self.z0 is None:
-            ##Interpolate with scipy interpolate
-            #rsp = np.zeros_like(self.intpf, dtype = 'f8')
-            #for foo in range(rsp.shape[1]):
-            #    rsp[:, foo] = np.array([f(zz) for f in self.intpf[:, foo]])
-
-            ##Interpolate with lagrange method
-            wts = tools.lagrange2(zz, self.iz)
-            rsp = (wts.reshape(-1, 1, 1)*self.rsp).sum(axis = 0)
-        else:
-            rsp = self.rspz0
-        p = [b1, b2, bs2, bn, alpha, sn, auto]
-        return cleft(rsp, *p)
-
-    def pars(self, z=None, b1=0, b2=0, bs2=0, bn=0, alpha=0, sn=0):
-        if z is None:
-            if self.z0 is not None:
-                return [b1, b2, bs2, bn, alpha, sn]
-            else:
-                print('\n### Need to assign redshift since it is not fixed ###\n')
-                sys.exit()
-        else:
-            if self.z0 is not None:
-                print('\n### Redshift is already assigned cannot override ###\n')
-                sys.exit()
-            else: return [z, b1, b2, bs2, bn, alpha, sn]
-
-    
-    def pkz(self, z):
-        return PkZCLEFT(zmin=self.zmin, zmax=self.zmax, z0=z, db=self.db)
-        
-    
-    def _readfiles(self):
-        '''Read the response files'''
-        files = []
-        for i in self.iz:
-            files.append(np.loadtxt(self.fn%(i*100)))
-        return np.array(files)
-
-
-    def _interp(self):
-        '''Create interpolation function array to go from sigma8 to reponse array'''
-        intpf = []
-        rsp = self.rsp
-        for foo in range(rsp.shape[1]):
-            for boo in range(rsp.shape[2]):
-                intpf.append(interpolate(self.iz, rsp[:, foo, boo]))
-        
-        intpf = (np.array(intpf)).reshape(rsp[0].shape)
-        return intpf
+##class PkZCLEFT():
+##    #### DOES NOT SUPPORT bn ####
+##    '''Given a pat h (db), redshift(z), varioation(vary) and CLEFT fit params(p)
+##    interpolate over sigma8 assuming the fodler tree-
+##    db/ps_response/response_files
+##    where the template of file names is -
+##    basefile = "db/ps00_hh_RunPB_46_z%03d.dat"%iz
+##    responsefile = "db/ps_response/ps00_hh_RunPB_46_z%03d_rp+%02d.dat"%(iz, vary)
+##    '''
+##    
+##
+##    def __init__(self, zmin, zmax, z0=None, db="../../data/data-generated/pkcleft/"):
+##        '''
+##        '''
+##        self.db = db
+##        self.zmin, self.zmax = zmin, zmax
+##        self.iz = np.arange(np.round(zmin, 1), np.round(zmax, 1), 0.1)
+##        self.fn = self.db +"pkcleft_zz%03d.dat"
+##
+##        self.rsp = self._readfiles()
+##        print('Calling interpolatng function')
+##        self.intpf = self._interp()
+##
+##        self.z0 = z0
+##        if self.z0 is not None:
+##            print('Fixed at z = %0.2f'%self.z0)
+##            wts = tools.lagrange2(self.z0, self.iz)
+##            self.rspz0 = (wts.reshape(-1, 1, 1)*self.rsp).sum(axis = 0)
+##        
+##        #self.pardict = {'zz':-1, 'b1':0, 'b2':1, 'bs2':2, 'bn':3, 'alpha':4, 'sn':5}
+##
+##    def __call__(self, par ,auto=False):
+##        """  
+##        Returns P(k) given the parameters.
+##        Order in which params are attributed is zz, b1, b2, bs2, bn, alpha, sn
+##        If z0 is fixed, order in which params are attributed is b1, b2, bs2, bn, alpha, sn
+##
+##        """
+##        if self.z0 is not None: par = [self.z0] + par
+##        if len(par) == 1:
+##            zz, b1, b2, bs2, bn, alpha, sn = par[0], 0, 0, 0, 0, 0, 0
+##        elif len(par) == 2:
+##            zz, b1, b2, bs2, bn, alpha, sn = par[0], par[1], 0, 0, 0, 0, 0
+##        elif len(par) == 3:
+##            zz, b1, b2, bs2, bn, alpha, sn = par[0], par[1], par[2], 0, 0, 0, 0
+##        elif len(par) == 4:
+##            zz, b1, b2, bs2, bn, alpha, sn = par[0], par[1], par[2], par[3], 0, 0, 0
+##        elif len(par) == 5:
+##            zz, b1, b2, bs2, bn, alpha, sn = par[0], par[1], par[2], par[3], par[4], 0, 0
+##        elif len(par) == 6:
+##            zz, b1, b2, bs2, bn, alpha, sn = par[0], par[1], par[2], par[3], par[4], par[5], 0
+##        elif len(par) == 7:
+##            zz, b1, b2, bs2, bn, alpha, sn = par[0], par[1], par[2], par[3], par[4], par[5], par[6]
+##        else:
+##            print(par)
+##
+##        if self.z0 is None:
+##            ##Interpolate with scipy interpolate
+##            #rsp = np.zeros_like(self.intpf, dtype = 'f8')
+##            #for foo in range(rsp.shape[1]):
+##            #    rsp[:, foo] = np.array([f(zz) for f in self.intpf[:, foo]])
+##
+##            ##Interpolate with lagrange method
+##            wts = tools.lagrange2(zz, self.iz)
+##            rsp = (wts.reshape(-1, 1, 1)*self.rsp).sum(axis = 0)
+##        else:
+##            rsp = self.rspz0
+##        p = [b1, b2, bs2, bn, alpha, sn, auto]
+##        return cleft(rsp, *p)
+##
+##    def pars(self, z=None, b1=0, b2=0, bs2=0, bn=0, alpha=0, sn=0):
+##        if z is None:
+##            if self.z0 is not None:
+##                return [b1, b2, bs2, bn, alpha, sn]
+##            else:
+##                print('\n### Need to assign redshift since it is not fixed ###\n')
+##                sys.exit()
+##        else:
+##            if self.z0 is not None:
+##                print('\n### Redshift is already assigned cannot override ###\n')
+##                sys.exit()
+##            else: return [z, b1, b2, bs2, bn, alpha, sn]
+##
+##    
+##    def pkz(self, z):
+##        return PkZCLEFT(zmin=self.zmin, zmax=self.zmax, z0=z, db=self.db)
+##        
+##    
+##    def _readfiles(self):
+##        '''Read the response files'''
+##        files = []
+##        for i in self.iz:
+##            files.append(np.loadtxt(self.fn%(i*100)))
+##        return np.array(files)
+##
+##
+##    def _interp(self):
+##        '''Create interpolation function array to go from sigma8 to reponse array'''
+##        intpf = []
+##        rsp = self.rsp
+##        for foo in range(rsp.shape[1]):
+##            for boo in range(rsp.shape[2]):
+##                intpf.append(interpolate(self.iz, rsp[:, foo, boo]))
+##        
+##        intpf = (np.array(intpf)).reshape(rsp[0].shape)
+##        return intpf
