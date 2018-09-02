@@ -301,10 +301,11 @@ class CosmoData():
 
 		self.H                = ius(class_z,class_H)
 
-		self.Omega_m0         = (cosmo_b['(.)rho_cdm'][-1]+cosmo_b['(.)rho_b'][-1])/(cosmo_b['(.)rho_crit'][-1])
+		self.Omega_m0         = 1.-cosmo_b['(.)rho_lambda'][-1]/(cosmo_b['(.)rho_crit'][-1])
 
 		self.lens_prefac       = self.Poisson_factor()
 
+		self.closmo       = closmo
 
 		print closmo.get_current_derived_parameters(['Neff'])
 		print closmo.get_current_derived_parameters(['h'])

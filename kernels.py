@@ -33,9 +33,9 @@ def p_delta(cosmo,z_s):
 
 
 
-def gal_lens(zrange,cosmo, data, p_chi=None):
+def gal_lens(zrange,data, p_chi=None):
 
-    chimin, chimax = (cosmo.chi(zrange[0]),cosmo.chi(zrange[1]))
+    chimin, chimax = (data.chi(zrange[0]),data.chi(zrange[1]))
     q = []
     chi_ = np.linspace(0,chimax,int(chimax)*20)
 
@@ -54,14 +54,14 @@ def gal_lens(zrange,cosmo, data, p_chi=None):
     print(norm)
 
 
-    def kernel(x,z):
+    def kernel(x,z,dummy=None):
 
       w = np.ones(x.shape)
       w[x>chimax] =0.
       w[x==0.] =0.
       res = w*x*q(x)*(1.+z)
 
-      return res*cosmo.lens_prefac/norm
+      return res*data.lens_prefac/norm
 
     return kernel
 
@@ -99,6 +99,7 @@ def dNdz_LSST(bin_num,dn_filename = 'dndz_LSST_i27_SN5_3y'):
 
 def gal_clus(dNdz,b,cosmo,bin_num):
     p_z=dNdz(bin_num)
-    def kernel(x,z):
+    def kernel(x,z,chimax=None):
       return b(z)*p_z(z)*cosmo.dzdchi(z)
+
     return kernel
