@@ -231,7 +231,7 @@ cl_phiphi=cl_len['pp'][ll]
 
 thetaFWHM = thetaFWHMarcmin*np.pi/(180.*60.) #beam FWHM in rad
 deltaT = noiseUkArcmin/thetaFWHMarcmin # noise variance per unit area
-nlI_T = (deltaT*thetaFWHM)**2*np.exp(ll*(ll+1.)*thetaFWHM**2/(8.*np.log(2.)))/TCMB**2 #beam deconvolved noise relative to CMB temperature
+nlI_T   = (deltaT*thetaFWHM)**2*np.exp(ll*(ll+1.)*thetaFWHM**2/(8.*np.log(2.)))/TCMB**2 #beam deconvolved noise relative to CMB temperature
 nlI_pol = (deltaT*thetaFWHM)**2*np.exp(ll*(ll+1.)*thetaFWHM**2/(8.*np.log(2.)))/TCMB**2
 
 nlI_T[0:l_min]=1e20
@@ -244,8 +244,8 @@ nlI_pol[l_max_P::]=1e20
 nl['tt']  = nlI_T
 nl['te']  = np.zeros(len(nlI_T))
 nl['tb']  = np.zeros(len(nlI_T))
-nl['ee']  = 2*nlI_pol
-nl['bb']  = 2*nlI_pol
+nl['ee']  = 2.*nlI_pol
+nl['bb']  = 2.*nlI_pol
 nl['eb']  = np.zeros(len(nlI_T))
 
 

@@ -386,8 +386,8 @@ if __name__ == "__main__":
         """ for bias only, general post Born for cross is not yet implemented """
         if cross_bias:
             #pseudo-code
-            kernels1=kernels#(gal,cmb,cmb)
-            kernels2=(kernels[1],kernels[0],kernels[2])#(cmb,gal,cmb)
+            kernels2= kernels#(gal,cmb,cmb)
+            kernels1=(kernels[1],kernels[0],kernels[2])#(cmb,gal,cmb)
 
             PBB1     = postborn.PostBorn_Bispec(params, z_min,zmax,spec_int=bs.pk_int,kernels=kernels1, simple_kernel = CMB_lens(None,data), k_min=k_min, k_max=k_max, data=data)
             PBB2     = postborn.PostBorn_Bispec(params, z_min,zmax,spec_int=bs.pk_int,kernels=kernels2, simple_kernel = CMB_lens(None,data), k_min=k_min, k_max=k_max, data=data)
