@@ -244,7 +244,7 @@ if __name__ == "__main__":
 
     "---begin settings---"
 
-    tag         = 'kkg_new'
+    tag         = 'kkg_wrong'
 
     ell_type    = 'folded'#'equilat','folded'
 
