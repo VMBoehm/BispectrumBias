@@ -244,9 +244,9 @@ if __name__ == "__main__":
 
     "---begin settings---"
 
-    tag         = 'kkg_wrong'
+    tag         = 'kkg_new'
 
-    ell_type    = 'folded'#'equilat','folded'
+    ell_type    = 'full'#'equilat','folded'
 
     cparams     = C.Planck2015
     #post Born (use post Born terms from Pratten & Lewis arXiv:1605.05662)
@@ -265,7 +265,7 @@ if __name__ == "__main__":
     z_min       = 1e-4 #for squeezed galaxy lens
 
     #sampling in L/l and angle
-    len_L       = 200 #120
+    len_L       = 120 #120
     len_l       = len_L+20
     len_ang     = len_L
 
@@ -282,7 +282,7 @@ if __name__ == "__main__":
     k_min       = 1e-4
     k_max       = 50.
 
-    LSST_bin    = 0
+    LSST_bin    = 1
 
     CLASS_Cls   = False
 
