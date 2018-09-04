@@ -244,9 +244,9 @@ if __name__ == "__main__":
 
     "---begin settings---"
 
-    tag         = 'test_new'
+    tag         = 'kkg_new'
 
-    ell_type    = 'equilat'#'equilat','folded'
+    ell_type    = 'folded'#'equilat','folded'
 
     cparams     = C.Planck2015
     #post Born (use post Born terms from Pratten & Lewis arXiv:1605.05662)
@@ -396,8 +396,8 @@ if __name__ == "__main__":
             bi_post2 = PBB2.bi_born_cross2(ls[0],ls[1],ls[2])#l1 is associated with galaxy leg
             #kernel1 is associated with galaxy leg
             bi_post  = bi_post1 + bi_post2
-#            np.save(bs.filename+"_post_born1.npy",bi_post1)
-#            np.save(bs.filename+"_post_born2.npy",bi_post2)
+            np.save(bs.filename+"_post_born1.npy",bi_post1)
+            np.save(bs.filename+"_post_born2.npy",bi_post2)
 
         np.save(bs.filename+"_post_born.npy",bi_post)
         np.save(bs.filename+"_post_born_sum.npy",bi_post+bs.bi_phi)
