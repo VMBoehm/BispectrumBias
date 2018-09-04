@@ -246,6 +246,8 @@ if __name__ == "__main__":
 
     tag         = 'kkg_new'
 
+    lensing     = False
+
     ell_type    = 'full'#'equilat','folded'
 
     cparams     = C.Planck2015
@@ -282,7 +284,7 @@ if __name__ == "__main__":
     k_min       = 1e-4
     k_max       = 50.
 
-    LSST_bin    = 1
+    LSST_bin    = 'all'
 
     CLASS_Cls   = False
 
@@ -394,6 +396,8 @@ if __name__ == "__main__":
 
             bi_post1 = PBB1.bi_born_cross1(ls[0],ls[1],ls[2])#l1 is associated with galaxy leg
             bi_post2 = PBB2.bi_born_cross2(ls[0],ls[1],ls[2])#l1 is associated with galaxy leg
+            if lensing:
+              bi_post3 = PBB1.bi_born_cross3(ls[0],ls[1],ls[2])
             #kernel1 is associated with galaxy leg
             bi_post  = bi_post1 + bi_post2
             np.save(bs.filename+"_post_born1.npy",bi_post1)

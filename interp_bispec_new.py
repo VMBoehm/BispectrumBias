@@ -51,7 +51,7 @@ filename    = path+'ells/ell_ang_full_Lmin1_Lmax3000_lmin1_lmax8000_lenL120_lenl
 L,l,theta   = pickle.load(open(filename, 'r'))
 print min(theta), max(theta)
 
-tag         = 'cross_bias_gal_LSSTbinall_full_Planck2015_Lmin1-Lmax2999-lmax8000_halofit_SC_post_born_sum'
+tag         = 'kkg_new_LSSTbinall_full_Planck2015_Lmin1-Lmax2999-lmax8000_halofit_SC_post_born_sum'
 loadfile    = path+'bispectra/'+"bispec_%s"%tag
 
 

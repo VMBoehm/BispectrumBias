@@ -214,6 +214,19 @@ class PostBorn_Bispec():
             + cos12*l3/l1*cos23*self.Mstarsp(l2,l1,grid=False)
         return res*fac
 
+    def bi_born_cross3(self,l1,l2,l3):
+        # only for correlation with galaxies
+
+        fac= 2.#check for cross
+
+        cos12 = (l3**2-l1**2-l2**2)/2./l1/l2
+        cos23 = (l1**2-l2**2-l3**2)/2./l2/l3
+        cos31 = (l2**2-l3**2-l1**2)/2./l3/l1
+
+        res = cos23*l1/l3*cos12*self.Mstarsp(l2,l3,grid=False) \
+            + cos23*l1/l2*cos31*self.Mstarsp(l3,l2,grid=False)
+        return res*fac
+
 
     def cl_bi_born(self, lset,sym):
 
