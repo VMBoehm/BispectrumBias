@@ -244,19 +244,19 @@ if __name__ == "__main__":
 
     "---begin settings---"
 
-    tag         = 'lll_delta25'
+    tag         = 'lkk_delta10'
 
     lensing     = True
 
-    ell_type    = 'equilat'#'equilat','folded'
+    ell_type    = 'full'#'equilat','folded'
 
     cparams     = C.Planck2015
     #post Born (use post Born terms from Pratten & Lewis arXiv:1605.05662)
-    post_born   = False
+    post_born   = True
 
     neutrinos   = False
 
-    cross_bias  = False
+    cross_bias  = True
 
     #fitting formula (use B_delta fitting formula from Gil-Marin et al. arXiv:1111.4477
     B_fit       = True
@@ -267,7 +267,7 @@ if __name__ == "__main__":
     z_min       = 1e-4 #for squeezed galaxy lens
 
     #sampling in L/l and angle
-    len_L       = 200 #120
+    len_L       = 120 #120
     len_l       = len_L+20
     len_ang     = len_L
 
@@ -286,7 +286,7 @@ if __name__ == "__main__":
 
     LSST_bin    = None#'all'
 
-    CLASS_Cls   = True
+    CLASS_Cls   = False
 
     path        = "/home/nessa/Documents/Projects/LensingBispectrum/CMB-nonlinear/outputs/"
 
@@ -336,7 +336,7 @@ if __name__ == "__main__":
         config  = tag+"_"+ell_type+"_ang"+str(Delta_theta)+"_"+cparams[0]['name']
 
 #### kernels ####
-    kernels = (gal_lens((0.,2.5),data, p_chi=p_delta(data,2.5)),gal_lens((0.,2.5),data, p_chi=p_delta(data,2.5)), gal_lens((0.,2.5),data, p_chi=p_delta(data,2.5)))
+    kernels = (gal_lens((0.,1.0),data, p_chi=p_delta(data,1.0)),CMB_lens(chicmb,data), CMB_lens(chicmb,data))
 
     print "config: %s"%config
 
