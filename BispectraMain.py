@@ -166,9 +166,9 @@ def p_delta(cosmo,z_s):
 
 
 
-def gal_lens(zrange,cosmo, p_chi=None):
+def gal_lens(zrange,data, p_chi=None):
 
-    chimin, chimax = (cosmo.chi(zrange[0]),cosmo.chi(zrange[1]))
+    chimin, chimax = (data.chi(zrange[0]),data.chi(zrange[1]))
     q = []
     chi_ = np.linspace(0,chimax,int(chimax)*20)
 
@@ -194,7 +194,7 @@ def gal_lens(zrange,cosmo, p_chi=None):
       w[x==0.] =0.
       res = w*x*q(x)*(1.+z)
 
-      return res*cosmo.lens_prefac/norm
+      return res*data.lens_prefac/norm
 
     return kernel
 
@@ -244,19 +244,19 @@ if __name__ == "__main__":
 
     "---begin settings---"
 
-    tag         = 'kkg_new'
+    tag         = 'lll_delta25'
 
-    lensing     = False
+    lensing     = True
 
-    ell_type    = 'full'#'equilat','folded'
+    ell_type    = 'equilat'#'equilat','folded'
 
     cparams     = C.Planck2015
     #post Born (use post Born terms from Pratten & Lewis arXiv:1605.05662)
-    post_born   = True
+    post_born   = False
 
     neutrinos   = False
 
-    cross_bias  = True
+    cross_bias  = False
 
     #fitting formula (use B_delta fitting formula from Gil-Marin et al. arXiv:1111.4477
     B_fit       = True
@@ -267,7 +267,7 @@ if __name__ == "__main__":
     z_min       = 1e-4 #for squeezed galaxy lens
 
     #sampling in L/l and angle
-    len_L       = 120 #120
+    len_L       = 200 #120
     len_l       = len_L+20
     len_ang     = len_L
 
@@ -284,9 +284,9 @@ if __name__ == "__main__":
     k_min       = 1e-4
     k_max       = 50.
 
-    LSST_bin    = 'all'
+    LSST_bin    = None#'all'
 
-    CLASS_Cls   = False
+    CLASS_Cls   = True
 
     path        = "/home/nessa/Documents/Projects/LensingBispectrum/CMB-nonlinear/outputs/"
 
@@ -336,7 +336,7 @@ if __name__ == "__main__":
         config  = tag+"_"+ell_type+"_ang"+str(Delta_theta)+"_"+cparams[0]['name']
 
 #### kernels ####
-    kernels = (gal_clus(dNdz_LSST,simple_bias,data,LSST_bin),CMB_lens(chicmb,data), CMB_lens(chicmb,data))
+    kernels = (gal_lens((0.,2.5),data, p_chi=p_delta(data,2.5)),gal_lens((0.,2.5),data, p_chi=p_delta(data,2.5)), gal_lens((0.,2.5),data, p_chi=p_delta(data,2.5)))
 
     print "config: %s"%config
 
@@ -398,8 +398,11 @@ if __name__ == "__main__":
             bi_post2 = PBB2.bi_born_cross2(ls[0],ls[1],ls[2])#l1 is associated with galaxy leg
             if lensing:
               bi_post3 = PBB1.bi_born_cross3(ls[0],ls[1],ls[2])
+              np.save(bs.filename+"_post_born3.npy",bi_post3)
+            else:
+              bi_post3=0.
             #kernel1 is associated with galaxy leg
-            bi_post  = bi_post1 + bi_post2
+            bi_post  = bi_post1 + bi_post2 + bi_post3
             np.save(bs.filename+"_post_born1.npy",bi_post1)
             np.save(bs.filename+"_post_born2.npy",bi_post2)
 
