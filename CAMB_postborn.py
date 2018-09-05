@@ -56,7 +56,7 @@ class PostBorn_Bispec():
 
 
         if lmax==None:
-            lmax=20000
+            lmax=30000
         if acc==None:
             acc=4 #(change back to 1 unless you need high accuracy - much faster)
 
