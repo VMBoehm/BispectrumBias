@@ -247,7 +247,7 @@ if __name__ == "__main__":
 
     "---begin settings---"
 
-    tag         = 'kkk_SN'
+    tag         = 'kgk_SN'
 
     lensing     = True
 
@@ -255,7 +255,7 @@ if __name__ == "__main__":
 
     cparams     = C.Planck2015
     #post Born (use post Born terms from Pratten & Lewis arXiv:1605.05662)
-    post_born   = True
+    post_born   = False
 
     neutrinos   = False
 
@@ -287,7 +287,7 @@ if __name__ == "__main__":
     k_min       = 1e-4
     k_max       = 50.
 
-    LSST_bin    = None#'all'
+    LSST_bin    = 'all'
 
     CLASS_Cls   = False
 
@@ -339,7 +339,7 @@ if __name__ == "__main__":
         config  = tag+"_"+ell_type+"_ang"+str(Delta_theta)+"_"+cparams[0]['name']
 
 #### kernels ####
-    kernels = (CMB_lens(chicmb,data),CMB_lens(chicmb,data), CMB_lens(chicmb,data))
+    kernels = (CMB_lens(chicmb,data),gal_clus(dNdz_LSST,simple_bias,data,LSST_bin), CMB_lens(chicmb,data))
 
     print "config: %s"%config
 
