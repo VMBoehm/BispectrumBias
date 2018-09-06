@@ -42,8 +42,11 @@ def get_triangles(ell_type,Lmin,Lmax,lmin,lmax,len_L,len_low_L,len_l,len_ang,pat
         L       = np.append(La,Lb)
 
         la      = L
-        lb      = np.exp(np.linspace(np.log(L_max),np.log(l_max),21))[1:]
-        l       = np.append(la,lb)
+        if L_max<l_max:
+          lb      = np.exp(np.linspace(np.log(L_max),np.log(l_max),21))[1:]
+          l       = np.append(la,lb)
+        else:
+          l       = la
         assert(len(l)==len_l)
 
     elif ell_type=='equilat':
@@ -244,7 +247,7 @@ if __name__ == "__main__":
 
     "---begin settings---"
 
-    tag         = 'lkk_delta10'
+    tag         = 'kkk_SN'
 
     lensing     = True
 
@@ -256,7 +259,7 @@ if __name__ == "__main__":
 
     neutrinos   = False
 
-    cross_bias  = True
+    cross_bias  = False
 
     #fitting formula (use B_delta fitting formula from Gil-Marin et al. arXiv:1111.4477
     B_fit       = True
@@ -267,13 +270,13 @@ if __name__ == "__main__":
     z_min       = 1e-4 #for squeezed galaxy lens
 
     #sampling in L/l and angle
-    len_L       = 120 #120
-    len_l       = len_L+20
+    len_L       = 160 #120
+    len_l       = len_L#+20
     len_ang     = len_L
 
     #ell range (for L and l)
     L_min       = 1.
-    L_max       = 3000.
+    L_max       = 8000.
     len_low_L   = 20
 
     l_min       = L_min
@@ -336,7 +339,7 @@ if __name__ == "__main__":
         config  = tag+"_"+ell_type+"_ang"+str(Delta_theta)+"_"+cparams[0]['name']
 
 #### kernels ####
-    kernels = (gal_lens((0.,1.0),data, p_chi=p_delta(data,1.0)),CMB_lens(chicmb,data), CMB_lens(chicmb,data))
+    kernels = (CMB_lens(chicmb,data),CMB_lens(chicmb,data), CMB_lens(chicmb,data))
 
     print "config: %s"%config
 

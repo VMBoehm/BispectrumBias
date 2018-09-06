@@ -28,8 +28,8 @@ fields      = ['tt','te','ee','eb','bb','tb']
 nl          = True
 out_path    ='/home/nessa/Documents/Projects/LensingBispectrum/CMB-nonlinear/outputs/N0files/'
 
-thetaFWHMarcmin = 1. #beam FWHM
-noiseUkArcmin   = 1. #eval(sys.argv[1]) #Noise level in uKarcmin
+thetaFWHMarcmin = 3. #beam FWHM
+noiseUkArcmin   = 0.5 #eval(sys.argv[1]) #Noise level in uKarcmin
 l_max_T         = 3000
 l_max_P         = 5000
 l_min           = 50
