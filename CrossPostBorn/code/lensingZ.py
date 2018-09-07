@@ -29,7 +29,7 @@ class CosmoPar:
 class LensingZ:
     '''Do lensing cross spectra for a delta function source'''
 
-    def __init__(self, z, dndz, cosmo = None, l = None, dz = 0.5, nz = 100, ggnorm = None):
+    def __init__(self, z, dndz, cosmo = None, l = None, dz = 0.5, nz = 100, ggnorm = None, purelimber=False):
 
         #Parameters which are not set
         if cosmo is None:
@@ -46,8 +46,8 @@ class LensingZ:
         self.l = l
         self.dz = dz
         self.nz = nz
+        self.purelimber=purelimber
         self._clsetup()
-
 
     def _clsetup(self):
         
@@ -75,16 +75,35 @@ class LensingZ:
         #Integration Mesh
         self.kmesh = numpy.zeros([self.l.size, self.zs.size])
         for foo in range(self.zs.size):
-            self.kmesh[:, foo] = self.cosmo.k_xil(self.l + 0.5, z = self.zs[foo])            
+            if self.purelimber:
+                self.kmesh[:, foo] = self.cosmo.k_xil(self.l, z = self.zs[foo])            
+            else:
+                self.kmesh[:, foo] = self.cosmo.k_xil(self.l + 0.5, z = self.zs[foo])            
 
 
 
     def kernel_cmb(self, z = None, a = None, zcmb=1100):
-        '''Calculates the kernel_l above'''
+        '''Calculates the kernel for cmb
+        return 3H0^2*M/2/a/c^2*(xi-xi_s)*xi/xi_s
+        '''
         z, a = self.cosmo._za(z, a)
         xistar = self.cosmo.xia(z=zcmb) #redshift of cmb
         xi = self.cosmo.xia(z)
         f = xi*(xistar - xi)/(xistar)
+        fac = 3*self.cosmo.H0**2*self.cosmo.M/(2*a) 
+        
+        return f*fac* self.cosmo.cin**2.#cin is 1/c due to H0 (km/s)
+
+
+
+    def kernel_cmb_noxi(self, z = None, a = None, zcmb=1100):
+        '''Calculates the kernel for cmb
+        return 3H0^2*M/2/a/c^2*(xi-xi_s)/xi_s
+        '''
+        z, a = self.cosmo._za(z, a)
+        xistar = self.cosmo.xia(z=zcmb) #redshift of cmb
+        xi = self.cosmo.xia(z)
+        f = (xistar - xi)/(xistar) #Not multiply by xi and so do not divide by xi^2 for weights
         fac = 3*self.cosmo.H0**2*self.cosmo.M/(2*a) 
         
         return f*fac* self.cosmo.cin**2.#cin is 1/c due to H0 (km/s)
@@ -169,35 +188,39 @@ class LensingZ:
         return numpy.trapz(cl, self.xis, axis = -1)
 
 
-    def clkg31d(self, ikphz, ikpmz):
         
-        def internal(z):
-            zz = np.linspace(0, z, 100)
-            kercmb = self.kernel_cmb(z = zz, zcmb = z)
-            xis = self.cosmo.xia(z = zz)
-            #kerwt = kercmb / xis**2 
-            #since xis goes to 0, cancel this xis with xis in integral
-            #and use kercmb instead of kercmbwt
-            pval = np.zeros([self.l.size, zz.size])
+    def clkg31d_internal(self, z, ipkmz):
+        zz = np.linspace(0, z, 100)
+        kercmb = self.kernel_cmb_noxi(z = zz, zcmb = z)
+        xis = self.cosmo.xia(z = zz)
+        #kerwt = kercmb / xis**2 
+        #since xis goes to 0, cancel this xis with xis in integral
+        #and use kercmb instead of kercmbwt
+        pval = np.zeros([self.l.size, zz.size])
 
-            for foo in range(zz.size):
+        for foo in range(zz.size):
+            if self.purelimber:
+                kk = self.cosmo.k_xil(self.l, z = zz[foo])            
+            else:
                 kk = self.cosmo.k_xil(self.l + 0.5, z = zz[foo])            
-                kp = ikpmz(z = zz[foo])
-                pval[:, foo] = numpy.interp(kk, *kp)
+            kp = ipkmz(z = zz[foo])
+            pval[:, foo] = numpy.interp(kk, *kp)
+
+        #return np.trapz(pval*kerwt**2*xis**2, xis, axis=-1)
+        return np.trapz(pval*kercmb**2, xis, axis=-1)
+
+    def clkg31d(self, ipkhz, ipkmz):
             
-            #return np.trapz(pval*kerwt**2*xis**2, xis, axis=-1)
-            return np.trapz(pval*kercmb**2, xis, axis=-1)
-            
-        intfac = np.array([internal(z) for z in self.zs])
+        intfac = np.array([self.clkg31d_internal(z, ipkmz) for z in self.zs])
         intfac = np.trapz(intfac/self.l, self.l, axis=-1)
 
         pval = numpy.zeros_like(self.kmesh)
         for foo in range(self.nz):
-            kp = ikphz(z = self.zs[foo])
+            kp = ipkhz(z = self.zs[foo])
             pval[:, foo] = numpy.interp(self.kmesh[:, foo], *kp)
 
         integrand = pval*self.kgwts*intfac
-        return np.trapz(integrand, self.xis, axis=-1)
+        return np.trapz(integrand, self.xis, axis=-1) *self.l**2/2/np.pi
         #return integrand, intfac
 
             
