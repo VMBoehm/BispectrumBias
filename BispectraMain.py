@@ -247,7 +247,7 @@ if __name__ == "__main__":
 
     "---begin settings---"
 
-    tag         = 'kgk_SN'
+    tag         = 'll_delta25'
 
     lensing     = True
 
@@ -270,7 +270,7 @@ if __name__ == "__main__":
     z_min       = 1e-4 #for squeezed galaxy lens
 
     #sampling in L/l and angle
-    len_L       = 160 #120
+    len_L       = 120 #120
     len_l       = len_L#+20
     len_ang     = len_L
 
@@ -287,7 +287,7 @@ if __name__ == "__main__":
     k_min       = 1e-4
     k_max       = 50.
 
-    LSST_bin    = 'all'
+    LSST_bin    = None#'all'
 
     CLASS_Cls   = False
 
@@ -339,7 +339,7 @@ if __name__ == "__main__":
         config  = tag+"_"+ell_type+"_ang"+str(Delta_theta)+"_"+cparams[0]['name']
 
 #### kernels ####
-    kernels = (CMB_lens(chicmb,data),gal_clus(dNdz_LSST,simple_bias,data,LSST_bin), CMB_lens(chicmb,data))
+    kernels = (gal_lens((0.,2.5),data, p_chi=p_delta(data,2.5)),gal_lens((0.,2.5),data, p_chi=p_delta(data,2.5)), gal_lens((0.,2.5),data, p_chi=p_delta(data,2.5)))
 
     print "config: %s"%config
 
