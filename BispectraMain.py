@@ -178,14 +178,14 @@ def gal_lens(zrange,cosmo, p_chi=None):
         x_= np.linspace(max(chimin,cchi),chimax,max(int(chimax-max(chimin,cchi))*10,200))
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
-            integrand = p_chi(data.zchi(x_))*(x_-cchi)/x_
+            integrand = p_chi(cosmo.zchi(x_))*(x_-cchi)/x_
             integrand[x_==0.]=0.
             q+=[simps(integrand,x_)]
     q[-1]=0.
     q = interp1d(chi_,q,bounds_error=False, fill_value=0.)
 
     chi_ = np.linspace(chimin,chimax,int(chimax-chimin)*10)
-    norm = simps(p_chi(data.zchi(chi_)),chi_)
+    norm = simps(p_chi(cosmo.zchi(chi_)),chi_)
     print(norm)
 
 
@@ -248,7 +248,7 @@ if __name__ == "__main__":
 
     "---begin settings---"
 
-    tag         = 'test1'
+    tag         = 'Cltest17'
 
     ell_type    = 'equilat'#'equilat','folded'
 
@@ -261,13 +261,13 @@ if __name__ == "__main__":
     #fitting formula (use B_delta fitting formula from Gil-Marin et al. arXiv:1111.4477
     B_fit       = False
     fit_z_max   = 5.
-    nl          = True
+    nl          = False
     #number of redshift bins
     bin_num     = 100
     z_min       = 1e-4 #for squeezed galaxy lens
 
     #sampling in L/l and angle
-    len_L       = 160
+    len_L       = 200
     len_l       = len_L+20
     len_ang     = len_L
 
@@ -336,7 +336,7 @@ if __name__ == "__main__":
         config  = tag+"_"+ell_type+"_ang"+str(Delta_theta)+"_"+cparams[0]['name']
 
     """ kernels, only thing you should need to change below the settings section"""
-    kernels = (gal_lens((0.,2.5),data, p_chi=p_delta(data,2.5)), None, None)
+    kernels = (gal_lens((0.,1.),data, p_chi=p_delta(data,1.)), None, None)
     """ -------------------------------------------------------------------- """
 
     print "config: %s"%config
@@ -346,7 +346,7 @@ if __name__ == "__main__":
     bs()
 
     print(ellfile)
-    print(bs.filename)
+    #print(bs.filename)
     print(bs.filenameCL)
 
 
@@ -354,14 +354,18 @@ if __name__ == "__main__":
     if CLASS_Cls:
       lens={'output':'tCl sCl, mPk',
       'selection':'dirac',
-      'selection_mean': '2.5',
+      'selection_mean': '1.',
+     # 'perturb_sampling_stepsize':0.001
   #     'selection_width' :'0.2,0.2',
-      'l_switch_limber':1.,
       #can be lower for linear Pk
-      'l_max_lss':6000,
-      'P_k_max_1/Mpc': k_max,
-      'z_max_pk': max(z)}#,
-      #'non_diagonal':2}
+#      'l_switch_limber_for_nc_local_over_z': 300,
+#      'l_switch_limber_for_nc_los_over_z': 300.,
+#      'l_switch_limber':300.,
+      'l_max_lss':10000,
+      #'P_k_max_1/Mpc': k_max,
+      #'z_max_pk': max(z)}#,
+      #'non_diagonal':2
+      }
 
       if nl==True:
         lens['non linear']='halofit'
@@ -373,7 +377,7 @@ if __name__ == "__main__":
       closmo.compute()
       cll= closmo.density_cl()
       ll = cll['ell']
-      cls0=(1./4.)*(ll+2.)*(ll+1.)*(ll)*(ll-1.)*cll['ll'][0]
+      cls0=(1./4.)*np.sqrt(ll*(ll+1.))**4*cll['ll'][0] #more correct at small ll
       cls0_=(1./4.)*ll**4*cll['ll'][0]
 
       np.save(bs.filenameCL+'_CLASS'+'.npy',[ll,cls0,cls0_])

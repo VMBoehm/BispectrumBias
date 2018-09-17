@@ -217,9 +217,15 @@ acc_1={
 "k_step_super":0.0001,
 "k_step_super_reduction":0.1,
 'k_per_decade_for_pk': 20,
-'perturb_sampling_stepsize':0.01,
+#'perturb_sampling_stepsize':0.01,
 'tol_perturb_integration':1.e-6,
-'halofit_k_per_decade': 3000.
+'halofit_k_per_decade': 3000.,
+'tol_background_integration' : 1.e-3,
+'tol_thermo_integration' : 1.e-3,
+'l_logstep' : 1.04,
+'l_linstep' : 10,
+'perturb_sampling_stepsize' :0.04,
+'delta_l_max' : 100
 }
 
 

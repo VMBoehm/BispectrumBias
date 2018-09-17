@@ -109,17 +109,17 @@ class Bispectra():
         """
 
         self.set_up()
-        self.compute_bispectrum_delta()
-        self.compute_bispectrum(kernel1=self.kernel[0], kernel2=self.kernel[1], kernel3=self.kernel[2])
+        #self.compute_bispectrum_delta()
+        #self.compute_bispectrum(kernel1=self.kernel[0], kernel2=self.kernel[1], kernel3=self.kernel[2])
         self.compute_power_spectrum(kernel1=self.kernel[0],kernel2=self.kernel[1])
 
-        self.filename   = self.path+"bispectra/bispec_%s_Lmin%d-Lmax%d-lmax%d_%s_%s"%(self.config,self.L_min,self.L_max,self.l_max,self.cosmo['non linear'],self.ft)
+        #self.filename   = self.path+"bispectra/bispec_%s_Lmin%d-Lmax%d-lmax%d_%s_%s"%(self.config,self.L_min,self.L_max,self.l_max,self.cosmo['non linear'],self.ft)
 
         self.filenameCL   = self.path+"power_spectra/CL_%s_Lmin%d-Lmax%d_%s"%(self.config,self.L_min,self.L_max,self.cosmo['non linear'])
 
 
 
-        np.save(self.filename+'.npy',self.bi_phi)
+        #np.save(self.filename+'.npy',self.bi_phi)
         np.save(self.filenameCL+'.npy',self.CL)
 
 
@@ -163,10 +163,10 @@ class Bispectra():
             self.bi_delta_func    = self.bispectrum_delta
 
         """you can play around with this sampling, but I think it's good enough for most redshift ranges"""
-        a  = np.linspace((1.+min(self.z))**(-1),(1.+max(self.z))**(-1),100)
+        a  = np.linspace((1.+min(self.z))**(-1),(1.+max(self.z))**(-1),200)
         z_ = 1/a-1.
         #to prevent fuzzy high ks in interpolated power spectrum at high k
-        z2 = np.linspace(min(self.z),max(self.z),100)
+        z2 = np.linspace(min(self.z),max(self.z),200)
         z_ = np.append(z_,z2)
         z_ = np.unique(np.sort(z_))
         a  = (1+z_)**-1
@@ -184,7 +184,7 @@ class Bispectra():
         plt.ylabel('$\chi$')
         plt.show()
 
-        k_ = np.exp(np.linspace(np.log(self.kmin),np.log(self.kmax),80))
+        k_ = np.exp(np.linspace(np.log(self.kmin),np.log(self.kmax),120))
         spec_=np.zeros((len(z_),len(k_)))
         cosmo_pk = self.closmo.pk
         for jj in xrange(len(z_)):
@@ -351,7 +351,7 @@ class Bispectra():
         L = np.unique(self.l1)
         spec=np.zeros((len(self.z),len(L)))
         for ii in range(len(self.z)):
-            k = (np.unique(self.l1))/self.chi[ii]
+            k = (np.unique(self.l1)+0.5)/self.chi[ii]
             index = np.all([k>=self.kmin,k<=self.kmax],axis=0)
 
             spec[ii][index]=self.pk_int(k[index],np.log(self.z[ii]),grid=False)
