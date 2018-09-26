@@ -352,10 +352,9 @@ class Bispectra():
         spec=np.zeros((len(self.z),len(L)))
         for ii in range(len(self.z)):
             k = (np.unique(self.l1)+0.5)/self.chi[ii]
-            index = np.all([k>=self.kmin,k<=self.kmax],axis=0)
-
+            index = ((k>self.kmin) & (k<self.kmax))
             spec[ii][index]=self.pk_int(k[index],np.log(self.z[ii]),grid=False)
-
+            print(len(k[index]))
         spec = np.transpose(spec)
 
 

@@ -248,11 +248,11 @@ if __name__ == "__main__":
 
     "---begin settings---"
 
-    tag         = 'Cltest17'
+    tag         = 'Clkk_tests_kmin21e-3'
 
     ell_type    = 'equilat'#'equilat','folded'
 
-    cparams     = C.Jia
+    cparams     = C.SimulationCosmology
     #post Born (use post Born terms from Pratten & Lewis arXiv:1605.05662)
     post_born   = False
 
@@ -261,19 +261,19 @@ if __name__ == "__main__":
     #fitting formula (use B_delta fitting formula from Gil-Marin et al. arXiv:1111.4477
     B_fit       = False
     fit_z_max   = 5.
-    nl          = False
+    nl          = True
     #number of redshift bins
-    bin_num     = 100
+    bin_num     = 400
     z_min       = 1e-4 #for squeezed galaxy lens
 
     #sampling in L/l and angle
-    len_L       = 200
+    len_L       = 400
     len_l       = len_L+20
     len_ang     = len_L
 
     #ell range (for L and l)
     L_min       = 1.
-    L_max       = 3000.
+    L_max       = 4000.
     len_low_L   = 20
 
     l_min       = L_min
@@ -281,12 +281,12 @@ if __name__ == "__main__":
 
     Delta_theta = 1e-4
 
-    k_min       = 1e-4
-    k_max       = 50.
+    k_min       = 21e-3
+    k_max       = 200.
 
     LSST_bin    = None
 
-    CLASS_Cls   = True
+    CLASS_Cls   = False
 
     path        = "/home/nessa/Documents/Projects/LensingBispectrum/CMB-nonlinear/outputs/"
 
@@ -336,7 +336,7 @@ if __name__ == "__main__":
         config  = tag+"_"+ell_type+"_ang"+str(Delta_theta)+"_"+cparams[0]['name']
 
     """ kernels, only thing you should need to change below the settings section"""
-    kernels = (gal_lens((0.,1.),data, p_chi=p_delta(data,1.)), None, None)
+    kernels = (CMB_lens(chicmb,data), None, None)
     """ -------------------------------------------------------------------- """
 
     print "config: %s"%config
