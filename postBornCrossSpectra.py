@@ -32,7 +32,7 @@ class PostBorn_Bispec():
         self.cosmo = copy.deepcopy(data.class_params)
 
         if data is None:
-          data     = C.CosmoData(self.cosmo,z=1./np.linspace((1.+zmin)**(-1),(1.+zmax)**(-1),100)-1.)
+          data     = C.CosmoData(self.cosmo,z=1./np.linspace((1.+zmin)**(-1),(1.+zmax)**(-1),100*acc)-1.)
         self.data  = data
 
         # lensing and galaxy kernels
@@ -89,7 +89,7 @@ class PostBorn_Bispec():
             w[:]=1
             w[k>=self.kmax]=0
             w[k<=self.kmin]=0
-            cl = np.dot(dchis*w*self.pk_mh_1st(k,np.log(zs),grid=False)*win,cchi)
+            cl = np.dot(dchis*w*self.pk_mm(k,np.log(zs),grid=False)*win,cchi)
             Mstar[i,:] = cl
 
         self.Mstarsp = RectBivariateSpline(self.ls,self.ls,Mstar)
@@ -194,7 +194,7 @@ class PostBorn_Bispec():
             w[:]=1
             w[k<self.kmin]=0.
             w[k>=self.kmax]=0.
-            cl[i] = np.dot(dchis,w*self.pk_mh_2nd(k,np.log(zs),grid=False)*win)
+            cl[i] = np.dot(dchis,w*self.pk_mm(k,np.log(zs),grid=False)*win)
 
         self.CL_born=cl
 
