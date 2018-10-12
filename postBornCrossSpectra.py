@@ -40,10 +40,9 @@ class PostBorn_Bispec():
         self.second_kernel  = second_kernel
         self.simple_kernel  = simple_kernel
 
-        try:
-          self.get_spec_int()
-        except:
-          self.compute_spec_int()
+
+
+        self.compute_spec_int()
 
         if lmax==None:
             lmax=20000
@@ -96,20 +95,20 @@ class PostBorn_Bispec():
 
         self.cl_born(self.chimax)
 
-    def get_spec_int(self):
-        # load (cross) power spectrum here
-        self.pk_mm = RectBivariateSpline(k_,np.log(z_),np.transpose(spec_))
-
-        self.pk_mh_1st = RectBivariateSpline(k_,np.log(z_),np.transpose(spec_cross_1st))
-
-        self.pk_mh_2nd = RectBivariateSpline(k_,np.log(z_),np.transpose(spec_cross_2nd))
+#    def get_spec_int(self):
+#        # load (cross) power spectrum here
+#        self.pk_mm = RectBivariateSpline(k_,np.log(z_),np.transpose(spec_))
+#
+#        self.pk_mh_1st = RectBivariateSpline(k_,np.log(z_),np.transpose(spec_cross_1st))
+#
+#        self.pk_mh_2nd = RectBivariateSpline(k_,np.log(z_),np.transpose(spec_cross_2nd))
 
 
 
     def compute_spec_int(self, nl=True):
 
         try:
-            self.pk_mm,self.pk_mh_1st,self.pk_mh_2nd = pickle.load(open('/home/nessa/Documents/Projects/LensingBispectrum/CMB-nonlinear/outputs/power_spectra/Pks_pB_tests.pkl','w'))
+            self.pk_mm  = pickle.load(open('/home/nessa/Documents/Projects/LensingBispectrum/CMB-nonlinear/outputs/power_spectra/Pks_pB_tests.pkl','w'))
         except:
             self.cosmo['output'] = 'mPk'
             self.cosmo['P_k_max_1/Mpc'] = self.kmax+1
@@ -151,7 +150,7 @@ class PostBorn_Bispec():
             self.pk_mh_1st = pk_int
             self.pk_mh_2nd = pk_int
 
-            pickle.dump([self.pk_mm,self.pk_mh_1st,self.pk_mh_2nd],open('/home/nessa/Documents/Projects/LensingBispectrum/CMB-nonlinear/outputs/power_spectra/Pks_pB_tests.pkl','w'))
+            pickle.dump(self.pk_mm,open('/home/nessa/Documents/Projects/LensingBispectrum/CMB-nonlinear/outputs/power_spectra/Pks_pB_tests.pkl','w'))
 
 
     def cl_kappa(self, chimax, chimax2=None):
