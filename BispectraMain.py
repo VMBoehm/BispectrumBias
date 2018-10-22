@@ -247,7 +247,7 @@ if __name__ == "__main__":
 
     "---begin settings---"
 
-    tag         = 'll_delta25'
+    tag         = 'kkk'
 
     lensing     = True
 
@@ -255,7 +255,7 @@ if __name__ == "__main__":
 
     cparams     = C.Planck2015
     #post Born (use post Born terms from Pratten & Lewis arXiv:1605.05662)
-    post_born   = False
+    post_born   = True
 
     neutrinos   = False
 
@@ -271,12 +271,12 @@ if __name__ == "__main__":
 
     #sampling in L/l and angle
     len_L       = 120 #120
-    len_l       = len_L#+20
+    len_l       = len_L+20
     len_ang     = len_L
 
     #ell range (for L and l)
     L_min       = 1.
-    L_max       = 8000.
+    L_max       = 3000.
     len_low_L   = 20
 
     l_min       = L_min
@@ -339,11 +339,11 @@ if __name__ == "__main__":
         config  = tag+"_"+ell_type+"_ang"+str(Delta_theta)+"_"+cparams[0]['name']
 
 #### kernels ####
-    kernels = (gal_lens((0.,2.5),data, p_chi=p_delta(data,2.5)),gal_lens((0.,2.5),data, p_chi=p_delta(data,2.5)), gal_lens((0.,2.5),data, p_chi=p_delta(data,2.5)))
+    kernels = (CMB_lens(chicmb,data),CMB_lens(chicmb,data),CMB_lens(chicmb,data))
 
     print "config: %s"%config
 
-    bs   = Bispectra(params,data,ls[0],ls[1],ls[2],z,chi,kernels,config,angs[0],angs[1],angs[2],path, nl,B_fit,k_min,k_max,fit_z_max,ft='SC')
+    bs   = Bispectra(params,data,ls[0],ls[1],ls[2],z,chi,kernels,config,angs[0],angs[1],angs[2],path, nl,B_fit,k_min,k_max,fit_z_max,ft='GM')
 
     bs()
 
