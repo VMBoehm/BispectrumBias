@@ -244,7 +244,7 @@ if __name__ == "__main__":
 
     "---begin settings---"
 
-    tag         = 'gg'
+    tag         = 'kg'
 
     ell_type    = 'full'#'equilat','folded'
 
@@ -334,7 +334,7 @@ if __name__ == "__main__":
         config  = tag+"_"+ell_type+"_ang"+str(Delta_theta)+"_"+cparams[0]['name']
 
 #### kernels ####
-    kernels = (gal_clus(dNdz_LSST,simple_bias,data,LSST_bin), None, None)
+    kernels = (gal_clus(dNdz_LSST,simple_bias,data,LSST_bin), CMB_lens(data.chi_cmb,data), None)
 
     print "config: %s"%config
 
