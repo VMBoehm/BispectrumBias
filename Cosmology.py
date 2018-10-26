@@ -170,6 +170,15 @@ Planck2015=[{
 'k_pivot' : 0.05}]
 #print derived sigma_8
 
+LimberTest=[{'name':'postLimberTest'},{
+'k_pivot' : 0.05,
+'A_s' : 2.137e-9,
+'n_s' : 0.97,
+'h' : 0.68,
+'omega_b' : 0.0223,
+'N_ur' : 3.046,
+'omega_cdm' : 0.119}]
+
 Planck2015_TTTEEElowPlensing=[{
 'name':"Planck2015_TTTEEElowPlensing"},{
 'h': 0.6751,

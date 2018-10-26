@@ -248,7 +248,7 @@ if __name__ == "__main__":
 
     ell_type    = 'full'#'equilat','folded'
 
-    cparams     = C.Planck2015
+    cparams     = C.LimberTest
     #post Born (use post Born terms from Pratten & Lewis arXiv:1605.05662)
     post_born   = False
     neutrinos   = False
