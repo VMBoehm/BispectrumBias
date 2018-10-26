@@ -244,14 +244,13 @@ if __name__ == "__main__":
 
     "---begin settings---"
 
-    tag         = 'gg'
+    tag         = 'kk'
 
     ell_type    = 'full'#'equilat','folded'
 
     cparams     = C.Planck2015
     #post Born (use post Born terms from Pratten & Lewis arXiv:1605.05662)
-    post_born   = True
-
+    post_born   = False
     neutrinos   = False
 
     cross_bias  = True
@@ -259,7 +258,7 @@ if __name__ == "__main__":
     #fitting formula (use B_delta fitting formula from Gil-Marin et al. arXiv:1111.4477
     B_fit       = True
     fit_z_max   = 5.
-    nl          = True
+    nl          = False
     #number of redshift bins
     bin_num     = 100
     z_min       = 1e-4 #for squeezed galaxy lens
@@ -334,8 +333,7 @@ if __name__ == "__main__":
         config  = tag+"_"+ell_type+"_ang"+str(Delta_theta)+"_"+cparams[0]['name']
 
 #### kernels ####
-    kernels = (gal_clus(dNdz_LSST,simple_bias,data,LSST_bin), None, None)
-
+    kernels = (CMB_lens(data.chi_cmb,data),CMB_lens(data.chi_cmb,data), None)
     print "config: %s"%config
 
     bs   = Bispectra(params,data,ls[0],ls[1],ls[2],z,chi,kernels,config,angs[0],angs[1],angs[2],path, nl,B_fit,k_min,k_max,fit_z_max,ft='SC')
