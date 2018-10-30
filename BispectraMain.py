@@ -244,11 +244,11 @@ if __name__ == "__main__":
 
     "---begin settings---"
 
-    tag         = 'kk'
+    tag         = 'kk_zmax5'
 
     ell_type    = 'full'#'equilat','folded'
 
-    cparams     = C.Planck2015
+    cparams     = C.LimberTest
     #post Born (use post Born terms from Pratten & Lewis arXiv:1605.05662)
     post_born   = False
     neutrinos   = False
@@ -313,7 +313,7 @@ if __name__ == "__main__":
 
     print "z_cmb: %f"%z_cmb
 
-    zmax  = z_cmb-1e-4
+    zmax  = 5.#z_cmb-1e-4
     a     = np.linspace(1./(1.+z_min),1./(1.+zmax),bin_num)
     z     = 1./a-1.
 
