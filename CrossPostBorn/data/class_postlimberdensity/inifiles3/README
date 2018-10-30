@@ -1,8 +1,12 @@
 The redshift extent of each file corresponds to da=0.01
 
+
+da = 0.01
 for a in np.arange(1, ztoa(5), -da/2.):
-    a1, a2 = a, a-da
-    aa = np.linspace(a1, a2, 11, endpoint=True)
-    zz = atoz(aa)
-    fname = '/global/u1/c/chmodi/Programs/class_public/pborncross/inifiles3/class_a%03da%03d_inparameters.ini'%(a1*100, a2*100)
+    a1 = np.round(a, 3)
+    a2 = np.round(a-da, 3)
+    if (a1 - a2  != -0.01): print(a1, a2, a1-a2)
+#     aa = np.linspace(a1, a2, 11, endpoint=True)
+#     zz = atoz(aa)
+#     fname2 = '/global/u1/c/chmodi/Programs/class_public/pborncross/inifiles3/class_a%03da%03d_inparameters.ini'%(a1*1000, a2*1000)
     selection_mean = zz
