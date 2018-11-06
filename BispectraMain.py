@@ -193,6 +193,7 @@ def gal_lens(zrange,data, p_chi=None):
     def kernel(x,z):
 
       w = np.ones(x.shape)
+      #theta function
       w[x>chimax] =0.
       w[x==0.] =0.
       res = w*x*q(x)*(1.+z)
@@ -206,6 +207,7 @@ def CMB_lens(chicmb,cosmo):
     def kernel(x,z,chimax=None):
       if chimax is None:
         chimax=chicmb
+      #theta function
       w = np.ones(x.shape)
       w[x>chimax]==0.
       return (1+z)*x*w*(chimax-x)/chimax*cosmo.lens_prefac
@@ -247,11 +249,11 @@ if __name__ == "__main__":
 
     "---begin settings---"
 
-    tag         = 'kkk'
+    tag         = 'kkk_pBtest'
 
     lensing     = True
 
-    ell_type    = 'full'#'equilat','folded'
+    ell_type    = 'folded'#'equilat','folded'
 
     cparams     = C.Planck2015
     #post Born (use post Born terms from Pratten & Lewis arXiv:1605.05662)
@@ -270,13 +272,13 @@ if __name__ == "__main__":
     z_min       = 1e-4 #for squeezed galaxy lens
 
     #sampling in L/l and angle
-    len_L       = 120 #120
+    len_L       = 160 #120
     len_l       = len_L+20
     len_ang     = len_L
 
     #ell range (for L and l)
-    L_min       = 1.
-    L_max       = 3000.
+    L_min       = 100.
+    L_max       = 10000.
     len_low_L   = 20
 
     l_min       = L_min
@@ -379,19 +381,30 @@ if __name__ == "__main__":
       np.save(bs.filenameCL+'_CLASS'+'.npy',[ll,cls0,cls0_])
 
 
+    def bi_born_cross(l1,l2,l3,Mstarsp):
+
+
+        cos12 = (l3**2-l1**2-l2**2)/2./l1/l2
+        cos23 = (l1**2-l2**2-l3**2)/2./l2/l3
+        #cos31 = (l2**2-l3**2-l1**2)/2./l3/l1
+
+        res = 2.*l1/l3*cos12*cos23*Mstarsp(l2,l3,grid=False)
+
+        return res
+
 
     if post_born:
         import CAMB_postborn as postborn
         print 'computing post Born corrections...'
 
-        PBB     = postborn.PostBorn_Bispec(params, z_min,zmax,spec_int=bs.pk_int,kernels=kernels, simple_kernel = CMB_lens(None,data), k_min=k_min, k_max=k_max, data=data)
+        bi_post = np.zeros(len(ls[0]))
 
-        bi_post = PBB.bi_born(ls[0],ls[1],ls[2])
-
-        """ for bias only, general post Born for cross is not yet implemented """
         if cross_bias:
+            """ for non-linear bias only """
+            PBB     = postborn.PostBorn_Bispec(params, z_min,zmax,spec_int=bs.pk_int,kernels=kernels, simple_kernel = CMB_lens(None,data), k_min=k_min, k_max=k_max, data=data)
             #pseudo-code
-            kernels2= kernels#(gal,cmb,cmb)
+            print('TODO: check order of kernels again!!')
+            kernels2= (kernels[2],kernels[0],kernels[1])#kernels#(gal,cmb,cmb)
             kernels1=(kernels[1],kernels[0],kernels[2])#(cmb,gal,cmb)
 
             PBB1     = postborn.PostBorn_Bispec(params, z_min,zmax,spec_int=bs.pk_int,kernels=kernels1, simple_kernel = CMB_lens(None,data), k_min=k_min, k_max=k_max, data=data)
@@ -409,10 +422,36 @@ if __name__ == "__main__":
             np.save(bs.filename+"_post_born1.npy",bi_post1)
             np.save(bs.filename+"_post_born2.npy",bi_post2)
 
+
+        else:
+            """ general expressions for cross bispectra """
+            #assume order of kernels in kernels goes with legs of correlator as:
+            #kernel1-ls[0],kernel2-ls[1],kernel3-ls[2]
+            try:
+              nums, Mstarsp = pickle.load(open(path+'postBorn/Mstarsplines.pkl','rb'))
+            except:
+              import itertools
+
+              Mstarsp = []
+              nums=[]
+              for (ii,jj,nn) in itertools.permutations([0,1,2]):
+                print('next iter')
+                kernels_=(kernels[ii],kernels[jj],kernels[nn])
+                PBB     = postborn.PostBorn_Bispec(params, z_min,zmax,spec_int=bs.pk_int,kernels=kernels_, simple_kernel = CMB_lens(None,data), k_min=k_min, k_max=k_max, data=data)
+                Mstarsp+=[PBB.Mstarsp]
+                nums+=[(ii,jj,nn)]
+
+              pickle.dump([nums,Mstarsp],open(path+'postBorn/Mstarsplines.pkl','wb'))
+
+
+            for ii in np.arange(0,6):
+              bi_post+=bi_born_cross(ls[nums[ii][0]],ls[nums[ii][1]],ls[nums[ii][2]],Mstarsp[ii])
+            PBB     = postborn.PostBorn_Bispec(params, z_min,zmax,spec_int=bs.pk_int,kernels=kernels, simple_kernel = CMB_lens(None,data), k_min=k_min, k_max=k_max, data=data)
+            #bi_post_true=PBB.bi_born(ls[0],ls[1],ls[2])
+
         np.save(bs.filename+"_post_born.npy",bi_post)
         np.save(bs.filename+"_post_born_sum.npy",bi_post+bs.bi_phi)
 
-        print(bs.filename+"_post_born.npy")
 
 
 

@@ -39,16 +39,6 @@ class PostBorn_Bispec():
 
         self.kernel1, self.kernel2, self.kernel3 = kernels
 
-#        if self.kernel2 is None:
-#          self.kernel2 = self.kernel1
-#
-#        #goes together with simple_kernel
-#        if self.kernel3 is None:
-#          self.kernel3 = self.kernel1
-#
-#        if simple_kernel is None:
-#          simple_kernel = self.kernel1
-
         self.simple_kernel = simple_kernel
 
 
@@ -82,7 +72,7 @@ class PostBorn_Bispec():
 
 
         for i, chimax in enumerate(chimaxs[1:]):
-            cl = self.cl_kappa(chimax,self.simple_kernel,self.kernel1)
+            cl = self.cl_kappa(chimax,self.simple_kernel,self.kernel3)
             cls[i+1,:] = cl
         cls[0,:]=0
         cl_chi_chistar = RectBivariateSpline(chimaxs,self.ls,cls)
@@ -95,7 +85,7 @@ class PostBorn_Bispec():
         dchis   = (chis[2:]-chis[:-2])/2
         chis    = chis[1:-1]
         zs      = zs[1:-1]
-        win     = self.kernel2(chis, zs)*self.kernel3(chis,zs)/chis**2
+        win     = self.kernel1(chis, zs)*self.kernel2(chis,zs)/chis**2
         cl      = np.zeros(self.ls.shape)
         w       = np.ones(chis.shape)
         cchi    = cl_chi_chistar(chis,self.ls, grid=True)
@@ -115,7 +105,7 @@ class PostBorn_Bispec():
 
 
     def get_spec_int(self):
-
+        assert(False)
         self.cosmo['output'] = 'tCl, mPk'
         self.cosmo['P_k_max_1/Mpc'] = self.kmax+1
         self.cosmo['z_max_pk']      = max(max(self.z),1.5)
@@ -155,7 +145,7 @@ class PostBorn_Bispec():
 
         chis    = np.linspace(self.chimin,chimax,self.nz, dtype=np.float64)
         zs      = self.data.zchi(chis)
-        dchis   = (chis[2:]-chis[:-2])/2
+        dchis   = (chis[2:]-chis[:-2])/2.
         chis    = chis[1:-1]
         zs      = zs[1:-1]
         win     = simple_kernel(chis,zs,chimax)*kernel2(chis,zs)/chis**2
@@ -172,7 +162,7 @@ class PostBorn_Bispec():
 
 
 
-
+    # original version for CMB lensing
     def bi_born(self,l1,l2,l3):
 
         fac= 2.#check for cross
@@ -181,13 +171,14 @@ class PostBorn_Bispec():
         cos23 = (l1**2-l2**2-l3**2)/2./l2/l3
         cos31 = (l2**2-l3**2-l1**2)/2./l3/l1
 
-        res = cos23/l2/l3*l1*(l3*cos31*self.Mstarsp(l3,l2,grid=False) +l2*cos12*self.Mstarsp(l2,l3,grid=False)) + \
-              cos31/l1/l3*l2*(l3*cos23*self.Mstarsp(l3,l1,grid=False) +l1*cos12*self.Mstarsp(l1,l3,grid=False)) + \
-              cos12/l2/l1*l3*(l1*cos31*self.Mstarsp(l1,l2,grid=False) +l2*cos23*self.Mstarsp(l2,l1,grid=False))
+        res1 = cos23/l2/l3*l1*(l3*cos31*self.Mstarsp(l3,l2,grid=False) +l2*cos12*self.Mstarsp(l2,l3,grid=False))*fac
+        res2 = cos31/l1/l3*l2*(l3*cos23*self.Mstarsp(l3,l1,grid=False) +l1*cos12*self.Mstarsp(l1,l3,grid=False))*fac
+        res3 = cos12/l2/l1*l3*(l1*cos31*self.Mstarsp(l1,l2,grid=False) +l2*cos23*self.Mstarsp(l2,l1,grid=False))*fac
 
-        return res*fac
+        return res1+res2+res3
 
-
+    # everything below is for cross bias only
+    #l1 associated with ke
     def bi_born_cross1(self,l1,l2,l3):
 
         fac= 2.#check for cross
