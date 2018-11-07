@@ -22,7 +22,7 @@ plt.rc('text',usetex=True)
 plt.rc('font',**{'family':'serif','serif':['Computer Modern'],'size':16})
 
 """------------settings----------------"""
-params      = Cosmo.Planck2015
+params      = Cosmo.Namikawa
 tag         = params[0]['name']
 fields      = ['tt','te','ee','eb','bb','tb']
 nl          = True
@@ -30,13 +30,13 @@ out_path    ='/home/nessa/Documents/Projects/LensingBispectrum/CMB-nonlinear/out
 
 thetaFWHMarcmin = 3. #beam FWHM
 noiseUkArcmin   = 0.5 #eval(sys.argv[1]) #Noise level in uKarcmin
-l_max_T         = 3000
-l_max_P         = 5000
+l_max_T         = 4000
+l_max_P         = 4000
 l_min           = 50
 L_max           = 6000 #for l integration
 L_min           = 1
 TCMB            = 2.7255e6
-div             = True #divide EB by factor of 2.5
+div             = False #divide EB by factor of 2.5
 
 if nl:
   nl_='_nl'
@@ -184,8 +184,8 @@ def get_lensing_noise(ells, cl_len, cl_unlen, nl, fields,lmin,lmax):
     result ={}
 
     cl_tot = {}
-    n_Ls   = 200
-    LogLs  = np.linspace(np.log(1.),np.log(4000), n_Ls)
+    n_Ls   = 400
+    LogLs  = np.linspace(np.log(1.),np.log(10001), n_Ls)
     Ls     = np.unique(np.floor(np.exp(LogLs)).astype(int))
 
     for field in fields:

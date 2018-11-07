@@ -32,9 +32,9 @@ from Constants import LIGHT_SPEED
 from Bispectra import Bispectra
 
 
-def get_triangles(ell_type,Lmin,Lmax,lmin,lmax,len_L,len_low_L,len_l,len_ang,path,Delta_theta=0):
+def get_triangles(ell_type,Lmin,Lmax,lmin,lmax,len_L,len_low_L,delta_len_l,len_ang,path,Delta_theta=0):
 
-    filename=path+"ells/ell_ang_%s_Lmin%d_Lmax%d_lmin%d_lmax%d_lenL%d_lenl%d_lenang%d_%.0e.pkl"%(ell_type,Lmin,Lmax,lmin,lmax,len_L,len_l,len_ang,Delta_theta)
+    filename=path+"ells/ell_ang_%s_Lmin%d_Lmax%d_lmin%d_lmax%d_lenL%d_dlenl%d_lenang%d_%.0e.pkl"%(ell_type,Lmin,Lmax,lmin,lmax,len_L,delta_len_l,len_ang,Delta_theta)
 
     if ell_type=="full":
         La      = np.linspace(L_min,100,len_low_L)
@@ -43,11 +43,11 @@ def get_triangles(ell_type,Lmin,Lmax,lmin,lmax,len_L,len_low_L,len_l,len_ang,pat
 
         la      = L
         if L_max<l_max:
-          lb      = np.exp(np.linspace(np.log(L_max),np.log(l_max),21))[1:]
+          lb      = np.exp(np.linspace(np.log(L_max),np.log(l_max),delta_len_l))[1:]
           l       = np.append(la,lb)
         else:
           l       = la
-        assert(len(l)==len_l)
+
 
     elif ell_type=='equilat':
         assert(len_L>150)
@@ -73,7 +73,7 @@ def get_triangles(ell_type,Lmin,Lmax,lmin,lmax,len_L,len_low_L,len_l,len_ang,pat
         theta   = np.asarray([0.]*len_side)
     if ell_type=='squeezed':
         theta   = np.asarray([2.*np.pi-Delta_theta]*len_side)
-
+    len_l = len(l)
     print filename
     pickle.dump([L,l,theta],open(filename, 'w'))
 
@@ -249,13 +249,13 @@ if __name__ == "__main__":
 
     "---begin settings---"
 
-    tag         = 'kkk_pBtest'
+    tag         = 'kkk_SN'
 
     lensing     = True
 
-    ell_type    = 'folded'#'equilat','folded'
+    ell_type    = 'full'#'equilat','folded'
 
-    cparams     = C.Planck2015
+    cparams     = C.Namikawa
     #post Born (use post Born terms from Pratten & Lewis arXiv:1605.05662)
     post_born   = True
 
@@ -273,16 +273,16 @@ if __name__ == "__main__":
 
     #sampling in L/l and angle
     len_L       = 160 #120
-    len_l       = len_L+20
+    delta_len_l = 20 #fill gap between max(L) and max(l) with delta_len_l samples
     len_ang     = len_L
 
     #ell range (for L and l)
-    L_min       = 100.
-    L_max       = 10000.
+    L_min       = 1.
+    L_max       = 8000.
     len_low_L   = 20
 
     l_min       = L_min
-    l_max       = 8000.
+    l_max       = 10000.
 
     Delta_theta = 1e-4
 
@@ -300,7 +300,7 @@ if __name__ == "__main__":
     assert(ell_type in ['folded','full','equilat','squeezed'])
 
 
-    ls, angs, angmus, ellfile= get_triangles(ell_type,L_min,L_max,l_min,l_max,len_L,len_low_L,len_l,len_ang,path,Delta_theta=Delta_theta)
+    ls, angs, angmus, ellfile= get_triangles(ell_type,L_min,L_max,l_min,l_max,len_L,len_low_L,delta_len_l,len_ang,path,Delta_theta=Delta_theta)
 
     params  = deepcopy(cparams[1])
     acc = deepcopy(C.acc_1)
