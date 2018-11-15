@@ -33,7 +33,7 @@ def coslaw_ang(k1,k2,k3):
 	"""
 	cos_g=(k1**2.+k2**2.-k3**2.)/(2.*k1*k2)
 	if (cos_g>1. or cos_g<-1.):
-		print cos_g, k1, k2, k3
+		print(cos_g, k1, k2, k3)
 	return cos_g
 
 

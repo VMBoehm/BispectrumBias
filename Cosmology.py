@@ -263,7 +263,7 @@ class CosmoData():
 			* cosmo: 	instance of class Cosmology (paramter s for CLASS)
 			* z: 	     	array of redshifts
 		"""
-		print "computing distances, derived parameters..."
+		print("computing distances, derived parameters...")
 
 		self.class_params     = params
 		self.z                = z
@@ -316,10 +316,10 @@ class CosmoData():
 
 		self.closmo       = closmo
 
-		print closmo.get_current_derived_parameters(['Neff'])
-		print closmo.get_current_derived_parameters(['h'])
-		print closmo.get_current_derived_parameters(['m_ncdm_tot'])
-		print closmo.get_current_derived_parameters(['omega_m'])
+		print(closmo.get_current_derived_parameters(['Neff']))
+		print(closmo.get_current_derived_parameters(['h']))
+		print(closmo.get_current_derived_parameters(['m_ncdm_tot']))
+		print(closmo.get_current_derived_parameters(['omega_m']))
 
 		closmo.struct_cleanup()
 		closmo.empty()
@@ -356,7 +356,7 @@ class CosmoData():
 			P=np.empty((len(test_zs),len(k_aux)))
 			for ii in range(len(test_zs)):
 				P[ii]=[closmo_test.pk(k,test_zs[ii]) for k in k_aux]
-			print P[ii].shape
+			print(P[ii].shape)
 
 			# this plot can be compared with literature
 			pl.figure()
@@ -436,19 +436,19 @@ class CosmoData():
 		closmo 					 = Class()
 		closmo.set(params)
 
-		print "Calculalating Cls... with settings",self.class_params
+		print("Calculalating Cls... with settings",self.class_params)
 
 		closmo.compute()
-		print 'sigma8: ',closmo.sigma8()
+		print('sigma8: ',closmo.sigma8())
 
 
 		cl_len=closmo.lensed_cl(lmax)
 
 		cl_unl=closmo.raw_cl(lmax)
 
-		pickle.dump([params,cl_unl,cl_len],open(path+'class_cls_%s.pkl'%tag,'w'))
+		pickle.dump([params,cl_unl,cl_len],open(path+'class_cls_%s.pkl'%tag,'wb'))
 
-		print 'dumped to ', path+'class_cls_%s.pkl'%tag
+		print('dumped to ', path+'class_cls_%s.pkl'%tag)
 
 		return True
 
@@ -466,8 +466,8 @@ class CosmoData():
 		params['non linear']=""
 		params.update(acc_1)
 
-		print (min(k_array),max(k_array))
-		print params
+		print(min(k_array),max(k_array))
+		print(params)
 		closmo = Class()
 		closmo.set(params)
 		closmo.compute()
@@ -491,7 +491,7 @@ class CosmoData():
 		pl.xlabel('z')
 		pl.ylabel('$k_{NL}$')
 		pl.show()
-		print "sigma8:", sigma8
+		print("sigma8:", sigma8)
 
 		self.sigma8_z 		= splrep(z_,sigma8*(self.LJ_D_z(z_))) #sigma_8 today rescaled to other redshifts
 		pl.figure()
@@ -585,7 +585,7 @@ class CosmoData():
 		for z_ in z[np.where(z<=z_max)]:
 			q=k/self.k_NL[j]
 			a_nk_z=(1.+splev(z_,self.sigma8_z)**a6*np.sqrt(0.7*Q)*(a1*q)**(n+a2))/(1.+(q*a1)**(n+a2))
-   			pl.plot(k,a_nk_z)
+			pl.plot(k,a_nk_z)
 			self.a_nk+=[splrep(k,a_nk_z)]
 			b_nk_z=(1.+0.2*a3*(n+3.)*(q*a7)**(n+3.+a8))/(1.+(q*a7)**(n+3.5+a8))
 			c_nk_z=(1.+4.5*a4/(1.5+(n+3.)**4)*(q*a5)**(n+3.+a9))/(1.+(q*a5)**(n+3.5+a9))
